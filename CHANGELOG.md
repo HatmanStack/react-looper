@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+
 - Waveform visualization for audio tracks
 - Real-time mixing preview
 - Additional export formats (WAV, AAC)
@@ -25,6 +26,7 @@ The first production release of Looper, migrated from the original Android app a
 ### Added
 
 #### Core Features
+
 - **Multi-track audio recording** with device microphone
 - **Audio file import** from device storage
 - **Simultaneous playback** of up to 20 tracks
@@ -35,6 +37,7 @@ The first production release of Looper, migrated from the original Android app a
 - **High-quality MP3 export** (44.1kHz, 128kbps)
 
 #### User Interface
+
 - Modern Material Design interface with React Native Paper
 - Dark mode theme
 - Responsive layout for mobile and desktop web
@@ -44,12 +47,14 @@ The first production release of Looper, migrated from the original Android app a
 - Modal dialogs for save operations
 
 #### Platform Support
+
 - **Web**: Progressive Web App (PWA) with offline support
 - **Android**: Native app (Android 7.0+, API 24+)
 - **iOS**: Native app (iOS 13.0+)
 - Cross-platform codebase using React Native and Expo
 
 #### Audio Processing
+
 - **Web**: FFmpeg.wasm for browser-based mixing
 - **Native**: FFmpeg Kit for native audio processing
 - **Web Audio API** for playback on web
@@ -58,11 +63,13 @@ The first production release of Looper, migrated from the original Android app a
 - Pitch preservation during speed adjustments
 
 #### State Management
+
 - Zustand for global state management
 - Persistent state across app restarts
 - Efficient re-rendering with selective subscriptions
 
 #### Accessibility
+
 - WCAG 2.1 Level AA compliance
 - Screen reader support (VoiceOver, TalkBack, NVDA/JAWS)
 - Keyboard navigation on web
@@ -71,6 +78,7 @@ The first production release of Looper, migrated from the original Android app a
 - Touch targets meet minimum size requirements (44x44)
 
 #### Testing
+
 - 80%+ code coverage
 - Unit tests for all services and utilities
 - Integration tests for major workflows
@@ -80,6 +88,7 @@ The first production release of Looper, migrated from the original Android app a
 - Cross-platform verification tests
 
 #### Developer Experience
+
 - TypeScript strict mode
 - ESLint and Prettier for code quality
 - Comprehensive documentation
@@ -90,6 +99,7 @@ The first production release of Looper, migrated from the original Android app a
 ### Technical Details
 
 #### Dependencies
+
 - React Native 0.81
 - Expo SDK 54
 - TypeScript 5.9
@@ -99,12 +109,14 @@ The first production release of Looper, migrated from the original Android app a
 - FFmpeg Kit React Native 6.0 (native)
 
 #### Build Configuration
+
 - EAS Build for mobile apps
 - Metro bundler for web with optimizations
 - PWA with service worker and offline support
 - Vercel/Netlify deployment configurations
 
 #### Architecture
+
 - Platform-specific audio services with unified interfaces
 - Factory pattern for service instantiation
 - Separation of concerns (UI, business logic, state)
@@ -115,12 +127,14 @@ The first production release of Looper, migrated from the original Android app a
 This release represents a complete migration and enhancement of the original Android app:
 
 **Retained Features:**
+
 - Multi-track playback with independent controls
 - Speed and volume adjustment per track
 - Dark theme Material Design interface
 - Local file storage
 
 **New Features:**
+
 - **True audio mixing** (biggest addition - not in original)
 - Web platform support
 - iOS platform support
@@ -132,6 +146,7 @@ This release represents a complete migration and enhancement of the original And
 - Offline capability (web)
 
 **Improved:**
+
 - Audio quality (44.1kHz vs original AMR-NB)
 - UI responsiveness
 - Code organization and maintainability
@@ -159,49 +174,58 @@ This release represents a complete migration and enhancement of the original And
 ### Pre-Release Development
 
 **Phase 0 - Foundation (2024-XX)**
+
 - Architecture decisions and technology stack selection
 - Analysis of original Android implementation
 
 **Phase 1 - Project Setup (2024-XX)**
+
 - Expo project initialization
 - TypeScript configuration
 - Development tooling setup
 
 **Phase 2 - Core UI (2024-XX)**
+
 - Main screen layout
 - Reusable components (buttons, sliders, cards)
 - Track list implementation
 - React Native Paper integration
 
 **Phase 3 - Audio Abstraction (2024-XX)**
+
 - Platform-specific audio service interfaces
 - Service factory pattern
 - Mock implementations for testing
 
 **Phase 4 - Recording & Import (2024-XX)**
+
 - Web MediaRecorder integration
 - Native expo-av recording
 - File picker implementation
 - Permission handling
 
 **Phase 5 - Playback & Controls (2024-XX)**
+
 - Web Audio API playback
 - Native expo-av playback
 - Speed and volume controls
 - Multi-track synchronization
 
 **Phase 6 - FFmpeg Integration (2024-XX)**
+
 - FFmpeg.wasm for web
 - FFmpeg Kit for native platforms
 - Mixing engine implementation
 - Progress tracking
 
 **Phase 7 - State Management (2024-XX)**
+
 - Zustand store implementation
 - State persistence
 - App lifecycle handling
 
 **Phase 8 - Testing & QA (2024-XX)**
+
 - Unit test suite (200+ tests)
 - Integration tests
 - E2E test infrastructure
@@ -210,6 +234,7 @@ This release represents a complete migration and enhancement of the original And
 - Cross-platform verification
 
 **Phase 9 - Build & Deployment (2024-XX)**
+
 - Production environment configuration
 - Web build optimization
 - EAS Build configuration
@@ -236,6 +261,7 @@ This release represents a complete migration and enhancement of the original And
 ### [1.1.0] - Planned
 
 #### Features
+
 - Waveform visualization
 - Real-time mixing preview
 - Additional export formats (WAV, AAC)
@@ -245,6 +271,7 @@ This release represents a complete migration and enhancement of the original And
 ### [1.2.0] - Planned
 
 #### Features
+
 - Audio effects (reverb, EQ, compression)
 - MIDI support
 - Custom themes
@@ -254,6 +281,7 @@ This release represents a complete migration and enhancement of the original And
 ### [2.0.0] - Future
 
 #### Features
+
 - Cloud backup and sync
 - Collaboration features
 - Advanced audio editing
@@ -267,6 +295,7 @@ This release represents a complete migration and enhancement of the original And
 ### Versioning
 
 We follow [Semantic Versioning](https://semver.org/):
+
 - **MAJOR**: Breaking changes
 - **MINOR**: New features, backwards compatible
 - **PATCH**: Bug fixes
@@ -302,6 +331,7 @@ We follow [Semantic Versioning](https://semver.org/):
 ---
 
 **Legend:**
+
 - 🎉 Major release
 - ✨ New feature
 - 🐛 Bug fix

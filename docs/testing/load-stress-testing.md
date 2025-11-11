@@ -266,8 +266,8 @@ npm run start
 ```javascript
 // scripts/generateTestTracks.js
 
-const fs = require('fs');
-const crypto = require('crypto');
+const fs = require("fs");
+const crypto = require("crypto");
 
 function generateTrack(id, sizeKB) {
   return {
@@ -292,7 +292,7 @@ function generateTracks(count, sizeKB) {
 
 // Generate 50 tracks
 const tracks = generateTracks(50, 1024);
-fs.writeFileSync('test-data/tracks.json', JSON.stringify(tracks, null, 2));
+fs.writeFileSync("test-data/tracks.json", JSON.stringify(tracks, null, 2));
 
 console.log(`Generated ${tracks.length} test tracks`);
 ```
@@ -303,11 +303,11 @@ console.log(`Generated ${tracks.length} test tracks`);
 // scripts/loadTest.js
 
 async function loadTest() {
-  console.log('Starting load test...');
+  console.log("Starting load test...");
 
   // Test 1: Many tracks
-  console.log('\n=== Test 1: 20 Simultaneous Tracks ===');
-  const tracks = require('../test-data/tracks.json').slice(0, 20);
+  console.log("\n=== Test 1: 20 Simultaneous Tracks ===");
+  const tracks = require("../test-data/tracks.json").slice(0, 20);
 
   const startTime = Date.now();
   const startMemory = process.memoryUsage().heapUsed;
@@ -324,7 +324,7 @@ async function loadTest() {
   console.log(`Memory used: ${(endMemory - startMemory) / 1024 / 1024}MB`);
 
   // Test 2: Rapid operations
-  console.log('\n=== Test 2: Rapid Operations ===');
+  console.log("\n=== Test 2: Rapid Operations ===");
 
   const operations = 100;
   const operationTimes = [];
@@ -340,7 +340,7 @@ async function loadTest() {
   console.log(`Average operation time: ${avgTime}ms`);
   console.log(`Max operation time: ${Math.max(...operationTimes)}ms`);
 
-  console.log('\nLoad test complete!');
+  console.log("\nLoad test complete!");
 }
 
 loadTest().catch(console.error);
@@ -414,8 +414,8 @@ Leak: Memory remains significantly higher
 
 ```javascript
 // Memory leak test
-describe('Memory Leaks', () => {
-  it('should not leak memory when adding/removing tracks', () => {
+describe("Memory Leaks", () => {
+  it("should not leak memory when adding/removing tracks", () => {
     const iterations = 100;
     const memorySnapshots = [];
 

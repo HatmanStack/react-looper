@@ -196,8 +196,8 @@ __tests__/
 ### 1. Test Naming Convention
 
 ```typescript
-describe('ComponentName', () => {
-  it('should perform expected behavior when condition', () => {
+describe("ComponentName", () => {
+  it("should perform expected behavior when condition", () => {
     // Test implementation
   });
 });
@@ -223,7 +223,7 @@ it('should update volume when slider changes', () => {
 
 ```typescript
 // Mock expo-av
-jest.mock('expo-av', () => ({
+jest.mock("expo-av", () => ({
   Audio: {
     requestPermissionsAsync: jest.fn(),
     Recording: jest.fn(),

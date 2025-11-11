@@ -5,6 +5,7 @@
 Build user-facing UI components that make the looping functionality visible and controllable. Add master track visual styling, a global loop mode toggle, confirmation dialogs for destructive actions, and per-track playback indicators. This phase makes Phase 1's logic accessible to users.
 
 **Success Criteria**:
+
 - Master track has distinct visual styling
 - Loop mode toggle button functional and accessible
 - Confirmation dialogs prevent accidental destructive actions
@@ -32,6 +33,7 @@ Build user-facing UI components that make the looping functionality visible and 
 **Goal**: Apply distinct visual styling to the master track so users can immediately identify which track sets the loop length.
 
 **Files to Modify**:
+
 - `src/components/TrackListItem/TrackListItem.tsx` - Add master track detection and conditional styling
 - `src/components/TrackListItem/TrackListItem.styles.ts` - Add master track styles
 - `src/components/TrackListItem/__tests__/TrackListItem.test.tsx` - Create if missing, add tests
@@ -69,6 +71,7 @@ Build user-facing UI components that make the looping functionality visible and 
    - Test theme compatibility (if theme switching exists)
 
 **Verification Checklist**:
+
 - [ ] Master track has visible distinct styling
 - [ ] Styling works in light and dark themes
 - [ ] Layout not broken on small screens
@@ -130,6 +133,7 @@ describe('TrackListItem - master track styling', () => {
 Run tests: `npm test -- TrackListItem.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): add master track visual styling
 
@@ -148,12 +152,14 @@ feat(ui): add master track visual styling
 **Goal**: Build a toggle button that controls the global loop mode, positioned near the main playback controls.
 
 **Files to Create**:
+
 - `src/components/LoopModeToggle/LoopModeToggle.tsx` - Toggle component
 - `src/components/LoopModeToggle/LoopModeToggle.styles.ts` - Styles
 - `src/components/LoopModeToggle/__tests__/LoopModeToggle.test.tsx` - Tests
 - `src/components/LoopModeToggle/index.ts` - Re-export
 
 **Files to Modify**:
+
 - `src/screens/MainScreen/MainScreen.tsx` - Add toggle to playback controls
 - `src/components/index.ts` - Export new component
 
@@ -196,6 +202,7 @@ feat(ui): add master track visual styling
    - Test accessibility properties
 
 **Verification Checklist**:
+
 - [ ] Toggle button visible and clearly indicates state
 - [ ] Clicking/tapping toggles loop mode in store
 - [ ] Visual feedback on interaction
@@ -255,6 +262,7 @@ describe('LoopModeToggle', () => {
 Run tests: `npm test -- LoopModeToggle.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): add loop mode toggle button
 
@@ -274,12 +282,14 @@ feat(ui): add loop mode toggle button
 **Goal**: Build a reusable confirmation dialog component for destructive actions (changing master track speed, deleting master track).
 
 **Files to Create**:
+
 - `src/components/ConfirmationDialog/ConfirmationDialog.tsx` - Dialog component
 - `src/components/ConfirmationDialog/ConfirmationDialog.styles.ts` - Styles (if needed)
 - `src/components/ConfirmationDialog/__tests__/ConfirmationDialog.test.tsx` - Tests
 - `src/components/ConfirmationDialog/index.ts` - Re-export
 
 **Files to Modify**:
+
 - `src/components/index.ts` - Export new component
 
 **Prerequisites**: None (standalone component)
@@ -325,6 +335,7 @@ feat(ui): add loop mode toggle button
    - Test accessibility properties
 
 **Verification Checklist**:
+
 - [ ] Dialog renders correctly with title and message
 - [ ] Confirm and cancel buttons work
 - [ ] Destructive styling applied when appropriate
@@ -423,6 +434,7 @@ describe('ConfirmationDialog', () => {
 Run tests: `npm test -- ConfirmationDialog.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): create reusable confirmation dialog component
 
@@ -441,6 +453,7 @@ feat(ui): create reusable confirmation dialog component
 **Goal**: Show a confirmation dialog when the user changes the master track's speed while other tracks exist, warning that this will affect all tracks.
 
 **Files to Modify**:
+
 - `src/components/SpeedSlider/SpeedSlider.tsx` - Add confirmation logic
 - `src/screens/MainScreen/MainScreen.tsx` - Manage confirmation dialog state
 - `src/components/SpeedSlider/__tests__/SpeedSlider.test.tsx` - Add tests for confirmation
@@ -483,6 +496,7 @@ feat(ui): create reusable confirmation dialog component
    - Test cancel reverts speed change
 
 **Verification Checklist**:
+
 - [ ] Dialog appears when changing master speed with other tracks
 - [ ] Dialog does not appear for non-master tracks
 - [ ] Dialog does not appear if master is only track
@@ -574,6 +588,7 @@ describe('SpeedSlider - master track confirmation', () => {
 Run tests: `npm test -- SpeedSlider.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): add confirmation for master track speed changes
 
@@ -592,6 +607,7 @@ feat(ui): add confirmation for master track speed changes
 **Goal**: Show a confirmation dialog when the user attempts to delete the master track, warning that all tracks will be cleared.
 
 **Files to Modify**:
+
 - `src/components/TrackListItem/TrackListItem.tsx` - Add confirmation logic for delete
 - `src/screens/MainScreen/MainScreen.tsx` - Manage delete confirmation dialog
 - `src/components/TrackListItem/__tests__/TrackListItem.test.tsx` - Add tests
@@ -631,6 +647,7 @@ feat(ui): add confirmation for master track speed changes
    - Test cancel preserves all tracks
 
 **Verification Checklist**:
+
 - [ ] Dialog appears when deleting master track
 - [ ] Dialog does not appear for non-master tracks
 - [ ] Confirm clears all tracks correctly
@@ -724,6 +741,7 @@ describe('TrackListItem - master track deletion confirmation', () => {
 Run tests: `npm test -- TrackListItem.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): add confirmation for master track deletion
 
@@ -742,6 +760,7 @@ feat(ui): add confirmation for master track deletion
 **Goal**: Display a progress bar on each track showing its current playback position, helping users visualize loop boundaries.
 
 **Files to Create/Modify**:
+
 - `src/components/TrackProgressBar/TrackProgressBar.tsx` - Create progress bar component
 - `src/components/TrackProgressBar/TrackProgressBar.styles.ts` - Styles
 - `src/components/TrackProgressBar/__tests__/TrackProgressBar.test.tsx` - Tests
@@ -799,6 +818,7 @@ feat(ui): add confirmation for master track deletion
    - Test cleanup on unmount
 
 **Verification Checklist**:
+
 - [ ] Progress bar visible on all tracks
 - [ ] Progress updates smoothly during playback
 - [ ] Progress resets correctly at loop boundaries
@@ -879,6 +899,7 @@ describe('TrackProgressBar', () => {
 Run tests: `npm test -- TrackProgressBar.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(ui): add per-track playback progress indicators
 
@@ -899,6 +920,7 @@ feat(ui): add per-track playback progress indicators
 After completing all tasks, verify Phase 2 is complete:
 
 ### Automated Verification
+
 ```bash
 # Run all tests
 npm test
@@ -915,6 +937,7 @@ npm test -- --coverage
 ```
 
 **Expected Results**:
+
 - All tests pass
 - Code coverage ≥ 80% for new code
 - No existing tests broken
@@ -922,6 +945,7 @@ npm test -- --coverage
 ### Manual Testing Scenarios
 
 #### Scenario 1: Master Track Visual Indication
+
 1. Open app
 2. Record or import first track
 3. **Verify**: Track has distinct border/background (master styling)
@@ -930,6 +954,7 @@ npm test -- --coverage
 6. **Verify**: Accessibility labels include "Master loop track" for first track
 
 #### Scenario 2: Loop Mode Toggle
+
 1. Open app with tracks loaded
 2. Press play
 3. **Verify**: Loop mode toggle button visible near play controls
@@ -941,6 +966,7 @@ npm test -- --coverage
 9. **Verify**: State reverts correctly
 
 #### Scenario 3: Master Speed Change Confirmation
+
 1. Add first track (master)
 2. Add second track
 3. Adjust master track speed slider
@@ -956,6 +982,7 @@ npm test -- --coverage
 13. **Verify**: No confirmation dialog, speed changes immediately
 
 #### Scenario 4: Master Track Deletion Confirmation
+
 1. Add multiple tracks
 2. Tap delete button on first track (master)
 3. **Verify**: Confirmation dialog appears
@@ -972,6 +999,7 @@ npm test -- --coverage
 14. **Verify**: Only that track deleted
 
 #### Scenario 5: Playback Progress Indicators
+
 1. Add tracks
 2. Press play
 3. **Verify**: Progress bars visible on all tracks
@@ -1007,6 +1035,7 @@ npm test -- --coverage
 Proceed to **Phase 3: Settings Page & Configuration** to build the settings screen where users can configure looping behavior and export options.
 
 **Phase 3 Preview**:
+
 - Settings screen navigation
 - Looping behavior settings
 - Export default settings

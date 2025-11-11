@@ -178,6 +178,7 @@ eas credentials
 ```
 
 Choose:
+
 1. "Android"
 2. "Set up new credentials"
 3. Let EAS generate keystore
@@ -480,11 +481,13 @@ eas submit --platform ios --latest
 Set up automatic web deployment on push to main:
 
 **Vercel:**
+
 - Connect GitHub repository
 - Auto-deploys on push to main
 - Preview deployments for PRs
 
 **Netlify:**
+
 - Connect GitHub repository
 - Auto-deploys on push to main
 - Deploy previews for PRs
@@ -499,7 +502,7 @@ name: EAS Build
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -520,6 +523,7 @@ jobs:
 ### Incrementing Versions
 
 **Semantic Versioning:**
+
 - MAJOR.MINOR.PATCH (e.g., 1.0.0)
 - MAJOR: Breaking changes
 - MINOR: New features, backwards compatible

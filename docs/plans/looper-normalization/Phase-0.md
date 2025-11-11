@@ -11,18 +11,21 @@ This document contains architecture decisions, design patterns, and conventions 
 **Decision**: The first track in the tracks array is always the master loop track.
 
 **Rationale**:
+
 - Simple and predictable: position-based selection eliminates ambiguity
 - Matches typical looper machine behavior (first recording sets the loop)
 - No need for complex track reordering or manual master selection
 - Easy to implement and test
 
 **Implications**:
+
 - Tracks array must maintain insertion order
 - Deleting first track requires clearing all tracks (with confirmation)
 - No drag-and-drop reordering needed
 - Master track determined by `tracks[0]`
 
 **Implementation Notes**:
+
 - Use `tracks[0]?.id` to get master track ID
 - Always check `tracks.length > 0` before accessing master track
 - Master track duration = `tracks[0].duration * tracks[0].speed`
@@ -34,17 +37,20 @@ This document contains architecture decisions, design patterns, and conventions 
 **Decision**: Master loop duration is calculated using the track's speed-adjusted playback duration, not original file duration.
 
 **Rationale**:
+
 - Matches user expectation: what you hear is what you get
 - Aligns with hardware looper behavior
 - Allows musical manipulation (slow down a phrase to create a longer loop)
 - More intuitive than hidden "original" duration
 
 **Formula**:
+
 ```typescript
-masterLoopDuration = tracks[0].duration / tracks[0].speed
+masterLoopDuration = tracks[0].duration / tracks[0].speed;
 ```
 
 **Example**:
+
 - Track 1: 10 seconds original, speed 0.5x
 - Master loop duration: 10 / 0.5 = 20 seconds
 - Track 2: 15 seconds original, speed 1.0x
@@ -57,12 +63,14 @@ masterLoopDuration = tracks[0].duration / tracks[0].speed
 **Decision**: Shorter tracks loop continuously (seamless repetition) without regard to master loop boundaries.
 
 **Rationale**:
+
 - Standard looper machine behavior
 - Enables musical patterns (4-bar bass over 8-bar drums)
 - Simpler implementation than time-stretching or quantization
 - No pitch/tempo artifacts
 
 **Example**:
+
 - Master loop: 12 seconds
 - Track 2: 5 seconds (speed-adjusted)
 - Playback: 5s → 5s → 2s → (loop boundary) → 5s → 5s → 2s...
@@ -76,12 +84,14 @@ masterLoopDuration = tracks[0].duration / tracks[0].speed
 **Decision**: Single global toggle for loop preview mode, not per-track toggles.
 
 **Rationale**:
+
 - Simpler UX: one button near play controls
 - Matches looper behavior (all tracks loop together or not at all)
 - Avoids complex per-track state management
 - Clear mental model for users
 
 **States**:
+
 - **Loop Mode ON**: Tracks loop during playback (preview of exported audio)
 - **Loop Mode OFF**: Tracks play once then stop (inspection mode)
 
@@ -92,15 +102,18 @@ masterLoopDuration = tracks[0].duration / tracks[0].speed
 ### ADR-005: Confirmation Dialogs for Destructive Actions
 
 **Decision**: Show confirmation dialogs before:
+
 1. Changing master track speed (when other tracks exist)
 2. Deleting master track
 
 **Rationale**:
+
 - Prevents accidental loss of work
 - Changing master speed recalculates all loop boundaries (potentially destructive)
 - Deleting master track clears entire session (highly destructive)
 
 **Dialog Pattern**:
+
 ```
 Title: [Action] will affect all tracks
 Message: This will [consequence]. Continue?
@@ -108,6 +121,7 @@ Buttons: Cancel | Confirm
 ```
 
 **No confirmation needed for**:
+
 - Changing non-master track properties
 - Deleting non-master tracks
 - Adding tracks
@@ -119,6 +133,7 @@ Buttons: Cancel | Confirm
 **Decision**: Create a dedicated Settings screen accessible from main screen, organized into logical sections.
 
 **Sections**:
+
 1. **Looping Behavior**
    - Crossfade duration (0-50ms slider, default: 0ms = gapless)
    - Default loop mode (ON/OFF, default: ON)
@@ -148,15 +163,17 @@ Buttons: Cancel | Confirm
 **Decision**: Master track has distinct border and background styling, no icon/badge needed.
 
 **Styling**:
+
 ```typescript
 masterTrackStyle = {
   borderColor: theme.colors.primary, // Distinct primary color border
   borderWidth: 3, // Thicker than normal tracks (2px)
   backgroundColor: theme.colors.primaryContainer, // Subtle tint
-}
+};
 ```
 
 **Rationale**:
+
 - Clean, professional appearance
 - No additional UI elements needed
 - Works across all screen sizes
@@ -169,11 +186,13 @@ masterTrackStyle = {
 **Decision**: Each track displays a progress bar showing its current playback position within its own duration.
 
 **Rationale**:
+
 - Helps users understand loop restart points
 - Useful for debugging sync issues
 - Provides visual feedback during playback
 
 **Implementation**:
+
 - Linear progress bar beneath each track
 - Updates at 60fps during playback
 - Shows position relative to track's speed-adjusted duration
@@ -188,6 +207,7 @@ masterTrackStyle = {
 **Context**: The `selected` property was previously used for selective mixing, where only selected tracks would be included in the exported mix. Users could toggle tracks on/off for export.
 
 **Rationale**:
+
 - Not needed for looper workflow (all tracks always mix together)
 - Looper paradigm expects all recorded layers to play simultaneously
 - Simplifies UI and reduces confusion
@@ -200,14 +220,17 @@ masterTrackStyle = {
 ### ADR-010: Save Dialog Enhancements
 
 **Decision**: Save dialog includes two new configuration options:
+
 1. Number of loop repetitions (1, 2, 4, 8, custom input)
 2. Fadeout duration (None, 1s, 2s, 5s, custom input)
 
 **Default Values**: Load from settings, fall back to:
+
 - Loop count: 4
 - Fadeout: 2s
 
 **Behavior**:
+
 - Total export duration = masterLoopDuration × loopCount + fadeoutDuration
 - Fadeout applies to final mixed output (all tracks)
 - Fadeout is linear volume reduction from 100% to 0%
@@ -228,7 +251,10 @@ export function calculateMasterLoopDuration(tracks: Track[]): number {
   return masterTrack.duration / masterTrack.speed;
 }
 
-export function calculateLoopCount(trackDuration: number, masterDuration: number): number {
+export function calculateLoopCount(
+  trackDuration: number,
+  masterDuration: number,
+): number {
   if (masterDuration === 0) return 1;
   return Math.ceil(trackDuration / masterDuration);
 }
@@ -322,6 +348,7 @@ updateTrack(id, updates); // State might be stale
 ## Tech Stack & Libraries
 
 ### Existing (No Changes)
+
 - **React Native**: 0.81.5
 - **Expo**: ~54.0.23
 - **Zustand**: 5.0.8 (state management)
@@ -329,6 +356,7 @@ updateTrack(id, updates); // State might be stale
 - **TypeScript**: 5.9.2
 
 ### New Dependencies (None Required)
+
 All features can be implemented with existing dependencies.
 
 ---
@@ -336,21 +364,23 @@ All features can be implemented with existing dependencies.
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test all utility functions in isolation
 - Test store actions and selectors
 - Use Jest for all unit tests
 - Mock external dependencies (Audio APIs, file system)
 
 **Example**:
+
 ```typescript
 // src/utils/__tests__/loopUtils.test.ts
-describe('calculateMasterLoopDuration', () => {
-  it('returns 0 for empty track array', () => {
+describe("calculateMasterLoopDuration", () => {
+  it("returns 0 for empty track array", () => {
     expect(calculateMasterLoopDuration([])).toBe(0);
   });
 
-  it('calculates speed-adjusted duration', () => {
-    const tracks = [{ duration: 10000, speed: 0.5, /* ... */ }];
+  it("calculates speed-adjusted duration", () => {
+    const tracks = [{ duration: 10000, speed: 0.5 /* ... */ }];
     expect(calculateMasterLoopDuration(tracks)).toBe(20000);
   });
 });
@@ -359,12 +389,14 @@ describe('calculateMasterLoopDuration', () => {
 ---
 
 ### Component Tests
+
 - Use React Native Testing Library
 - Test user interactions (button presses, slider changes)
 - Test rendering of different states
 - Mock Zustand stores with initial state
 
 **Example**:
+
 ```typescript
 // src/components/LoopModeToggle/__tests__/LoopModeToggle.test.tsx
 describe('LoopModeToggle', () => {
@@ -382,13 +414,15 @@ describe('LoopModeToggle', () => {
 ---
 
 ### Integration Tests
+
 - Test workflows across multiple components
 - Test store interactions
 - Test audio service integration
 
 **Example**: Test recording workflow
+
 ```typescript
-it('records first track and sets master loop', async () => {
+it("records first track and sets master loop", async () => {
   // Start recording
   // Stop recording
   // Verify track added
@@ -399,6 +433,7 @@ it('records first track and sets master loop', async () => {
 ---
 
 ### E2E Scenarios (Manual Testing)
+
 Each phase includes manual test scenarios. Critical paths:
 
 1. **Master Loop Creation**
@@ -426,36 +461,45 @@ Each phase includes manual test scenarios. Critical paths:
 ## Common Pitfalls to Avoid
 
 ### Pitfall 1: Off-by-One Errors with Master Track
+
 **Problem**: Checking `tracks[1]` instead of `tracks[0]` for master track
 **Solution**: Always use `tracks[0]`, double-check all array access
 
 ### Pitfall 2: Forgetting Speed Adjustment
+
 **Problem**: Using `track.duration` directly instead of `track.duration / track.speed`
 **Solution**: Use `calculateMasterLoopDuration()` utility everywhere
 
 ### Pitfall 3: State Update Race Conditions
+
 **Problem**: Async updates to multiple stores may race or leave inconsistent state
 **Solution**: Update stores synchronously in a single function, avoid await between updates
 
 ### Pitfall 4: Breaking Existing Playback
+
 **Problem**: Looping logic interferes with normal playback when loop mode is OFF
 **Solution**: Check loop mode flag before applying looping behavior, maintain separate code paths
 
 ### Pitfall 5: Platform-Specific Audio API Differences
+
 **Problem**: Web Audio API and expo-av have different looping capabilities
 **Solution**: Abstract looping logic in BaseAudioPlayer, implement platform-specific solutions
 
 ### Pitfall 6: Confirmation Dialog Memory Leaks
+
 **Problem**: Closures in dialog callbacks hold stale state references
 **Solution**: Use latest state inside callbacks, not captured variables
 
 ### Pitfall 7: Performance Issues with Short Loops
+
 **Problem**: Calculating repetitions for 0.1s track in 60s loop creates massive data
 **Solution**: Set reasonable limits (max 1000 repetitions), warn user, or pre-calculate and cache
 
 ### Pitfall 8: Not Testing Edge Cases
+
 **Problem**: Code works for normal cases but fails on edge cases (0 duration, very fast speed)
 **Solution**: Write tests for edge cases first:
+
 - Empty track array
 - Single track
 - Zero duration
@@ -494,6 +538,7 @@ src/
 ```
 
 **Naming**:
+
 - Components: PascalCase
 - Files: PascalCase for components, camelCase for utilities
 - Test files: Same name as source with `.test.ts(x)` extension
@@ -514,6 +559,7 @@ Use Conventional Commits format:
 ```
 
 **Types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `refactor`: Code restructuring without behavior change
@@ -523,6 +569,7 @@ Use Conventional Commits format:
 - `chore`: Build, dependencies, tooling
 
 **Scopes**:
+
 - `loop-engine`: Core looping logic
 - `stores`: State management
 - `ui`: User interface components
@@ -532,6 +579,7 @@ Use Conventional Commits format:
 - `tests`: Test infrastructure
 
 **Examples**:
+
 ```
 feat(loop-engine): add master loop duration calculation
 
@@ -555,18 +603,22 @@ test(stores): add tests for track store loop behavior
 ## Performance Considerations
 
 ### Memory Usage
+
 - **Problem**: Duplicating audio data for looping can increase memory usage
 - **Solution**: Stream/loop in audio players when possible, only duplicate for final export
 
 ### Calculation Caching
+
 - **Problem**: Recalculating loop durations on every render
 - **Solution**: Use Zustand selectors with memoization, calculate once on track changes
 
 ### Playback Synchronization
+
 - **Problem**: Multiple looping tracks may drift over time
 - **Solution**: Use existing MultiTrackManager drift detection, resync periodically
 
 ### Large Loop Counts
+
 - **Problem**: Exporting 1000 loops of a 1-second track = massive audio file
 - **Solution**: Set reasonable limits (e.g., max export duration 10 minutes or 100 loops)
 
@@ -581,6 +633,7 @@ test(stores): add tests for track store loop behavior
 - Voice control compatibility (mobile)
 
 **Example**:
+
 ```tsx
 <Button
   accessibilityLabel="Toggle loop mode"
@@ -597,6 +650,7 @@ test(stores): add tests for track store loop behavior
 ## Migration Strategy
 
 ### Store Migration
+
 Implement migration to handle existing user data:
 
 ```typescript
@@ -604,10 +658,11 @@ Implement migration to handle existing user data:
 export function migrateToLooperNormalization(state: any) {
   return {
     ...state,
-    tracks: state.tracks?.map((track: any) => {
-      const { selected, ...rest } = track; // Remove 'selected' property
-      return rest;
-    }) || [],
+    tracks:
+      state.tracks?.map((track: any) => {
+        const { selected, ...rest } = track; // Remove 'selected' property
+        return rest;
+      }) || [],
   };
 }
 ```
@@ -638,6 +693,7 @@ If you encounter any of these situations, STOP and ask for clarification:
 5. **Priority Conflicts**: "Feature X breaks feature Y, which takes precedence?"
 
 **Format**:
+
 ```
 QUESTION: [Concise question]
 Context: [Relevant details]
@@ -666,6 +722,7 @@ After completing all phases, verify these metrics:
 You've reviewed Phase 0. Proceed to **Phase 1: Core Looping Engine** to begin implementation.
 
 **Remember**:
+
 - Write tests first (TDD)
 - Commit frequently
 - Follow the patterns defined here

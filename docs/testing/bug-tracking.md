@@ -366,8 +366,8 @@ Assign to developer based on:
 
 ```javascript
 // Console debugging
-console.log('[Component]', data);
-console.error('[Error]', error);
+console.log("[Component]", data);
+console.error("[Error]", error);
 
 // React DevTools
 // Inspect component props and state

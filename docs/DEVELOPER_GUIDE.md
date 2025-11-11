@@ -21,11 +21,13 @@ Welcome to the Looper development guide! This document covers everything you nee
 ### Prerequisites
 
 **Required:**
+
 - Node.js 18+ and npm
 - Git
 - Code editor (VS Code recommended)
 
 **Platform-Specific:**
+
 - **Android Development**: Android Studio, Android SDK, Java 11+
 - **iOS Development**: macOS, Xcode 14+, CocoaPods
 - **Web Development**: Modern browser (Chrome/Firefox/Safari)
@@ -64,6 +66,7 @@ Welcome to the Looper development guide! This document covers everything you nee
 ### VS Code Setup
 
 **Recommended Extensions:**
+
 - ESLint
 - Prettier
 - TypeScript and JavaScript Language Features
@@ -152,6 +155,7 @@ We use Git Flow:
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -233,7 +237,7 @@ AudioService.android.ts   # Android-only (if needed)
 Import without extension - bundler selects correct file:
 
 ```typescript
-import AudioService from './services/audio/AudioService';
+import AudioService from "./services/audio/AudioService";
 // Automatically loads AudioService.web.ts on web,
 // AudioService.native.ts on native platforms
 ```
@@ -246,12 +250,14 @@ We use Zustand for state:
 // Create store
 const useTrackStore = create<TrackStore>((set, get) => ({
   tracks: [],
-  addTrack: (track) => set((state) => ({
-    tracks: [...state.tracks, track]
-  })),
-  removeTrack: (id) => set((state) => ({
-    tracks: state.tracks.filter(t => t.id !== id)
-  })),
+  addTrack: (track) =>
+    set((state) => ({
+      tracks: [...state.tracks, track],
+    })),
+  removeTrack: (id) =>
+    set((state) => ({
+      tracks: state.tracks.filter((t) => t.id !== id),
+    })),
 }));
 
 // Use in components
@@ -267,9 +273,9 @@ Always use try-catch for async operations:
 try {
   await audioService.record();
 } catch (error) {
-  console.error('[Recording]', error);
+  console.error("[Recording]", error);
   // Show user-friendly error
-  Alert.alert('Error', 'Failed to start recording');
+  Alert.alert("Error", "Failed to start recording");
 }
 ```
 
@@ -299,14 +305,14 @@ npm run test:coverage     # With coverage
 
 ```typescript
 // __tests__/unit/utils/formatTime.test.ts
-import { formatTime } from '@utils/formatTime';
+import { formatTime } from "@utils/formatTime";
 
-describe('formatTime', () => {
-  it('should format milliseconds as mm:ss', () => {
-    expect(formatTime(0)).toBe('0:00');
-    expect(formatTime(1000)).toBe('0:01');
-    expect(formatTime(60000)).toBe('1:00');
-    expect(formatTime(90500)).toBe('1:30');
+describe("formatTime", () => {
+  it("should format milliseconds as mm:ss", () => {
+    expect(formatTime(0)).toBe("0:00");
+    expect(formatTime(1000)).toBe("0:01");
+    expect(formatTime(60000)).toBe("1:00");
+    expect(formatTime(90500)).toBe("1:30");
   });
 });
 ```
@@ -337,11 +343,11 @@ describe('ActionButton', () => {
 
 ```typescript
 // e2e/web/recording.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('should record audio', async ({ page }) => {
-  await page.goto('http://localhost:8081');
-  await page.getByRole('button', { name: /record/i }).click();
+test("should record audio", async ({ page }) => {
+  await page.goto("http://localhost:8081");
+  await page.getByRole("button", { name: /record/i }).click();
   await page.getByText(/recording/i).waitFor();
   // ...
 });
@@ -353,10 +359,10 @@ Run with: `npx playwright test`
 
 ```typescript
 // e2e/native/recording.e2e.ts
-describe('Recording', () => {
-  it('should record audio', async () => {
-    await element(by.text('Record')).tap();
-    await expect(element(by.text('Recording...'))).toBeVisible();
+describe("Recording", () => {
+  it("should record audio", async () => {
+    await element(by.text("Record")).tap();
+    await expect(element(by.text("Recording..."))).toBeVisible();
     // ...
   });
 });
@@ -386,6 +392,7 @@ Output: `web-build/` directory
 ### Mobile (EAS Build)
 
 **Prerequisites:**
+
 - EAS CLI: `npm install -g eas-cli`
 - Expo account: `eas login`
 
@@ -424,6 +431,7 @@ See [Build & Deploy Guide](./BUILD_AND_DEPLOY.md) for details.
 ### Code Review
 
 All PRs require:
+
 - ✅ Passing tests
 - ✅ Passing linter
 - ✅ Passing TypeScript checks
@@ -502,7 +510,8 @@ function formatDuration(ms: number): string {
 }
 
 // ❌ Bad
-function formatDuration(ms) {  // No type
+function formatDuration(ms) {
+  // No type
   // ...
 }
 ```
@@ -517,6 +526,7 @@ npm run format:check  # Check formatting
 ```
 
 **Key rules:**
+
 - 2 spaces indentation
 - Single quotes for strings
 - Trailing commas
@@ -525,12 +535,14 @@ npm run format:check  # Check formatting
 ### Naming Conventions
 
 **Files:**
+
 - Components: `PascalCase.tsx` (e.g., `ActionButton.tsx`)
 - Utilities: `camelCase.ts` (e.g., `formatTime.ts`)
 - Types: `PascalCase.ts` (e.g., `Track.ts`)
 - Tests: `*.test.ts` or `*.spec.ts`
 
 **Variables/Functions:**
+
 - `camelCase` for variables and functions
 - `PascalCase` for components and classes
 - `UPPER_SNAKE_CASE` for constants
@@ -573,7 +585,7 @@ export function formatTime(ms: number): string {
 
 ```typescript
 // Calculate remaining time based on current progress
-const remaining = (elapsed / progress) - elapsed;
+const remaining = elapsed / progress - elapsed;
 ```
 
 ---
@@ -639,8 +651,8 @@ const remaining = (elapsed / progress) - elapsed;
 
    ```typescript
    // index.ts
-   export { NewComponent } from './NewComponent';
-   export type { NewComponentProps } from './NewComponent';
+   export { NewComponent } from "./NewComponent";
+   export type { NewComponentProps } from "./NewComponent";
    ```
 
 ### Adding a New Service
@@ -669,7 +681,7 @@ const remaining = (elapsed / progress) - elapsed;
 
    ```typescript
    // MyService.web.ts
-   import { MyService } from './MyService';
+   import { MyService } from "./MyService";
 
    class WebMyService implements MyService {
      async doSomething(): Promise<void> {
@@ -684,10 +696,10 @@ const remaining = (elapsed / progress) - elapsed;
 
    ```typescript
    // MyService.test.ts
-   import MyService from './MyService';
+   import MyService from "./MyService";
 
-   describe('MyService', () => {
-     it('should do something', async () => {
+   describe("MyService", () => {
+     it("should do something", async () => {
        await expect(MyService.doSomething()).resolves.not.toThrow();
      });
    });
@@ -699,7 +711,7 @@ const remaining = (elapsed / progress) - elapsed;
 
    ```typescript
    // src/store/useMyStore.ts
-   import { create } from 'zustand';
+   import { create } from "zustand";
 
    interface MyStore {
      value: number;

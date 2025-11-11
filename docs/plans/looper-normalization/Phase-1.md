@@ -5,6 +5,7 @@
 Build the foundational looping engine that calculates master loop duration, determines track repetition counts, and updates the state management layer to track loop mode and master track status. This phase establishes the core business logic without any UI changes, making it easy to test in isolation.
 
 **Success Criteria**:
+
 - Loop duration calculations working correctly
 - Track store tracks master loop duration
 - Playback store tracks global loop mode
@@ -32,6 +33,7 @@ Build the foundational looping engine that calculates master loop duration, dete
 **Goal**: Implement core loop calculation utilities that will be used throughout the application for determining loop durations and repetition counts.
 
 **Files to Create**:
+
 - `src/utils/loopUtils.ts` - Loop calculation utilities
 - `src/utils/__tests__/loopUtils.test.ts` - Comprehensive tests
 
@@ -63,6 +65,7 @@ Build the foundational looping engine that calculates master loop duration, dete
    - Test with realistic track data
 
 **Verification Checklist**:
+
 - [ ] All functions have correct TypeScript types
 - [ ] All functions handle edge cases without throwing
 - [ ] Tests cover normal cases, edge cases, and error conditions
@@ -106,6 +109,7 @@ describe('calculateLoopCount', () => {
 Run tests: `npm test -- loopUtils.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(loop-engine): add core loop calculation utilities
 
@@ -124,6 +128,7 @@ feat(loop-engine): add core loop calculation utilities
 **Goal**: Implement a Zustand store for persisting user settings related to looping behavior, export options, and recording preferences.
 
 **Files to Create**:
+
 - `src/store/useSettingsStore.ts` - Settings store implementation
 - `src/store/__tests__/useSettingsStore.test.ts` - Store tests
 
@@ -164,6 +169,7 @@ feat(loop-engine): add core loop calculation utilities
    - Test partial updates (merge behavior)
 
 **Verification Checklist**:
+
 - [ ] Interface matches Phase-0 specification
 - [ ] Default values are sensible and match requirements
 - [ ] Persistence works on web and native (test both if possible)
@@ -175,13 +181,13 @@ feat(loop-engine): add core loop calculation utilities
 **Testing Instructions**:
 
 ```typescript
-describe('useSettingsStore', () => {
+describe("useSettingsStore", () => {
   beforeEach(() => {
     // Reset store to defaults before each test
     useSettingsStore.getState().resetToDefaults();
   });
 
-  it('initializes with default values', () => {
+  it("initializes with default values", () => {
     const state = useSettingsStore.getState();
     expect(state.loopCrossfadeDuration).toBe(0);
     expect(state.defaultLoopMode).toBe(true);
@@ -189,7 +195,7 @@ describe('useSettingsStore', () => {
     // ... test other defaults
   });
 
-  it('updates partial settings without affecting others', () => {
+  it("updates partial settings without affecting others", () => {
     useSettingsStore.getState().updateSettings({
       defaultLoopCount: 8,
     });
@@ -199,7 +205,7 @@ describe('useSettingsStore', () => {
     expect(state.defaultLoopMode).toBe(true); // Unchanged
   });
 
-  it('persists settings across store recreations', () => {
+  it("persists settings across store recreations", () => {
     // This test may need to mock localStorage/AsyncStorage
     // depending on your persistence implementation
   });
@@ -209,6 +215,7 @@ describe('useSettingsStore', () => {
 Run tests: `npm test -- useSettingsStore.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(settings): create settings store with persistence
 
@@ -228,6 +235,7 @@ feat(settings): create settings store with persistence
 **Goal**: Extend the track store to calculate and expose master loop duration, and add helper methods for identifying the master track.
 
 **Files to Modify**:
+
 - `src/store/useTrackStore.ts` - Add master loop tracking
 - `src/store/__tests__/useTrackStore.test.ts` - Create if missing, add new tests
 
@@ -263,6 +271,7 @@ feat(settings): create settings store with persistence
    - Test behavior with multiple tracks
 
 **Verification Checklist**:
+
 - [ ] All existing tests still pass
 - [ ] New getters return correct values
 - [ ] Master track removal clears all tracks
@@ -273,26 +282,26 @@ feat(settings): create settings store with persistence
 **Testing Instructions**:
 
 ```typescript
-describe('useTrackStore - master loop tracking', () => {
+describe("useTrackStore - master loop tracking", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('identifies master track correctly', () => {
-    const track1 = createMockTrack({ id: 'track-1' });
-    const track2 = createMockTrack({ id: 'track-2' });
+  it("identifies master track correctly", () => {
+    const track1 = createMockTrack({ id: "track-1" });
+    const track2 = createMockTrack({ id: "track-2" });
 
     useTrackStore.getState().addTrack(track1);
     useTrackStore.getState().addTrack(track2);
 
-    expect(useTrackStore.getState().getMasterTrack()?.id).toBe('track-1');
-    expect(useTrackStore.getState().isMasterTrack('track-1')).toBe(true);
-    expect(useTrackStore.getState().isMasterTrack('track-2')).toBe(false);
+    expect(useTrackStore.getState().getMasterTrack()?.id).toBe("track-1");
+    expect(useTrackStore.getState().isMasterTrack("track-1")).toBe(true);
+    expect(useTrackStore.getState().isMasterTrack("track-2")).toBe(false);
   });
 
-  it('calculates master loop duration with speed adjustment', () => {
+  it("calculates master loop duration with speed adjustment", () => {
     const track = createMockTrack({
-      id: 'track-1',
+      id: "track-1",
       duration: 10000, // 10 seconds
       speed: 0.5, // Half speed
     });
@@ -302,13 +311,13 @@ describe('useTrackStore - master loop tracking', () => {
     expect(useTrackStore.getState().getMasterLoopDuration()).toBe(20000); // 20 seconds
   });
 
-  it('clears all tracks when master track is removed', () => {
-    const track1 = createMockTrack({ id: 'track-1' });
-    const track2 = createMockTrack({ id: 'track-2' });
+  it("clears all tracks when master track is removed", () => {
+    const track1 = createMockTrack({ id: "track-1" });
+    const track2 = createMockTrack({ id: "track-2" });
 
     useTrackStore.getState().addTrack(track1);
     useTrackStore.getState().addTrack(track2);
-    useTrackStore.getState().removeTrack('track-1'); // Remove master
+    useTrackStore.getState().removeTrack("track-1"); // Remove master
 
     expect(useTrackStore.getState().tracks).toHaveLength(0);
   });
@@ -318,6 +327,7 @@ describe('useTrackStore - master loop tracking', () => {
 Run tests: `npm test -- useTrackStore.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(stores): add master loop tracking to track store
 
@@ -336,6 +346,7 @@ feat(stores): add master loop tracking to track store
 **Goal**: Add global loop mode state to the playback store so the application can track whether looping is enabled during playback.
 
 **Files to Modify**:
+
 - `src/store/usePlaybackStore.ts` - Add loop mode state
 - `src/store/__tests__/usePlaybackStore.test.ts` - Create if missing, add new tests
 
@@ -346,8 +357,9 @@ feat(stores): add master loop tracking to track store
 1. Add `loopMode: boolean` to the PlaybackState interface
 
 2. Initialize loop mode from settings store:
+
    ```typescript
-   loopMode: useSettingsStore.getState().defaultLoopMode
+   loopMode: useSettingsStore.getState().defaultLoopMode;
    ```
 
 3. Add actions:
@@ -367,6 +379,7 @@ feat(stores): add master loop tracking to track store
    - Test loop mode persists across state updates
 
 **Verification Checklist**:
+
 - [ ] Loop mode state added to interface
 - [ ] Actions work correctly
 - [ ] Initial state loads from settings
@@ -377,19 +390,19 @@ feat(stores): add master loop tracking to track store
 **Testing Instructions**:
 
 ```typescript
-describe('usePlaybackStore - loop mode', () => {
+describe("usePlaybackStore - loop mode", () => {
   beforeEach(() => {
     usePlaybackStore.getState().reset();
   });
 
-  it('initializes loop mode from settings', () => {
+  it("initializes loop mode from settings", () => {
     const defaultLoopMode = useSettingsStore.getState().defaultLoopMode;
     const loopMode = usePlaybackStore.getState().loopMode;
 
     expect(loopMode).toBe(defaultLoopMode);
   });
 
-  it('sets loop mode', () => {
+  it("sets loop mode", () => {
     usePlaybackStore.getState().setLoopMode(false);
     expect(usePlaybackStore.getState().loopMode).toBe(false);
 
@@ -397,7 +410,7 @@ describe('usePlaybackStore - loop mode', () => {
     expect(usePlaybackStore.getState().loopMode).toBe(true);
   });
 
-  it('toggles loop mode', () => {
+  it("toggles loop mode", () => {
     const initialMode = usePlaybackStore.getState().loopMode;
     usePlaybackStore.getState().toggleLoopMode();
     expect(usePlaybackStore.getState().loopMode).toBe(!initialMode);
@@ -408,6 +421,7 @@ describe('usePlaybackStore - loop mode', () => {
 Run tests: `npm test -- usePlaybackStore.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(stores): add global loop mode to playback store
 
@@ -426,6 +440,7 @@ feat(stores): add global loop mode to playback store
 **Goal**: Create a service class that coordinates loop calculations and provides a high-level API for the UI and audio components to query loop information.
 
 **Files to Create**:
+
 - `src/services/loop/LoopEngine.ts` - Loop engine service
 - `src/services/loop/__tests__/LoopEngine.test.ts` - Service tests
 - `src/services/loop/index.ts` - Re-export
@@ -466,6 +481,7 @@ feat(stores): add global loop mode to playback store
    - Mock store data for predictable tests
 
 **Verification Checklist**:
+
 - [ ] All methods return correct values
 - [ ] Service integrates correctly with stores
 - [ ] Edge cases handled gracefully (return safe defaults)
@@ -476,7 +492,7 @@ feat(stores): add global loop mode to playback store
 **Testing Instructions**:
 
 ```typescript
-describe('LoopEngine', () => {
+describe("LoopEngine", () => {
   let loopEngine: LoopEngine;
 
   beforeEach(() => {
@@ -487,63 +503,91 @@ describe('LoopEngine', () => {
     loopEngine = new LoopEngine();
   });
 
-  describe('getMasterLoopInfo', () => {
-    it('returns null info when no tracks exist', () => {
+  describe("getMasterLoopInfo", () => {
+    it("returns null info when no tracks exist", () => {
       const info = loopEngine.getMasterLoopInfo();
       expect(info.duration).toBe(0);
       expect(info.trackId).toBeNull();
       expect(info.track).toBeNull();
     });
 
-    it('returns master track info when tracks exist', () => {
-      const track = createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 });
+    it("returns master track info when tracks exist", () => {
+      const track = createMockTrack({
+        id: "track-1",
+        duration: 10000,
+        speed: 1.0,
+      });
       useTrackStore.getState().addTrack(track);
 
       const info = loopEngine.getMasterLoopInfo();
       expect(info.duration).toBe(10000);
-      expect(info.trackId).toBe('track-1');
+      expect(info.trackId).toBe("track-1");
       expect(info.track).toEqual(track);
     });
   });
 
-  describe('getTrackLoopInfo', () => {
-    it('calculates loop info correctly for shorter track', () => {
-      const track1 = createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 });
-      const track2 = createMockTrack({ id: 'track-2', duration: 4000, speed: 1.0 });
+  describe("getTrackLoopInfo", () => {
+    it("calculates loop info correctly for shorter track", () => {
+      const track1 = createMockTrack({
+        id: "track-1",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const track2 = createMockTrack({
+        id: "track-2",
+        duration: 4000,
+        speed: 1.0,
+      });
 
       useTrackStore.getState().addTrack(track1);
       useTrackStore.getState().addTrack(track2);
 
-      const info = loopEngine.getTrackLoopInfo('track-2');
+      const info = loopEngine.getTrackLoopInfo("track-2");
       expect(info.loopCount).toBe(3); // 4s track loops 3 times in 10s master
       expect(info.boundaries).toHaveLength(3);
       expect(info.totalDuration).toBe(10000);
     });
   });
 
-  describe('shouldTrackLoop', () => {
-    it('returns true when loop mode enabled and track shorter than master', () => {
+  describe("shouldTrackLoop", () => {
+    it("returns true when loop mode enabled and track shorter than master", () => {
       usePlaybackStore.getState().setLoopMode(true);
 
-      const track1 = createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 });
-      const track2 = createMockTrack({ id: 'track-2', duration: 5000, speed: 1.0 });
+      const track1 = createMockTrack({
+        id: "track-1",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const track2 = createMockTrack({
+        id: "track-2",
+        duration: 5000,
+        speed: 1.0,
+      });
 
       useTrackStore.getState().addTrack(track1);
       useTrackStore.getState().addTrack(track2);
 
-      expect(loopEngine.shouldTrackLoop('track-2')).toBe(true);
+      expect(loopEngine.shouldTrackLoop("track-2")).toBe(true);
     });
 
-    it('returns false when loop mode disabled', () => {
+    it("returns false when loop mode disabled", () => {
       usePlaybackStore.getState().setLoopMode(false);
 
-      const track1 = createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 });
-      const track2 = createMockTrack({ id: 'track-2', duration: 5000, speed: 1.0 });
+      const track1 = createMockTrack({
+        id: "track-1",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const track2 = createMockTrack({
+        id: "track-2",
+        duration: 5000,
+        speed: 1.0,
+      });
 
       useTrackStore.getState().addTrack(track1);
       useTrackStore.getState().addTrack(track2);
 
-      expect(loopEngine.shouldTrackLoop('track-2')).toBe(false);
+      expect(loopEngine.shouldTrackLoop("track-2")).toBe(false);
     });
   });
 
@@ -554,6 +598,7 @@ describe('LoopEngine', () => {
 Run tests: `npm test -- LoopEngine.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(loop-engine): create loop engine service
 
@@ -572,6 +617,7 @@ feat(loop-engine): create loop engine service
 **Goal**: Create a migration to remove the `selected` property from existing tracks and handle any other schema changes for existing users.
 
 **Files to Modify/Create**:
+
 - `src/store/migrations/looperNormalization.ts` - Create new migration
 - `src/store/migrations/migrationSystem.ts` - Register new migration (if registry exists)
 - `src/store/useTrackStore.ts` - Apply migration on initialization
@@ -604,6 +650,7 @@ feat(loop-engine): create loop engine service
 5. Add logging for migration execution (helpful for debugging user issues)
 
 **Verification Checklist**:
+
 - [ ] Migration runs successfully on old data format
 - [ ] Migration is idempotent (can run multiple times safely)
 - [ ] Migration doesn't break new installations
@@ -614,41 +661,60 @@ feat(loop-engine): create loop engine service
 **Testing Instructions**:
 
 ```typescript
-describe('looperNormalization migration', () => {
-  it('removes selected property from tracks', () => {
+describe("looperNormalization migration", () => {
+  it("removes selected property from tracks", () => {
     const oldState = {
       tracks: [
-        { id: '1', name: 'Track 1', selected: true, duration: 1000, speed: 1.0, /* ... */ },
-        { id: '2', name: 'Track 2', selected: false, duration: 2000, speed: 1.0, /* ... */ },
+        {
+          id: "1",
+          name: "Track 1",
+          selected: true,
+          duration: 1000,
+          speed: 1.0 /* ... */,
+        },
+        {
+          id: "2",
+          name: "Track 2",
+          selected: false,
+          duration: 2000,
+          speed: 1.0 /* ... */,
+        },
       ],
     };
 
     const newState = migrateToLooperNormalization(oldState);
 
-    newState.tracks.forEach(track => {
-      expect(track).not.toHaveProperty('selected');
+    newState.tracks.forEach((track) => {
+      expect(track).not.toHaveProperty("selected");
     });
   });
 
-  it('handles empty state gracefully', () => {
+  it("handles empty state gracefully", () => {
     const oldState = {};
     const newState = migrateToLooperNormalization(oldState);
 
     expect(newState.tracks).toEqual([]);
   });
 
-  it('preserves all other track properties', () => {
+  it("preserves all other track properties", () => {
     const oldState = {
       tracks: [
-        { id: '1', name: 'Track 1', selected: true, duration: 1000, speed: 1.5, volume: 80, /* ... */ },
+        {
+          id: "1",
+          name: "Track 1",
+          selected: true,
+          duration: 1000,
+          speed: 1.5,
+          volume: 80 /* ... */,
+        },
       ],
     };
 
     const newState = migrateToLooperNormalization(oldState);
 
     expect(newState.tracks[0]).toMatchObject({
-      id: '1',
-      name: 'Track 1',
+      id: "1",
+      name: "Track 1",
       duration: 1000,
       speed: 1.5,
       volume: 80,
@@ -660,6 +726,7 @@ describe('looperNormalization migration', () => {
 Run tests: `npm test -- looperNormalization.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(stores): add migration for looper normalization
 
@@ -678,6 +745,7 @@ feat(stores): add migration for looper normalization
 **Goal**: Write integration tests that verify all components of Phase 1 work together correctly.
 
 **Files to Create**:
+
 - `src/__tests__/integration/loopEngine.integration.test.ts` - Integration tests
 
 **Prerequisites**: All previous tasks complete
@@ -708,6 +776,7 @@ feat(stores): add migration for looper normalization
    - No memory leaks from store subscriptions
 
 **Verification Checklist**:
+
 - [ ] All integration workflows pass
 - [ ] Cross-store interactions work correctly
 - [ ] No race conditions or timing issues
@@ -717,7 +786,7 @@ feat(stores): add migration for looper normalization
 **Testing Instructions**:
 
 ```typescript
-describe('Loop Engine Integration', () => {
+describe("Loop Engine Integration", () => {
   beforeEach(() => {
     // Reset all stores
     useTrackStore.getState().clearTracks();
@@ -725,12 +794,12 @@ describe('Loop Engine Integration', () => {
     useSettingsStore.getState().resetToDefaults();
   });
 
-  it('calculates master loop and track repetitions correctly', () => {
+  it("calculates master loop and track repetitions correctly", () => {
     const loopEngine = new LoopEngine();
 
     // Add master track (10s at 1.0x = 10s loop)
     const track1 = createMockTrack({
-      id: 'track-1',
+      id: "track-1",
       duration: 10000,
       speed: 1.0,
     });
@@ -739,73 +808,77 @@ describe('Loop Engine Integration', () => {
     // Verify master loop
     const masterInfo = loopEngine.getMasterLoopInfo();
     expect(masterInfo.duration).toBe(10000);
-    expect(masterInfo.trackId).toBe('track-1');
+    expect(masterInfo.trackId).toBe("track-1");
 
     // Add second track (4s at 1.0x)
     const track2 = createMockTrack({
-      id: 'track-2',
+      id: "track-2",
       duration: 4000,
       speed: 1.0,
     });
     useTrackStore.getState().addTrack(track2);
 
     // Verify loop count (4s loops 3 times in 10s)
-    const track2Info = loopEngine.getTrackLoopInfo('track-2');
+    const track2Info = loopEngine.getTrackLoopInfo("track-2");
     expect(track2Info.loopCount).toBe(3);
   });
 
-  it('updates loop duration when master track speed changes', () => {
+  it("updates loop duration when master track speed changes", () => {
     const loopEngine = new LoopEngine();
 
     // Add master track (10s at 1.0x = 10s loop)
     const track1 = createMockTrack({
-      id: 'track-1',
+      id: "track-1",
       duration: 10000,
       speed: 1.0,
     });
     useTrackStore.getState().addTrack(track1);
 
     // Change speed to 0.5x (10s / 0.5 = 20s loop)
-    useTrackStore.getState().updateTrack('track-1', { speed: 0.5 });
+    useTrackStore.getState().updateTrack("track-1", { speed: 0.5 });
 
     // Verify master loop duration updated
     const masterInfo = loopEngine.getMasterLoopInfo();
     expect(masterInfo.duration).toBe(20000);
   });
 
-  it('respects loop mode setting', () => {
+  it("respects loop mode setting", () => {
     const loopEngine = new LoopEngine();
 
     // Add tracks
-    useTrackStore.getState().addTrack(
-      createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 })
-    );
-    useTrackStore.getState().addTrack(
-      createMockTrack({ id: 'track-2', duration: 5000, speed: 1.0 })
-    );
+    useTrackStore
+      .getState()
+      .addTrack(
+        createMockTrack({ id: "track-1", duration: 10000, speed: 1.0 }),
+      );
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }));
 
     // Loop mode ON
     usePlaybackStore.getState().setLoopMode(true);
-    expect(loopEngine.shouldTrackLoop('track-2')).toBe(true);
+    expect(loopEngine.shouldTrackLoop("track-2")).toBe(true);
 
     // Loop mode OFF
     usePlaybackStore.getState().setLoopMode(false);
-    expect(loopEngine.shouldTrackLoop('track-2')).toBe(false);
+    expect(loopEngine.shouldTrackLoop("track-2")).toBe(false);
   });
 
-  it('clears all tracks when master is removed', () => {
+  it("clears all tracks when master is removed", () => {
     const loopEngine = new LoopEngine();
 
     // Add multiple tracks
-    useTrackStore.getState().addTrack(
-      createMockTrack({ id: 'track-1', duration: 10000, speed: 1.0 })
-    );
-    useTrackStore.getState().addTrack(
-      createMockTrack({ id: 'track-2', duration: 5000, speed: 1.0 })
-    );
+    useTrackStore
+      .getState()
+      .addTrack(
+        createMockTrack({ id: "track-1", duration: 10000, speed: 1.0 }),
+      );
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }));
 
     // Remove master track
-    useTrackStore.getState().removeTrack('track-1');
+    useTrackStore.getState().removeTrack("track-1");
 
     // Verify all tracks cleared
     expect(useTrackStore.getState().tracks).toHaveLength(0);
@@ -817,6 +890,7 @@ describe('Loop Engine Integration', () => {
 Run tests: `npm test -- loopEngine.integration.test.ts`
 
 **Commit Message Template**:
+
 ```
 test(loop-engine): add integration tests for phase 1
 
@@ -835,6 +909,7 @@ test(loop-engine): add integration tests for phase 1
 After completing all tasks, verify Phase 1 is complete:
 
 ### Automated Verification
+
 ```bash
 # Run all tests
 npm test
@@ -853,6 +928,7 @@ npm test -- --coverage
 ```
 
 **Expected Results**:
+
 - All tests pass
 - Code coverage ≥ 80% for new code
 - No existing tests broken
@@ -865,18 +941,19 @@ npm test -- --coverage
    - Verify master loop duration appears in track store
    - Toggle loop mode (you'll need to do this via console for now):
      ```javascript
-     usePlaybackStore.getState().toggleLoopMode()
+     usePlaybackStore.getState().toggleLoopMode();
      ```
    - Verify state updates
 
 2. **Console Testing**:
+
    ```javascript
    // Import stores
-   const { useTrackStore } = require('./src/store/useTrackStore');
-   const { LoopEngine } = require('./src/services/loop/LoopEngine');
+   const { useTrackStore } = require("./src/store/useTrackStore");
+   const { LoopEngine } = require("./src/services/loop/LoopEngine");
 
    // Add test tracks
-   const track1 = { id: '1', duration: 10000, speed: 1.0, /* ... */ };
+   const track1 = { id: "1", duration: 10000, speed: 1.0 /* ... */ };
    useTrackStore.getState().addTrack(track1);
 
    // Check master loop
@@ -918,6 +995,7 @@ npm test -- --coverage
 Proceed to **Phase 2: UI Components & Visual Indicators** to build the user-facing components for looper functionality.
 
 **Phase 2 Preview**:
+
 - Master track visual styling
 - Loop mode toggle button
 - Confirmation dialogs

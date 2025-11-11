@@ -5,6 +5,7 @@
 Integrate the looper normalization feature with the recording workflow. Implement auto-stop for subsequent track recordings at the master loop boundary, provide visual and audio feedback during recording to help users stay in time with the loop, and update the recording UI to show loop progress. This phase completes the looper feature by making recording behave like a true loop station.
 
 **Success Criteria**:
+
 - First recording sets master loop (manual stop)
 - Subsequent recordings auto-stop at loop end
 - Visual progress indicator shows loop duration while recording
@@ -33,6 +34,7 @@ Integrate the looper normalization feature with the recording workflow. Implemen
 **Goal**: Add logic to determine whether the current recording will be the first track (master) or a subsequent track (overdub), and store this context for use in recording workflow.
 
 **Files to Modify**:
+
 - `src/services/audio/AudioService.ts` - Add recording context detection
 - `src/store/useTrackStore.ts` - Add helper to check if first track
 - `src/screens/MainScreen/MainScreen.tsx` - Use recording context to adjust UI
@@ -67,6 +69,7 @@ Integrate the looper normalization feature with the recording workflow. Implemen
    - Test context passed to UI correctly
 
 **Verification Checklist**:
+
 - [ ] Recording context detected correctly
 - [ ] Context accessible to recording UI
 - [ ] Different messages shown for first vs. subsequent
@@ -116,6 +119,7 @@ describe('Recording Context Detection', () => {
 Run tests: `npm test -- recording-context`
 
 **Commit Message Template**:
+
 ```
 feat(recording): detect first vs. subsequent track recording context
 
@@ -134,6 +138,7 @@ feat(recording): detect first vs. subsequent track recording context
 **Goal**: Automatically stop recording after one loop cycle when recording subsequent tracks, matching hardware looper behavior.
 
 **Files to Modify**:
+
 - `src/services/audio/BaseAudioRecorder.ts` - Add auto-stop capability
 - `src/services/audio/WebAudioRecorder.ts` - Implement auto-stop
 - `src/services/audio/NativeAudioRecorder.ts` - Implement auto-stop
@@ -178,6 +183,7 @@ feat(recording): detect first vs. subsequent track recording context
    - Test auto-stop callback triggered
 
 **Verification Checklist**:
+
 - [ ] Auto-stop implemented on web
 - [ ] Auto-stop implemented on native
 - [ ] First recordings unaffected (manual stop only)
@@ -188,15 +194,15 @@ feat(recording): detect first vs. subsequent track recording context
 **Testing Instructions**:
 
 ```typescript
-describe('Recording Auto-Stop', () => {
-  it('does not auto-stop first track recording', async () => {
+describe("Recording Auto-Stop", () => {
+  it("does not auto-stop first track recording", async () => {
     // No tracks exist
     const recorder = new WebAudioRecorder();
 
     await recorder.startRecording();
 
     // Wait past arbitrary duration
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     // Verify still recording
     expect(recorder.isRecording()).toBe(true);
@@ -205,11 +211,11 @@ describe('Recording Auto-Stop', () => {
     await recorder.stopRecording();
   });
 
-  it('auto-stops subsequent track at loop end', async () => {
+  it("auto-stops subsequent track at loop end", async () => {
     // Add master track (10s loop)
-    useTrackStore.getState().addTrack(
-      createMockTrack({ duration: 10000, speed: 1.0 })
-    );
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ duration: 10000, speed: 1.0 }));
 
     const masterLoopDuration = useTrackStore.getState().getMasterLoopDuration();
     const recorder = new WebAudioRecorder();
@@ -219,42 +225,44 @@ describe('Recording Auto-Stop', () => {
     recorder.onStop = stopCallback;
 
     // Wait for auto-stop (with buffer time)
-    await new Promise(resolve => setTimeout(resolve, masterLoopDuration + 500));
+    await new Promise((resolve) =>
+      setTimeout(resolve, masterLoopDuration + 500),
+    );
 
     // Verify auto-stopped
     expect(recorder.isRecording()).toBe(false);
     expect(stopCallback).toHaveBeenCalled();
   });
 
-  it('allows manual stop before auto-stop', async () => {
-    useTrackStore.getState().addTrack(
-      createMockTrack({ duration: 10000, speed: 1.0 })
-    );
+  it("allows manual stop before auto-stop", async () => {
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ duration: 10000, speed: 1.0 }));
 
     const recorder = new WebAudioRecorder();
 
     await recorder.startRecording({ maxDuration: 10000 });
 
     // Manual stop after 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     const uri = await recorder.stopRecording();
 
     expect(uri).toBeTruthy();
     expect(recorder.isRecording()).toBe(false);
 
     // Verify auto-stop timer cleared (no error after waiting)
-    await new Promise(resolve => setTimeout(resolve, 6000));
+    await new Promise((resolve) => setTimeout(resolve, 6000));
   });
 
-  it('handles recording shorter than loop when stopped manually', async () => {
-    useTrackStore.getState().addTrack(
-      createMockTrack({ duration: 10000, speed: 1.0 })
-    );
+  it("handles recording shorter than loop when stopped manually", async () => {
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ duration: 10000, speed: 1.0 }));
 
     const recorder = new WebAudioRecorder();
 
     await recorder.startRecording({ maxDuration: 10000 });
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const uri = await recorder.stopRecording();
 
@@ -269,6 +277,7 @@ describe('Recording Auto-Stop', () => {
 Run tests: `npm test -- recorder auto-stop`
 
 **Commit Message Template**:
+
 ```
 feat(recording): implement auto-stop for subsequent track recordings
 
@@ -288,12 +297,14 @@ feat(recording): implement auto-stop for subsequent track recordings
 **Goal**: Show a visual progress indicator during recording that displays progress through the loop cycle, helping users time their recording.
 
 **Files to Create**:
+
 - `src/components/RecordingProgressIndicator/RecordingProgressIndicator.tsx` - Progress component
 - `src/components/RecordingProgressIndicator/RecordingProgressIndicator.styles.ts` - Styles
 - `src/components/RecordingProgressIndicator/__tests__/RecordingProgressIndicator.test.tsx` - Tests
 - `src/components/RecordingProgressIndicator/index.ts` - Re-export
 
 **Files to Modify**:
+
 - `src/screens/MainScreen/MainScreen.tsx` - Add progress indicator to recording UI
 
 **Prerequisites**: Task 1 complete
@@ -342,6 +353,7 @@ feat(recording): implement auto-stop for subsequent track recordings
    - Test visual state changes (colors)
 
 **Verification Checklist**:
+
 - [ ] Progress indicator visible during recording
 - [ ] Correct mode for first vs. subsequent tracks
 - [ ] Progress updates smoothly
@@ -448,6 +460,7 @@ describe('RecordingProgressIndicator', () => {
 Run tests: `npm test -- RecordingProgressIndicator.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(recording): add progress indicator for loop duration
 
@@ -469,10 +482,12 @@ feat(recording): add progress indicator for loop duration
 **Note**: This task is **optional**. The core looper workflow functions without metronome support. If skipped, update Task 5 to omit all metronome-related UI and tests.
 
 **Files to Create**:
+
 - `src/services/audio/MetronomeService.ts` - Metronome audio generation and playback
 - `src/services/audio/__tests__/MetronomeService.test.ts` - Tests
 
 **Files to Modify**:
+
 - `src/screens/MainScreen/MainScreen.tsx` - Add metronome toggle
 - `src/store/useSettingsStore.ts` - Add metronome preference
 
@@ -518,6 +533,7 @@ feat(recording): add progress indicator for loop duration
    - Test count-in functionality
 
 **Verification Checklist**:
+
 - [ ] Metronome setting added to settings store
 - [ ] MetronomeService generates click sounds
 - [ ] Metronome timing calculated from loop duration
@@ -529,8 +545,8 @@ feat(recording): add progress indicator for loop duration
 **Testing Instructions**:
 
 ```typescript
-describe('MetronomeService', () => {
-  it('calculates BPM from loop duration', () => {
+describe("MetronomeService", () => {
+  it("calculates BPM from loop duration", () => {
     const loopDuration = 2400; // 2.4 seconds = 100 BPM (4/4 time)
 
     const bpm = MetronomeService.calculateBPM(loopDuration, 4);
@@ -538,9 +554,11 @@ describe('MetronomeService', () => {
     expect(bpm).toBeCloseTo(100, 1);
   });
 
-  it('starts metronome when recording subsequent track', async () => {
+  it("starts metronome when recording subsequent track", async () => {
     useSettingsStore.setState({ enableMetronome: true });
-    useTrackStore.getState().addTrack(createMockTrack({ duration: 2400, speed: 1.0 }));
+    useTrackStore
+      .getState()
+      .addTrack(createMockTrack({ duration: 2400, speed: 1.0 }));
 
     const metronome = new MetronomeService();
     const clickCallback = jest.fn();
@@ -549,14 +567,14 @@ describe('MetronomeService', () => {
     await metronome.start({ bpm: 100 });
 
     // Wait for a few clicks
-    await new Promise(resolve => setTimeout(resolve, 1300)); // ~2 clicks at 100 BPM
+    await new Promise((resolve) => setTimeout(resolve, 1300)); // ~2 clicks at 100 BPM
 
     expect(clickCallback).toHaveBeenCalledTimes(2);
 
     metronome.stop();
   });
 
-  it('provides count-in before recording', async () => {
+  it("provides count-in before recording", async () => {
     const metronome = new MetronomeService();
     const countInCallback = jest.fn();
 
@@ -565,7 +583,7 @@ describe('MetronomeService', () => {
     expect(countInCallback).toHaveBeenCalledTimes(4);
   });
 
-  it('respects metronome enabled setting', async () => {
+  it("respects metronome enabled setting", async () => {
     useSettingsStore.setState({ enableMetronome: false });
 
     const metronome = new MetronomeService();
@@ -582,6 +600,7 @@ describe('MetronomeService', () => {
 Run tests: `npm test -- MetronomeService.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(recording): add optional metronome for recording in time
 
@@ -602,6 +621,7 @@ feat(recording): add optional metronome for recording in time
 **Goal**: Refine the overall recording UI to clearly communicate loop behavior and provide all necessary controls and feedback.
 
 **Files to Modify**:
+
 - `src/screens/MainScreen/MainScreen.tsx` - Update recording UI section
 - `src/components/ActionButton/ActionButton.tsx` - Update record button states
 - Any recording-related components
@@ -650,6 +670,7 @@ feat(recording): add optional metronome for recording in time
    - Test playback-while-recording toggle
 
 **Verification Checklist**:
+
 - [ ] Record button states clear for all contexts
 - [ ] Instructional text helpful and accurate
 - [ ] Progress indicator integrated smoothly
@@ -726,6 +747,7 @@ describe('Recording UI - Loop Awareness', () => {
 Run tests: `npm test -- MainScreen.test.tsx` (recording sections)
 
 **Commit Message Template**:
+
 ```
 feat(recording): update UI with comprehensive loop awareness
 
@@ -746,6 +768,7 @@ feat(recording): update UI with comprehensive loop awareness
 After completing all tasks, verify Phase 5 is complete:
 
 ### Automated Verification
+
 ```bash
 # Run all tests
 npm test
@@ -760,6 +783,7 @@ npm test -- --coverage
 ```
 
 **Expected Results**:
+
 - All tests pass
 - Code coverage ≥ 80% for new code
 - No existing tests broken
@@ -767,6 +791,7 @@ npm test -- --coverage
 ### Manual Testing Scenarios
 
 #### Scenario 1: First Track Recording (Master Loop)
+
 1. Open app with no tracks
 2. **Verify**: Record button says "Record First Loop"
 3. **Verify**: Instructional text explains master loop concept
@@ -779,6 +804,7 @@ npm test -- --coverage
 10. **Verify**: Master loop duration = ~10 seconds
 
 #### Scenario 2: Subsequent Track Recording (Auto-Stop)
+
 1. With master track loaded (10 seconds)
 2. **Verify**: Record button says "Record Overdub"
 3. **Verify**: Instructional text mentions auto-stop and shows loop duration
@@ -791,6 +817,7 @@ npm test -- --coverage
 10. **Verify**: New track added
 
 #### Scenario 3: Manual Stop Before Auto-Stop
+
 1. With master track loaded (10 seconds)
 2. Start recording subsequent track
 3. After 5 seconds, press stop manually
@@ -800,6 +827,7 @@ npm test -- --coverage
 7. **Verify**: Short track loops twice during one master loop cycle
 
 #### Scenario 4: Metronome During Recording
+
 1. Navigate to settings
 2. Enable metronome
 3. Return to main screen
@@ -813,6 +841,7 @@ npm test -- --coverage
 11. **Verify**: Metronome stops
 
 #### Scenario 5: Count-In Before Recording (Optional)
+
 1. With metronome enabled
 2. Enable count-in option (in settings or recording UI)
 3. Start recording subsequent track
@@ -821,6 +850,7 @@ npm test -- --coverage
 6. **Verify**: Progress indicator shows accurate position
 
 #### Scenario 6: Play While Recording
+
 1. Add multiple tracks
 2. Enable "Play while recording" option
 3. Start recording subsequent track
@@ -829,6 +859,7 @@ npm test -- --coverage
 6. **Verify**: Recording captures only new input, not playback (no feedback loop)
 
 #### Scenario 7: Very Short Loop
+
 1. Record first track with 2-second duration
 2. Attempt to record subsequent track
 3. **Verify**: Progress indicator updates very quickly
@@ -836,6 +867,7 @@ npm test -- --coverage
 5. **Verify**: Recording successful despite short duration
 
 #### Scenario 8: Recording Workflow Across App Restart
+
 1. Record first track
 2. Close app
 3. Reopen app
@@ -910,29 +942,35 @@ After Phase 5, the looper normalization feature is complete. All planned functio
 ### Implemented Features
 
 ✅ **Master Loop Concept**
+
 - First track sets loop length (speed-adjusted)
 - Visual indication of master track
 
 ✅ **Track Looping**
+
 - Subsequent tracks loop to match master duration
 - Seamless repetition with optional crossfade
 - Loop mode toggle for preview
 
 ✅ **Confirmation Dialogs**
+
 - Changing master speed warns and confirms
 - Deleting master track clears all with confirmation
 
 ✅ **Settings Page**
+
 - Comprehensive configuration options
 - Settings persistence across restarts
 - Default values for all looper features
 
 ✅ **Enhanced Export**
+
 - Configurable loop count for export
 - Configurable fadeout duration
 - Progress tracking for longer exports
 
 ✅ **Recording Integration**
+
 - First recording sets master loop
 - Subsequent recordings auto-stop at loop end
 - Progress indicator during recording
@@ -941,6 +979,7 @@ After Phase 5, the looper normalization feature is complete. All planned functio
 ### Final Testing
 
 Run full test suite:
+
 ```bash
 npm test
 npm test -- --coverage
@@ -951,6 +990,7 @@ Manual testing: Complete all scenarios from Phases 1-5
 ### Documentation Updates
 
 Before considering feature complete, update:
+
 1. `README.md` - Add looper feature to feature list
 2. `USER_GUIDE.md` - Document looper workflow
 3. `DEVELOPER_GUIDE.md` - Architecture and design decisions
@@ -971,6 +1011,7 @@ Before considering feature complete, update:
 You've successfully implemented the looper normalization feature, transforming the audio mixing app into a true looper machine. The feature provides intuitive, professional-grade looping functionality that matches hardware loopers while leveraging the advantages of a software platform.
 
 **Next possible enhancements** (out of scope, future work):
+
 - MIDI clock sync for external timing
 - Multiple loop layers with independent loop lengths
 - Loop quantization (snap to beat)

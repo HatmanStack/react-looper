@@ -406,7 +406,7 @@ jobs:
       - uses: actions/setup-node@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: "17"
       - run: npm install
       - run: npm run test:android
 ```
@@ -437,13 +437,13 @@ jobs:
 
 ```typescript
 // Platform-specific code example
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
-if (Platform.OS === 'web') {
+if (Platform.OS === "web") {
   // Web-specific code
-} else if (Platform.OS === 'ios') {
+} else if (Platform.OS === "ios") {
   // iOS-specific code
-} else if (Platform.OS === 'android') {
+} else if (Platform.OS === "android") {
   // Android-specific code
 }
 ```

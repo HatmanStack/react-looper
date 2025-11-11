@@ -5,6 +5,7 @@
 Enhance the save/export functionality to support loop repetition and fadeout. Update the save dialog to allow users to configure how many loop cycles to export and whether to apply a fadeout. Modify the audio mixing logic to duplicate tracks according to loop boundaries and apply fadeout to the final mix. This phase delivers the core export functionality that makes the looper feature complete.
 
 **Success Criteria**:
+
 - Save dialog includes loop count and fadeout configuration
 - Audio mixer correctly repeats tracks to fill loop cycles
 - Fadeout applied smoothly to final export
@@ -35,6 +36,7 @@ Enhance the save/export functionality to support loop repetition and fadeout. Up
 **Goal**: Update the save modal to include loop count and fadeout configuration options, loading defaults from settings.
 
 **Files to Modify**:
+
 - `src/components/SaveModal/SaveModal.tsx` - Add loop count and fadeout inputs
 - `src/components/SaveModal/SaveModal.styles.ts` - Add styles for new inputs
 - `src/components/SaveModal/__tests__/SaveModal.test.tsx` - Add tests
@@ -86,6 +88,7 @@ Enhance the save/export functionality to support loop repetition and fadeout. Up
    - Test save action passes correct parameters
 
 **Verification Checklist**:
+
 - [ ] Loop count selector functional
 - [ ] Fadeout selector functional
 - [ ] Custom inputs validated correctly
@@ -187,6 +190,7 @@ describe('SaveModal - Loop and Fadeout', () => {
 Run tests: `npm test -- SaveModal.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(export): enhance save modal with loop count and fadeout
 
@@ -207,6 +211,7 @@ feat(export): enhance save modal with loop count and fadeout
 **Goal**: Extend the MixingOptions interface to include loop count and fadeout parameters that will be used by all mixer implementations.
 
 **Files to Modify**:
+
 - `src/types/audio.ts` - Add fields to MixingOptions interface
 - `src/services/audio/BaseAudioMixer.ts` - Update documentation
 
@@ -215,6 +220,7 @@ feat(export): enhance save modal with loop count and fadeout
 **Implementation Steps**:
 
 1. Update `MixingOptions` interface in `audio.ts`:
+
    ```typescript
    export interface MixingOptions {
      // ... existing fields ...
@@ -244,6 +250,7 @@ feat(export): enhance save modal with loop count and fadeout
 4. No breaking changes: make fields optional with sensible defaults
 
 **Verification Checklist**:
+
 - [ ] Interface updated correctly
 - [ ] TypeScript compilation succeeds
 - [ ] Documentation clear
@@ -260,6 +267,7 @@ tsc --noEmit
 ```
 
 **Commit Message Template**:
+
 ```
 feat(types): add loopCount and fadeoutDuration to MixingOptions
 
@@ -277,6 +285,7 @@ feat(types): add loopCount and fadeoutDuration to MixingOptions
 **Goal**: Update WebAudioMixer to duplicate tracks according to loop count and apply fadeout to the final mixed output.
 
 **Files to Modify**:
+
 - `src/services/audio/WebAudioMixer.ts` - Add repetition and fadeout logic
 - `src/services/audio/__tests__/WebAudioMixer.test.ts` - Create or update tests
 
@@ -285,11 +294,13 @@ feat(types): add loopCount and fadeoutDuration to MixingOptions
 **Implementation Steps**:
 
 1. Calculate total export duration:
+
    ```typescript
    const masterLoopDuration = calculateMasterLoopDuration(tracks);
    const loopCount = options?.loopCount || 1;
    const fadeoutDuration = options?.fadeoutDuration || 0;
-   const totalDuration = (masterLoopDuration * loopCount) + (fadeoutDuration / 1000); // in seconds
+   const totalDuration =
+     masterLoopDuration * loopCount + fadeoutDuration / 1000; // in seconds
    ```
 
 2. Modify OfflineAudioContext creation:
@@ -327,6 +338,7 @@ feat(types): add loopCount and fadeoutDuration to MixingOptions
    - Test edge cases (0 fadeout, 1 loop, etc.)
 
 **Verification Checklist**:
+
 - [ ] Tracks repeat correctly for multiple loops
 - [ ] Fadeout applied smoothly to final output
 - [ ] No audio glitches at loop boundaries
@@ -337,69 +349,79 @@ feat(types): add loopCount and fadeoutDuration to MixingOptions
 **Testing Instructions**:
 
 ```typescript
-describe('WebAudioMixer - Track Repetition', () => {
-  it('renders single loop when loopCount=1', async () => {
+describe("WebAudioMixer - Track Repetition", () => {
+  it("renders single loop when loopCount=1", async () => {
     const tracks = [
-      { uri: 'track1.mp3', duration: 10000, speed: 1.0, volume: 100 },
+      { uri: "track1.mp3", duration: 10000, speed: 1.0, volume: 100 },
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 1 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 1 });
 
     const blob = mixer.getBlob();
-    const buffer = await audioContextMock.decodeAudioData(await blob.arrayBuffer());
+    const buffer = await audioContextMock.decodeAudioData(
+      await blob.arrayBuffer(),
+    );
 
     expect(buffer.duration).toBeCloseTo(10, 1); // 10 seconds ± 1
   });
 
-  it('renders multiple loops when loopCount > 1', async () => {
+  it("renders multiple loops when loopCount > 1", async () => {
     const tracks = [
-      { uri: 'track1.mp3', duration: 10000, speed: 1.0, volume: 100 },
+      { uri: "track1.mp3", duration: 10000, speed: 1.0, volume: 100 },
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 4 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 4 });
 
     const blob = mixer.getBlob();
-    const buffer = await audioContextMock.decodeAudioData(await blob.arrayBuffer());
+    const buffer = await audioContextMock.decodeAudioData(
+      await blob.arrayBuffer(),
+    );
 
     expect(buffer.duration).toBeCloseTo(40, 1); // 40 seconds ± 1
   });
 
-  it('applies fadeout to final output', async () => {
+  it("applies fadeout to final output", async () => {
     const tracks = [
-      { uri: 'track1.mp3', duration: 10000, speed: 1.0, volume: 100 },
+      { uri: "track1.mp3", duration: 10000, speed: 1.0, volume: 100 },
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', {
+    await mixer.mixTracks(tracks, "output.wav", {
       loopCount: 1,
       fadeoutDuration: 2000, // 2 seconds
     });
 
     const blob = mixer.getBlob();
-    const buffer = await audioContextMock.decodeAudioData(await blob.arrayBuffer());
+    const buffer = await audioContextMock.decodeAudioData(
+      await blob.arrayBuffer(),
+    );
 
     // Verify fadeout in audio data (check amplitude decreases at end)
     const channelData = buffer.getChannelData(0);
     const endSamples = channelData.slice(-1000); // Last 1000 samples
 
     // Verify amplitude approaches zero
-    const avgAmplitude = endSamples.reduce((sum, val) => sum + Math.abs(val), 0) / endSamples.length;
+    const avgAmplitude =
+      endSamples.reduce((sum, val) => sum + Math.abs(val), 0) /
+      endSamples.length;
     expect(avgAmplitude).toBeLessThan(0.1); // Very quiet at end
   });
 
-  it('handles shorter tracks looping within master loop', async () => {
+  it("handles shorter tracks looping within master loop", async () => {
     const tracks = [
-      { uri: 'track1.mp3', duration: 10000, speed: 1.0, volume: 100 }, // Master: 10s
-      { uri: 'track2.mp3', duration: 4000, speed: 1.0, volume: 100 },  // Loops 3 times in 10s
+      { uri: "track1.mp3", duration: 10000, speed: 1.0, volume: 100 }, // Master: 10s
+      { uri: "track2.mp3", duration: 4000, speed: 1.0, volume: 100 }, // Loops 3 times in 10s
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 2 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
 
     const blob = mixer.getBlob();
-    const buffer = await audioContextMock.decodeAudioData(await blob.arrayBuffer());
+    const buffer = await audioContextMock.decodeAudioData(
+      await blob.arrayBuffer(),
+    );
 
     // Total: 2 master loops × 10s = 20s
     expect(buffer.duration).toBeCloseTo(20, 1);
@@ -413,6 +435,7 @@ describe('WebAudioMixer - Track Repetition', () => {
 Run tests: `npm test -- WebAudioMixer.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(mixer): implement track repetition and fadeout in web mixer
 
@@ -432,6 +455,7 @@ feat(mixer): implement track repetition and fadeout in web mixer
 **Goal**: Document approach for implementing track repetition and fadeout in native mixer using FFmpeg. Actual implementation may require platform-specific audio engineering.
 
 **Files to Modify/Document**:
+
 - `src/services/audio/NativeAudioMixer.ts` - Add TODO comments or placeholder implementation
 - Create implementation notes document
 
@@ -445,6 +469,7 @@ feat(mixer): implement track repetition and fadeout in web mixer
    - Combine filters in FFmpeg command
 
 2. **Otherwise**, add comprehensive TODO comments:
+
    ```typescript
    // TODO: Implement track repetition for native mixer
    // Approach:
@@ -468,12 +493,13 @@ feat(mixer): implement track repetition and fadeout in web mixer
 
 4. Add integration test (may be skipped on native if not implemented):
    ```typescript
-   it.skip('renders multiple loops on native (not yet implemented)', async () => {
+   it.skip("renders multiple loops on native (not yet implemented)", async () => {
      // Test will be enabled when native implementation complete
    });
    ```
 
 **Verification Checklist**:
+
 - [ ] Web implementation working as reference
 - [ ] Native approach documented clearly
 - [ ] TODO comments added to code
@@ -483,15 +509,18 @@ feat(mixer): implement track repetition and fadeout in web mixer
 **Testing Instructions**:
 
 If native implementation completed:
+
 - Run same tests as web mixer
 - Verify FFmpeg commands generate correct output
 - Test on actual device
 
 If not implemented:
+
 - Document testing approach
 - Skip native-specific tests with `.skip`
 
 **Commit Message Template**:
+
 ```
 docs(mixer): document native mixer repetition implementation
 
@@ -510,6 +539,7 @@ docs(mixer): document native mixer repetition implementation
 **Goal**: Connect the save modal UI to the mixer implementations, passing loop count and fadeout parameters through the entire save workflow.
 
 **Files to Modify**:
+
 - `src/screens/MainScreen/MainScreen.tsx` - Update save handler
 - `src/services/audio/AudioService.ts` - Pass options through service layer
 - Any intermediate layers between UI and mixer
@@ -550,6 +580,7 @@ docs(mixer): document native mixer repetition implementation
    - Test error handling for oversized exports
 
 **Verification Checklist**:
+
 - [ ] Save modal values passed to mixer
 - [ ] Options propagate through all layers
 - [ ] Progress updates reflect loop count
@@ -611,6 +642,7 @@ describe('Save Workflow - Loop Options', () => {
 Run tests: `npm test -- MainScreen.test.tsx` or appropriate integration test file
 
 **Commit Message Template**:
+
 ```
 feat(export): connect save modal options to mixer workflow
 
@@ -629,6 +661,7 @@ feat(export): connect save modal options to mixer workflow
 **Goal**: Implement the crossfade functionality that was added to settings in Phase 3 but not yet used in audio mixing.
 
 **Files to Modify**:
+
 - `src/services/audio/WebAudioMixer.ts` - Apply crossfade at loop boundaries
 - `src/services/audio/__tests__/WebAudioMixer.test.ts` - Add crossfade tests
 
@@ -637,6 +670,7 @@ feat(export): connect save modal options to mixer workflow
 **Implementation Steps**:
 
 1. Read crossfade duration from settings:
+
    ```typescript
    const crossfadeDuration = useSettingsStore.getState().loopCrossfadeDuration;
    ```
@@ -666,6 +700,7 @@ feat(export): connect save modal options to mixer workflow
    - Test very short tracks handled correctly
 
 **Verification Checklist**:
+
 - [ ] Crossfade setting read from store
 - [ ] Crossfade applied correctly at loop boundaries
 - [ ] Gapless mode still works (crossfade = 0)
@@ -676,45 +711,45 @@ feat(export): connect save modal options to mixer workflow
 **Testing Instructions**:
 
 ```typescript
-describe('WebAudioMixer - Crossfade', () => {
-  it('applies gapless looping when crossfade is 0', async () => {
+describe("WebAudioMixer - Crossfade", () => {
+  it("applies gapless looping when crossfade is 0", async () => {
     useSettingsStore.setState({ loopCrossfadeDuration: 0 });
 
     const tracks = [
-      { uri: 'track1.mp3', duration: 5000, speed: 1.0, volume: 100 },
+      { uri: "track1.mp3", duration: 5000, speed: 1.0, volume: 100 },
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 2 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
 
     // Verify no crossfade artifacts (difficult to test programmatically)
     // May require manual audio inspection or advanced signal analysis
   });
 
-  it('applies crossfade at loop boundaries when setting > 0', async () => {
+  it("applies crossfade at loop boundaries when setting > 0", async () => {
     useSettingsStore.setState({ loopCrossfadeDuration: 20 }); // 20ms
 
     const tracks = [
-      { uri: 'track1.mp3', duration: 5000, speed: 1.0, volume: 100 },
+      { uri: "track1.mp3", duration: 5000, speed: 1.0, volume: 100 },
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 2 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
 
     // Verify crossfade applied
     // This requires inspecting audio buffer at loop boundary
     // Check for smooth transition (no sudden amplitude change)
   });
 
-  it('skips crossfade for very short tracks', async () => {
+  it("skips crossfade for very short tracks", async () => {
     useSettingsStore.setState({ loopCrossfadeDuration: 50 }); // 50ms
 
     const tracks = [
-      { uri: 'track1.mp3', duration: 30, speed: 1.0, volume: 100 }, // 30ms track
+      { uri: "track1.mp3", duration: 30, speed: 1.0, volume: 100 }, // 30ms track
     ];
 
     const mixer = new WebAudioMixer();
-    await mixer.mixTracks(tracks, 'output.wav', { loopCount: 5 });
+    await mixer.mixTracks(tracks, "output.wav", { loopCount: 5 });
 
     // Verify no errors, track plays correctly
   });
@@ -724,6 +759,7 @@ describe('WebAudioMixer - Crossfade', () => {
 Run tests: `npm test -- WebAudioMixer.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(mixer): implement crossfade at loop boundaries
 
@@ -743,6 +779,7 @@ feat(mixer): implement crossfade at loop boundaries
 After completing all tasks, verify Phase 4 is complete:
 
 ### Automated Verification
+
 ```bash
 # Run all tests
 npm test
@@ -757,6 +794,7 @@ npm test -- --coverage
 ```
 
 **Expected Results**:
+
 - All tests pass
 - Code coverage ≥ 80% for new code
 - No existing tests broken
@@ -764,6 +802,7 @@ npm test -- --coverage
 ### Manual Testing Scenarios
 
 #### Scenario 1: Single Loop Export (Baseline)
+
 1. Add 2-3 tracks
 2. Open save modal
 3. Set loop count to 1, fadeout to None
@@ -774,6 +813,7 @@ npm test -- --coverage
 8. **Verify**: No fadeout at end
 
 #### Scenario 2: Multiple Loop Export
+
 1. Add tracks (master loop ~10 seconds)
 2. Open save modal
 3. Set loop count to 4
@@ -786,6 +826,7 @@ npm test -- --coverage
 10. **Verify**: No fadeout at end
 
 #### Scenario 3: Export with Fadeout
+
 1. Add tracks
 2. Open save modal
 3. Set loop count to 2, fadeout to 2s
@@ -796,6 +837,7 @@ npm test -- --coverage
 8. **Verify**: No sudden cutoff
 
 #### Scenario 4: Custom Loop Count and Fadeout
+
 1. Add tracks
 2. Open save modal
 3. Select "Custom" for loop count, enter 6
@@ -806,6 +848,7 @@ npm test -- --coverage
 8. **Verify**: File matches expected duration and has fadeout
 
 #### Scenario 5: Settings Defaults Applied
+
 1. Navigate to settings
 2. Set default loop count to 8
 3. Set default fadeout to 5s
@@ -817,6 +860,7 @@ npm test -- --coverage
 9. **Verify**: Export uses these values
 
 #### Scenario 6: Crossfade Setting
+
 1. Navigate to settings
 2. Set crossfade to 30ms
 3. Return to main screen
@@ -829,6 +873,7 @@ npm test -- --coverage
 10. Compare: gapless version may have slight click (acceptable)
 
 #### Scenario 7: Error Handling
+
 1. Add tracks
 2. Open save modal
 3. Set loop count to 100 (very large)
@@ -899,6 +944,7 @@ npm test -- --coverage
 Proceed to **Phase 5: Recording Workflow Integration** to update the recording functionality to respect loop boundaries and auto-stop at loop end for subsequent tracks.
 
 **Phase 5 Preview**:
+
 - Detect if recording is first track or subsequent track
 - Auto-stop subsequent recordings at loop boundary
 - Show recording progress relative to loop duration

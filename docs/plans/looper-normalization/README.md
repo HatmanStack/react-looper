@@ -26,15 +26,15 @@ Before starting implementation, ensure:
 
 ## Phase Summary
 
-| Phase | Goal | Est. Tokens |
-|-------|------|-------------|
+| Phase       | Goal                                         | Est. Tokens     |
+| ----------- | -------------------------------------------- | --------------- |
 | **Phase 0** | Foundation - Architecture & Design Decisions | N/A (Reference) |
-| **Phase 1** | Core Looping Engine & State Management | ~85,000 |
-| **Phase 2** | UI Components & Visual Indicators | ~90,000 |
-| **Phase 3** | Settings Page & Configuration | ~75,000 |
-| **Phase 4** | Save/Export Enhancements | ~80,000 |
-| **Phase 5** | Recording Workflow Integration | ~70,000 |
-| **Total** | | ~400,000 |
+| **Phase 1** | Core Looping Engine & State Management       | ~85,000         |
+| **Phase 2** | UI Components & Visual Indicators            | ~90,000         |
+| **Phase 3** | Settings Page & Configuration                | ~75,000         |
+| **Phase 4** | Save/Export Enhancements                     | ~80,000         |
+| **Phase 5** | Recording Workflow Integration               | ~70,000         |
+| **Total**   |                                              | ~400,000        |
 
 ## Implementation Order
 
@@ -57,6 +57,7 @@ Before starting implementation, ensure:
 ## Key User-Facing Changes
 
 ### For End Users
+
 - First track automatically becomes the master loop length
 - All subsequent tracks loop seamlessly to match master duration
 - Clear visual indication of which track is the master
@@ -67,6 +68,7 @@ Before starting implementation, ensure:
 - Settings page for advanced looping preferences
 
 ### For Developers
+
 - New `LoopEngine` service for calculating loop boundaries and repetitions
 - Extended store interfaces with master track tracking and loop mode state
 - Reusable confirmation dialog component
@@ -77,6 +79,7 @@ Before starting implementation, ensure:
 ## Testing Strategy
 
 Each phase includes:
+
 - **Unit tests** for all new utility functions and services
 - **Integration tests** for store interactions and state changes
 - **Component tests** for UI elements and user interactions

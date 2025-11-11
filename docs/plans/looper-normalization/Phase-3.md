@@ -5,6 +5,7 @@
 Create a comprehensive settings screen where users can configure looping behavior, export defaults, recording preferences, and other options. Implement settings persistence so preferences survive app restarts. This phase makes the looper fully customizable while maintaining sensible defaults.
 
 **Success Criteria**:
+
 - Settings screen accessible from main screen
 - All settings from Phase 0 ADR-006 implemented
 - Settings persist across app restarts
@@ -32,6 +33,7 @@ Create a comprehensive settings screen where users can configure looping behavio
 **Goal**: Build the settings screen with all configuration options organized into logical sections.
 
 **Files to Create**:
+
 - `src/screens/SettingsScreen/SettingsScreen.tsx` - Settings screen component
 - `src/screens/SettingsScreen/SettingsScreen.styles.ts` - Styles
 - `src/screens/SettingsScreen/__tests__/SettingsScreen.test.tsx` - Tests
@@ -97,6 +99,7 @@ Create a comprehensive settings screen where users can configure looping behavio
    - Test navigation
 
 **Verification Checklist**:
+
 - [ ] All settings from ADR-006 present
 - [ ] Settings organized into logical sections
 - [ ] Changing settings updates store immediately
@@ -183,6 +186,7 @@ describe('SettingsScreen', () => {
 Run tests: `npm test -- SettingsScreen.test.tsx`
 
 **Commit Message Template**:
+
 ```
 feat(settings): create settings screen UI
 
@@ -202,6 +206,7 @@ feat(settings): create settings screen UI
 **Goal**: Add a way to navigate to the settings screen from the main screen (button, menu, or tab).
 
 **Files to Modify**:
+
 - Navigation configuration (e.g., `App.tsx` or navigation setup file)
 - `src/screens/MainScreen/MainScreen.tsx` - Add settings button
 - `src/screens/SettingsScreen/SettingsScreen.tsx` - Add back navigation
@@ -234,6 +239,7 @@ feat(settings): create settings screen UI
    - Test on web and mobile
 
 **Verification Checklist**:
+
 - [ ] Settings button visible on main screen
 - [ ] Pressing settings button navigates to settings screen
 - [ ] Back button on settings screen returns to main screen
@@ -275,6 +281,7 @@ describe('Settings Navigation', () => {
 Run tests: `npm test -- navigation`
 
 **Commit Message Template**:
+
 ```
 feat(navigation): add settings screen to navigation
 
@@ -293,6 +300,7 @@ feat(navigation): add settings screen to navigation
 **Goal**: Ensure settings persist across app restarts using platform-appropriate storage (localStorage for web, AsyncStorage for mobile).
 
 **Files to Modify**:
+
 - `src/store/useSettingsStore.ts` - Add persistence middleware
 - Create platform-specific persistence utilities if needed
 
@@ -312,6 +320,7 @@ feat(navigation): add settings screen to navigation
    - Handle JSON parse errors gracefully
 
 3. Create storage adapter:
+
    ```typescript
    // src/utils/settingsStorage.ts
    const storage = {
@@ -344,6 +353,7 @@ feat(navigation): add settings screen to navigation
    - Test with missing data (first launch)
 
 **Verification Checklist**:
+
 - [ ] Settings persist on web (localStorage)
 - [ ] Settings persist on mobile (AsyncStorage)
 - [ ] Settings load correctly on app start
@@ -355,34 +365,34 @@ feat(navigation): add settings screen to navigation
 **Testing Instructions**:
 
 ```typescript
-describe('Settings Persistence', () => {
+describe("Settings Persistence", () => {
   beforeEach(async () => {
     // Clear storage
     await AsyncStorage.clear(); // or localStorage.clear() on web
   });
 
-  it('saves settings to storage when changed', async () => {
+  it("saves settings to storage when changed", async () => {
     useSettingsStore.getState().updateSettings({
       loopCrossfadeDuration: 25,
     });
 
     // Wait for debounced save
     await waitFor(() => {
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('settings');
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith("settings");
     });
 
-    const stored = await AsyncStorage.getItem('settings');
+    const stored = await AsyncStorage.getItem("settings");
     const parsed = JSON.parse(stored);
     expect(parsed.loopCrossfadeDuration).toBe(25);
   });
 
-  it('loads settings from storage on initialization', async () => {
+  it("loads settings from storage on initialization", async () => {
     // Pre-populate storage
     const settings = {
       loopCrossfadeDuration: 30,
       defaultLoopMode: false,
     };
-    await AsyncStorage.setItem('settings', JSON.stringify(settings));
+    await AsyncStorage.setItem("settings", JSON.stringify(settings));
 
     // Reinitialize store (may require test utility to reset)
     const store = createSettingsStore(); // Or whatever your initialization is
@@ -394,7 +404,7 @@ describe('Settings Persistence', () => {
     });
   });
 
-  it('uses defaults when storage is empty', async () => {
+  it("uses defaults when storage is empty", async () => {
     const store = createSettingsStore();
 
     await waitFor(() => {
@@ -404,9 +414,9 @@ describe('Settings Persistence', () => {
     });
   });
 
-  it('handles corrupted storage gracefully', async () => {
+  it("handles corrupted storage gracefully", async () => {
     // Store invalid JSON
-    await AsyncStorage.setItem('settings', 'invalid json {{{');
+    await AsyncStorage.setItem("settings", "invalid json {{{");
 
     const store = createSettingsStore();
 
@@ -421,6 +431,7 @@ describe('Settings Persistence', () => {
 Run tests: `npm test -- settingsStorage`
 
 **Commit Message Template**:
+
 ```
 feat(settings): implement settings persistence
 
@@ -440,6 +451,7 @@ feat(settings): implement settings persistence
 **Goal**: Ensure the default loop mode setting is applied when the app starts or when playback store is reset.
 
 **Files to Modify**:
+
 - `src/store/usePlaybackStore.ts` - Read default from settings on init
 - `src/store/__tests__/usePlaybackStore.test.ts` - Add tests
 
@@ -451,29 +463,33 @@ feat(settings): implement settings persistence
    - On store creation, read `defaultLoopMode` from settings store
    - Set initial `loopMode` state to this value
    - **Ensure this happens after settings hydration** to avoid race conditions:
+
      ```typescript
      // Option A: Use Zustand persist onRehydrateStorage callback
      const usePlaybackStore = create(
-       persist((set, get) => ({
-         loopMode: false, // Temporary default
-         _hasHydrated: false,
-       }), {
-         name: 'playback-storage',
-         onRehydrateStorage: () => (state) => {
-           // Sync with settings after hydration
-           if (state) {
-             state.loopMode = useSettingsStore.getState().defaultLoopMode;
-             state._hasHydrated = true;
-           }
-         }
-       })
+       persist(
+         (set, get) => ({
+           loopMode: false, // Temporary default
+           _hasHydrated: false,
+         }),
+         {
+           name: "playback-storage",
+           onRehydrateStorage: () => (state) => {
+             // Sync with settings after hydration
+             if (state) {
+               state.loopMode = useSettingsStore.getState().defaultLoopMode;
+               state._hasHydrated = true;
+             }
+           },
+         },
+       ),
      );
 
      // Option B: Subscribe to settings hydration and update
      // In playback store initialization
      useSettingsStore.persist.onFinishHydration(() => {
        usePlaybackStore.setState({
-         loopMode: useSettingsStore.getState().defaultLoopMode
+         loopMode: useSettingsStore.getState().defaultLoopMode,
        });
      });
      ```
@@ -492,6 +508,7 @@ feat(settings): implement settings persistence
    - Verify new default applied
 
 **Verification Checklist**:
+
 - [ ] Playback store reads default from settings
 - [ ] Default applied on app start
 - [ ] Reset action uses current default
@@ -501,8 +518,8 @@ feat(settings): implement settings persistence
 **Testing Instructions**:
 
 ```typescript
-describe('Playback Store - Settings Integration', () => {
-  it('initializes loop mode from settings default', () => {
+describe("Playback Store - Settings Integration", () => {
+  it("initializes loop mode from settings default", () => {
     useSettingsStore.setState({ defaultLoopMode: false });
 
     // Create new playback store (or reset)
@@ -511,7 +528,7 @@ describe('Playback Store - Settings Integration', () => {
     expect(playbackStore.getState().loopMode).toBe(false);
   });
 
-  it('uses updated default when reset', () => {
+  it("uses updated default when reset", () => {
     const playbackStore = usePlaybackStore.getState();
 
     // Start with one default
@@ -525,7 +542,7 @@ describe('Playback Store - Settings Integration', () => {
     expect(playbackStore.loopMode).toBe(false);
   });
 
-  it('does not change current loop mode when settings changed mid-session', () => {
+  it("does not change current loop mode when settings changed mid-session", () => {
     const playbackStore = usePlaybackStore.getState();
 
     // Start session
@@ -548,6 +565,7 @@ describe('Playback Store - Settings Integration', () => {
 Run tests: `npm test -- usePlaybackStore.test.ts`
 
 **Commit Message Template**:
+
 ```
 feat(stores): connect settings default to loop mode
 
@@ -565,6 +583,7 @@ feat(stores): connect settings default to loop mode
 **Goal**: Add the crossfade setting to the settings store and UI, but note that actual crossfade implementation in audio mixing is deferred to Phase 4.
 
 **Files to Modify**:
+
 - `src/screens/SettingsScreen/SettingsScreen.tsx` - Already added in Task 1
 - `src/store/useSettingsStore.ts` - Verify crossfade setting exists
 
@@ -577,6 +596,7 @@ feat(stores): connect settings default to loop mode
 2. Verify crossfade slider is in SettingsScreen UI (should be from Task 1)
 
 3. Add TODO comment in audio mixer files indicating where crossfade will be applied:
+
    ```typescript
    // TODO (Phase 4): Apply crossfade from settings when looping tracks
    // const crossfadeDuration = useSettingsStore.getState().loopCrossfadeDuration;
@@ -586,10 +606,11 @@ feat(stores): connect settings default to loop mode
 
 5. Write placeholder test:
    ```typescript
-   it.todo('applies crossfade duration from settings to looped tracks');
+   it.todo("applies crossfade duration from settings to looped tracks");
    ```
 
 **Verification Checklist**:
+
 - [ ] Crossfade setting in store
 - [ ] Crossfade slider in UI
 - [ ] Setting persists correctly
@@ -614,6 +635,7 @@ describe('Crossfade Setting', () => {
 ```
 
 **Commit Message Template**:
+
 ```
 feat(settings): add crossfade setting (UI only)
 
@@ -632,6 +654,7 @@ feat(settings): add crossfade setting (UI only)
 **Goal**: Add a help or about section to settings screen with information about the looper feature and how to use it.
 
 **Files to Modify**:
+
 - `src/screens/SettingsScreen/SettingsScreen.tsx` - Add help section
 - Optionally update existing HelpModal component
 
@@ -660,6 +683,7 @@ feat(settings): add crossfade setting (UI only)
 5. Test help section displays correctly
 
 **Verification Checklist**:
+
 - [ ] Help section visible in settings
 - [ ] Version number correct
 - [ ] Links functional
@@ -696,6 +720,7 @@ describe('Settings - Help Section', () => {
 ```
 
 **Commit Message Template**:
+
 ```
 feat(settings): add help and info section
 
@@ -714,6 +739,7 @@ feat(settings): add help and info section
 After completing all tasks, verify Phase 3 is complete:
 
 ### Automated Verification
+
 ```bash
 # Run all tests
 npm test
@@ -728,6 +754,7 @@ npm test -- --coverage
 ```
 
 **Expected Results**:
+
 - All tests pass
 - Code coverage ≥ 80% for new code
 - No existing tests broken
@@ -735,6 +762,7 @@ npm test -- --coverage
 ### Manual Testing Scenarios
 
 #### Scenario 1: Settings Screen Access and Navigation
+
 1. Open app
 2. Tap settings button (gear icon)
 3. **Verify**: Settings screen opens
@@ -744,6 +772,7 @@ npm test -- --coverage
 7. **Verify**: App state preserved
 
 #### Scenario 2: Looping Settings
+
 1. Navigate to settings
 2. Adjust crossfade slider
 3. **Verify**: Value updates in real-time
@@ -753,6 +782,7 @@ npm test -- --coverage
 7. **Verify**: Settings preserved
 
 #### Scenario 3: Export Settings
+
 1. Navigate to settings
 2. Change default loop count (e.g., to 8)
 3. Change default fadeout (e.g., to 5s)
@@ -763,6 +793,7 @@ npm test -- --coverage
 8. **Verify**: Save dialog (in Phase 4) will use these defaults
 
 #### Scenario 4: Settings Persistence
+
 1. Change multiple settings
 2. Close app completely (web: close tab, mobile: kill app)
 3. Reopen app
@@ -770,6 +801,7 @@ npm test -- --coverage
 5. **Verify**: All changed settings retained
 
 #### Scenario 5: Reset to Defaults
+
 1. Change several settings away from defaults
 2. Scroll to bottom, tap "Reset to Defaults"
 3. **Verify**: Confirmation dialog appears
@@ -780,6 +812,7 @@ npm test -- --coverage
 8. **Verify**: All settings revert to defaults
 
 #### Scenario 6: Default Loop Mode Integration
+
 1. Navigate to settings
 2. Turn OFF default loop mode
 3. Navigate to main screen
@@ -808,6 +841,7 @@ npm test -- --coverage
 Proceed to **Phase 4: Save/Export Enhancements** to implement loop repetition in exported audio and configurable fadeout.
 
 **Phase 4 Preview**:
+
 - Enhanced save dialog with loop count and fadeout options
 - Audio mixer updates to duplicate tracks for loop repetitions
 - Fadeout implementation in final mix

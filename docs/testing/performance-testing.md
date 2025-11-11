@@ -233,7 +233,7 @@ describe('Performance Tests', () => {
 Use React.memo for expensive components:
 
 ```typescript
-import React, { memo } from 'react';
+import React, { memo } from "react";
 
 export const TrackListItem = memo<TrackListItemProps>(
   ({ track, onPlay }) => {
@@ -245,14 +245,14 @@ export const TrackListItem = memo<TrackListItemProps>(
       prevProps.track.id === nextProps.track.id &&
       prevProps.track.isPlaying === nextProps.track.isPlaying
     );
-  }
+  },
 );
 ```
 
 #### 2. useMemo for Expensive Calculations
 
 ```typescript
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 const expensiveValue = useMemo(() => {
   return calculateComplexValue(data);
@@ -262,13 +262,13 @@ const expensiveValue = useMemo(() => {
 #### 3. useCallback for Event Handlers
 
 ```typescript
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
 const handlePlay = useCallback(
   (trackId: string) => {
     audioService.playTrack(trackId);
   },
-  [audioService]
+  [audioService],
 ); // Stable reference
 ```
 
@@ -312,16 +312,21 @@ const state = useTrackStore();
 const tracks = useTrackStore((state) => state.tracks);
 
 // ✅ Better: Only re-renders when specific track changes
-const track = useTrackStore((state) => state.tracks.find((t) => t.id === trackId));
+const track = useTrackStore((state) =>
+  state.tracks.find((t) => t.id === trackId),
+);
 ```
 
 #### Shallow Comparison
 
 ```typescript
-import { shallow } from 'zustand/shallow';
+import { shallow } from "zustand/shallow";
 
 // Only re-render if trackIds array content changes
-const trackIds = useTrackStore((state) => state.tracks.map((t) => t.id), shallow);
+const trackIds = useTrackStore(
+  (state) => state.tracks.map((t) => t.id),
+  shallow,
+);
 ```
 
 ### Audio Service Optimization
@@ -349,7 +354,9 @@ const preloadNextTrack = async (currentIndex: number) => {
 ```typescript
 // Unload tracks not in use
 const unloadInactiveTracks = async () => {
-  const playingTrackIds = new Set(tracks.filter((t) => t.isPlaying).map((t) => t.id));
+  const playingTrackIds = new Set(
+    tracks.filter((t) => t.isPlaying).map((t) => t.id),
+  );
 
   for (const track of tracks) {
     if (!playingTrackIds.has(track.id)) {
@@ -366,11 +373,11 @@ const unloadInactiveTracks = async () => {
 ```typescript
 // Offload FFmpeg processing to Web Worker
 const mixInWorker = async (tracks: Track[]) => {
-  const worker = new Worker('./ffmpeg.worker.js');
+  const worker = new Worker("./ffmpeg.worker.js");
 
   return new Promise((resolve, reject) => {
     worker.onmessage = (e) => {
-      if (e.data.type === 'complete') {
+      if (e.data.type === "complete") {
         resolve(e.data.result);
       }
     };
@@ -389,11 +396,11 @@ const mixInWorker = async (tracks: Track[]) => {
 ```typescript
 // Load FFmpeg core progressively
 const loadFFmpegCore = async (onProgress: (progress: number) => void) => {
-  const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/ffmpeg-core.js';
+  const coreURL = "https://unpkg.com/@ffmpeg/core@0.12.4/dist/ffmpeg-core.js";
 
   const response = await fetch(coreURL);
   const reader = response.body?.getReader();
-  const contentLength = response.headers.get('Content-Length');
+  const contentLength = response.headers.get("Content-Length");
 
   let receivedLength = 0;
   const chunks: Uint8Array[] = [];
@@ -406,7 +413,7 @@ const loadFFmpegCore = async (onProgress: (progress: number) => void) => {
     chunks.push(value);
     receivedLength += value.length;
 
-    onProgress(receivedLength / parseInt(contentLength || '0'));
+    onProgress(receivedLength / parseInt(contentLength || "0"));
   }
 
   // Process chunks...
@@ -421,7 +428,7 @@ const loadFFmpegCore = async (onProgress: (progress: number) => void) => {
 class PerformanceErrorBoundary extends React.Component {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log performance metrics at time of error
-    console.error('Error occurred with performance state:', {
+    console.error("Error occurred with performance state:", {
       error,
       errorInfo,
       memory: (performance as any).memory?.usedJSHeapSize,
@@ -435,15 +442,15 @@ class PerformanceErrorBoundary extends React.Component {
 
 ```typescript
 // Mark important operations
-performance.mark('track-load-start');
+performance.mark("track-load-start");
 await audioService.loadTrack(trackId, uri);
-performance.mark('track-load-end');
+performance.mark("track-load-end");
 
 // Measure duration
-performance.measure('track-load', 'track-load-start', 'track-load-end');
+performance.measure("track-load", "track-load-start", "track-load-end");
 
 // Get measurement
-const measure = performance.getEntriesByName('track-load')[0];
+const measure = performance.getEntriesByName("track-load")[0];
 console.log(`Track loaded in ${measure.duration}ms`);
 ```
 
@@ -479,7 +486,7 @@ jobs:
 ```typescript
 // scripts/benchmark.ts
 
-import { performance } from 'perf_hooks';
+import { performance } from "perf_hooks";
 
 interface BenchmarkResult {
   name: string;
@@ -487,7 +494,10 @@ interface BenchmarkResult {
   memory: number;
 }
 
-async function benchmark(name: string, fn: () => Promise<void>): Promise<BenchmarkResult> {
+async function benchmark(
+  name: string,
+  fn: () => Promise<void>,
+): Promise<BenchmarkResult> {
   const startMemory = process.memoryUsage().heapUsed;
   const startTime = performance.now();
 
@@ -504,7 +514,7 @@ async function benchmark(name: string, fn: () => Promise<void>): Promise<Benchma
 }
 
 // Usage
-const result = await benchmark('Load 10 tracks', async () => {
+const result = await benchmark("Load 10 tracks", async () => {
   for (let i = 0; i < 10; i++) {
     await loadTrack(i);
   }

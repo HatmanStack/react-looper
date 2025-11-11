@@ -190,9 +190,9 @@ Located in `e2e/fixtures/audio/`:
 // e2e/fixtures/helpers.ts
 
 export const mockTrack = {
-  id: 'test-track-1',
-  name: 'Test Track',
-  uri: 'file://test-audio.mp3',
+  id: "test-track-1",
+  name: "Test Track",
+  uri: "file://test-audio.mp3",
   duration: 5000,
   speed: 1.0,
   volume: 75,
@@ -200,7 +200,10 @@ export const mockTrack = {
   createdAt: Date.now(),
 };
 
-export const mockTracks = [mockTrack, { ...mockTrack, id: 'test-track-2', name: 'Test Track 2' }];
+export const mockTracks = [
+  mockTrack,
+  { ...mockTrack, id: "test-track-2", name: "Test Track 2" },
+];
 ```
 
 ## Running E2E Tests

@@ -44,12 +44,11 @@ test.describe("Import Flow", () => {
     */
   });
 
-  test("should handle import cancellation", async ({ page }) => {
-    const _importButton = page.getByRole("button", { name: /import audio/i });
-
+  test("should handle import cancellation", async ({ page: _page }) => {
+    // Get import button reference for when test is fully implemented
+    // const importButton = _page.getByRole("button", { name: /import audio/i });
     // Note: Testing cancellation requires mocking file chooser behavior
     // This is a structural placeholder
-
     /*
     const [fileChooser] = await Promise.all([
       page.waitForEvent('filechooser'),

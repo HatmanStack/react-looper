@@ -145,13 +145,13 @@ export const useTrackStore = create<TrackStore>()(
       /* store implementation */
     }),
     {
-      name: 'looper-tracks', // Storage key
+      name: "looper-tracks", // Storage key
       storage: createJSONStorage(() => createStorage()),
       partialize: (state) => ({
         tracks: state.tracks, // Only persist tracks
       }),
-    }
-  )
+    },
+  ),
 );
 ```
 
@@ -176,7 +176,7 @@ export const trackMigrationConfig: MigrationConfig = {
         ...state,
         tracks: state.tracks.map((track) => ({
           ...track,
-          category: track.category || 'default',
+          category: track.category || "default",
         })),
       };
     },
@@ -224,7 +224,7 @@ function App() {
 For centralized lifecycle management:
 
 ```typescript
-import { LifecycleManager } from './services/lifecycle/LifecycleManager';
+import { LifecycleManager } from "./services/lifecycle/LifecycleManager";
 
 // In App initialization
 const lifecycleManager = LifecycleManager.getInstance();
@@ -251,7 +251,7 @@ const tracks = useTrackStore((state) => state.tracks);
 const addTrack = useTrackStore((state) => state.addTrack);
 
 // ✅ BETTER: Use predefined selectors
-import { selectTracks } from './store/selectors';
+import { selectTracks } from "./store/selectors";
 const tracks = useTrackStore(selectTracks);
 ```
 
@@ -272,7 +272,7 @@ All selectors are defined in `src/store/selectors.ts`:
 ### Enable State Logging
 
 ```typescript
-import { enableStateLogging } from './store/devtools';
+import { enableStateLogging } from "./store/devtools";
 
 // In development
 if (__DEV__) {
@@ -283,7 +283,7 @@ if (__DEV__) {
 ### Export/Import State
 
 ```typescript
-import { exportState, importState } from './store/devtools';
+import { exportState, importState } from "./store/devtools";
 
 // Export current state
 const snapshot = exportState();
@@ -295,7 +295,7 @@ importState(snapshot);
 ### Reset All Stores
 
 ```typescript
-import { resetAllStores } from './store/devtools';
+import { resetAllStores } from "./store/devtools";
 
 // Reset to initial state
 resetAllStores();
@@ -304,7 +304,7 @@ resetAllStores();
 ### Get Statistics
 
 ```typescript
-import { getStoreStats } from './store/devtools';
+import { getStoreStats } from "./store/devtools";
 
 const stats = getStoreStats();
 console.log(stats);
@@ -337,15 +337,15 @@ npm test __tests__/unit/store/
 ### Testing with Stores
 
 ```typescript
-import { useTrackStore } from '../src/store/useTrackStore';
+import { useTrackStore } from "../src/store/useTrackStore";
 
-describe('MyComponent', () => {
+describe("MyComponent", () => {
   beforeEach(() => {
     // Reset store before each test
     useTrackStore.getState().clearTracks();
   });
 
-  it('should add track', () => {
+  it("should add track", () => {
     const { addTrack } = useTrackStore.getState();
     addTrack(mockTrack);
 

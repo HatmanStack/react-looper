@@ -83,7 +83,7 @@ Received number of calls: 0
 >
 > ```typescript
 > const versionedState: VersionedState<TState> =
->   typeof persistedData === 'object' && persistedData !== null
+>   typeof persistedData === "object" && persistedData !== null
 >     ? persistedData
 >     : { version: 0, state: persistedData };
 > ```
@@ -128,7 +128,9 @@ expect(received).toEqual(expected) // deep equality
 > **Reflect:** Should you add an explicit type annotation to `trackStatesMap`?
 >
 > ```typescript
-> const trackStatesMap: Map<string, TrackState> = new Map(stateSnapshot.playback.trackStates);
+> const trackStatesMap: Map<string, TrackState> = new Map(
+>   stateSnapshot.playback.trackStates,
+> );
 > ```
 >
 > **Consider:** Alternatively, should you add types to the `importState` parameter to avoid `any`?
@@ -380,7 +382,7 @@ feat(state): create UI state store
 2. Add persist middleware to stores:
 
    ```typescript
-   import { persist } from 'zustand/middleware';
+   import { persist } from "zustand/middleware";
 
    const useTrackStore = create(
      persist(
@@ -388,10 +390,10 @@ feat(state): create UI state store
          /* store */
        }),
        {
-         name: 'looper-tracks',
+         name: "looper-tracks",
          storage: createJSONStorage(() => AsyncStorage),
-       }
-     )
+       },
+     ),
    );
    ```
 

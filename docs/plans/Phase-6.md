@@ -92,7 +92,7 @@ Integrate FFmpeg for both web (@ffmpeg/ffmpeg) and native (react-native-ffmpeg o
 2. Initialize FFmpeg:
 
    ```typescript
-   import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+   import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
    const ffmpeg = createFFmpeg({ log: true });
    await ffmpeg.load();
    ```
@@ -279,8 +279,8 @@ feat(ffmpeg): create FFmpeg command builder
 1. Load audio files into FFmpeg virtual file system:
 
    ```typescript
-   ffmpeg.FS('writeFile', 'input1.mp3', await fetchFile(uri1));
-   ffmpeg.FS('writeFile', 'input2.mp3', await fetchFile(uri2));
+   ffmpeg.FS("writeFile", "input1.mp3", await fetchFile(uri1));
+   ffmpeg.FS("writeFile", "input2.mp3", await fetchFile(uri2));
    ```
 
 2. Build FFmpeg command using CommandBuilder
@@ -298,8 +298,8 @@ feat(ffmpeg): create FFmpeg command builder
 5. Read output file:
 
    ```typescript
-   const data = ffmpeg.FS('readFile', 'output.mp3');
-   const blob = new Blob([data.buffer], { type: 'audio/mp3' });
+   const data = ffmpeg.FS("readFile", "output.mp3");
+   const blob = new Blob([data.buffer], { type: "audio/mp3" });
    const url = URL.createObjectURL(blob);
    ```
 
@@ -355,7 +355,7 @@ feat(ffmpeg): implement audio mixing on web
 3. Execute FFmpegKit:
 
    ```typescript
-   import { FFmpegKit } from 'ffmpeg-kit-react-native';
+   import { FFmpegKit } from "ffmpeg-kit-react-native";
    const session = await FFmpegKit.execute(command);
    ```
 
@@ -766,7 +766,7 @@ src/services/ffmpeg/FFmpegService.web.ts(143,25): error TS2339: Property 'run' d
 > **Think about:** Looking at `src/services/ffmpeg/FFmpegService.web.ts:9` and `FFmpegService.native.ts:10`:
 >
 > ```typescript
-> import { AudioError, AudioErrorCode } from '../audio/AudioError';
+> import { AudioError, AudioErrorCode } from "../audio/AudioError";
 > ```
 >
 > **Consider:** When you check `src/services/audio/AudioError.ts`, does it export `AudioErrorCode`?
@@ -774,8 +774,8 @@ src/services/ffmpeg/FFmpegService.web.ts(143,25): error TS2339: Property 'run' d
 > **Reflect:** Looking at `src/types/audio.ts`, you see `export enum AudioErrorCode { ... }`. Should the import be:
 >
 > ```typescript
-> import { AudioError } from '../audio/AudioError';
-> import { AudioErrorCode } from '../../types/audio';
+> import { AudioError } from "../audio/AudioError";
+> import { AudioErrorCode } from "../../types/audio";
 > ```
 
 **3. Circular Import in FFmpegService.ts**
@@ -802,7 +802,11 @@ src/services/ffmpeg/FFmpegService.web.ts(143,25): error TS2339: Property 'run' d
 > **Consider:** The native service tries to use:
 >
 > ```typescript
-> import { FFmpegKit, FFmpegKitConfig, StatisticsCallback } from 'ffmpeg-kit-react-native';
+> import {
+>   FFmpegKit,
+>   FFmpegKitConfig,
+>   StatisticsCallback,
+> } from "ffmpeg-kit-react-native";
 > ```
 >
 > **Think about:** The errors show:

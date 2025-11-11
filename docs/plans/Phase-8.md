@@ -184,7 +184,7 @@ Playwright not installed
 > **Consider:** At `__tests__/performance/components.perf.test.tsx:49`:
 >
 > ```typescript
-> it('should render 10 tracks in < 500ms', () => {
+> it("should render 10 tracks in < 500ms", () => {
 >   // ...
 >   expect(benchmark.passed).toBe(true);
 > });

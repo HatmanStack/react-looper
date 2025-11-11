@@ -73,11 +73,11 @@ Content must be robust enough to be interpreted reliably by a wide variety of us
 ```typescript
 // Verify these meet contrast requirements
 const colors = {
-  primary: '#6200EE', // Purple - check against white/light backgrounds
-  background: '#FFFFFF', // White
-  text: '#000000', // Black - 21:1 ratio ✓
-  disabled: '#9E9E9E', // Gray - check ratio
-  error: '#B00020', // Red - check against white
+  primary: "#6200EE", // Purple - check against white/light backgrounds
+  background: "#FFFFFF", // White
+  text: "#000000", // Black - 21:1 ratio ✓
+  disabled: "#9E9E9E", // Gray - check ratio
+  error: "#B00020", // Red - check against white
 };
 ```
 
@@ -99,9 +99,9 @@ const styles = StyleSheet.create({
   },
   buttonFocused: {
     borderWidth: 2,
-    borderColor: '#6200EE',
+    borderColor: "#6200EE",
     outlineWidth: 2, // Web only
-    outlineColor: '#6200EE',
+    outlineColor: "#6200EE",
   },
 });
 
@@ -128,8 +128,8 @@ const styles = StyleSheet.create({
   style={{
     minWidth: 44,
     minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   }}
 >
   <Icon size={24} />
@@ -191,13 +191,13 @@ const styles = StyleSheet.create({
   accessibilityHint="Record and playback" // What it does
   accessibilityRole="toolbar" // Semantic role
   accessibilityState={{ disabled: false }} // Current state
-  accessibilityValue={{ text: '75%' }} // Current value (sliders, etc.)
+  accessibilityValue={{ text: "75%" }} // Current value (sliders, etc.)
   accessibilityActions={[
     // Custom actions
-    { name: 'activate', label: 'Start recording' },
+    { name: "activate", label: "Start recording" },
   ]}
   onAccessibilityAction={(event) => {
-    if (event.nativeEvent.actionName === 'activate') {
+    if (event.nativeEvent.actionName === "activate") {
       handleRecord();
     }
   }}

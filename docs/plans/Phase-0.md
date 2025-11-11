@@ -190,7 +190,7 @@ The app must run on Web (primary), Android, and iOS. Each platform has different
 **Platform Detection:**
 
 ```typescript
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 const audioService = Platform.select({
   web: () => new WebAudioService(),
@@ -248,9 +248,9 @@ const theme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: '#BB86FC',
-    background: '#121212',
-    surface: '#1E1E1E',
+    primary: "#BB86FC",
+    background: "#121212",
+    surface: "#1E1E1E",
   },
 };
 ```
@@ -317,15 +317,15 @@ interface LooperStore {
 **Persistence:**
 
 ```typescript
-import { persist } from 'zustand/middleware';
+import { persist } from "zustand/middleware";
 
 const useStore = create(
   persist(
     (set) => ({
       /* store */
     }),
-    { name: 'looper-storage' }
-  )
+    { name: "looper-storage" },
+  ),
 );
 ```
 
@@ -521,7 +521,7 @@ Migration/
 
 ```typescript
 // Automatically resolves to correct platform file
-import AudioService from './services/audio/AudioService';
+import AudioService from "./services/audio/AudioService";
 // Loads AudioService.web.ts on web, AudioService.native.ts on native
 ```
 
@@ -602,9 +602,9 @@ try {
   await audioService.record();
 } catch (error) {
   // Log to error tracking service
-  console.error('[AudioService]', error);
+  console.error("[AudioService]", error);
   // Show user-friendly message
-  Alert.alert('Recording Error', 'Could not start recording');
+  Alert.alert("Recording Error", "Could not start recording");
   // Rethrow for store/component handling
   throw error;
 }
@@ -617,17 +617,17 @@ class AudioError extends Error {
   constructor(
     message: string,
     public code: AudioErrorCode,
-    public platform: Platform
+    public platform: Platform,
   ) {
     super(message);
   }
 }
 
 enum AudioErrorCode {
-  PERMISSION_DENIED = 'PERMISSION_DENIED',
-  RECORDING_FAILED = 'RECORDING_FAILED',
-  PLAYBACK_FAILED = 'PLAYBACK_FAILED',
-  MIXING_FAILED = 'MIXING_FAILED',
+  PERMISSION_DENIED = "PERMISSION_DENIED",
+  RECORDING_FAILED = "RECORDING_FAILED",
+  PLAYBACK_FAILED = "PLAYBACK_FAILED",
+  MIXING_FAILED = "MIXING_FAILED",
 }
 ```
 
@@ -649,7 +649,7 @@ const log = {
 };
 
 // Usage
-log.debug('AudioService', 'Starting recording', { uri });
+log.debug("AudioService", "Starting recording", { uri });
 ```
 
 ### 4. Async/Await Standards
@@ -727,7 +727,7 @@ const TrackList = ({ tracks }) => {
 ```typescript
 // Bad
 function playAudio() {
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     // web logic
   } else {
     // native logic
@@ -755,7 +755,7 @@ export class AudioService {
 
 ```typescript
 // Bad
-const cmd = '-i ' + input + ' -filter:a atempo=' + speed;
+const cmd = "-i " + input + " -filter:a atempo=" + speed;
 ```
 
 **✅ Use array and join:**
@@ -764,11 +764,11 @@ const cmd = '-i ' + input + ' -filter:a atempo=' + speed;
 // Good
 const buildCommand = (input: string, speed: number) => {
   const args = [
-    '-i',
+    "-i",
     input,
-    '-filter:a',
+    "-filter:a",
     `atempo=${speed}`,
-    '-y', // Overwrite output
+    "-y", // Overwrite output
     output,
   ];
   return args;

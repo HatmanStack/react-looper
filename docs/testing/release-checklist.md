@@ -457,7 +457,7 @@ Run through the complete user journey on each platform:
 - [ ] Code reviewed
 - [ ] Tests passing
 
-**Signed**: ********\_******** Date: **\_\_\_**
+**Signed**: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
 
 ### QA Team
 
@@ -466,7 +466,7 @@ Run through the complete user journey on each platform:
 - [ ] Performance verified
 - [ ] Accessibility verified
 
-**Signed**: ********\_******** Date: **\_\_\_**
+**Signed**: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
 
 ### Product Owner
 
@@ -474,7 +474,7 @@ Run through the complete user journey on each platform:
 - [ ] User experience acceptable
 - [ ] Ready for release
 
-**Signed**: ********\_******** Date: **\_\_\_**
+**Signed**: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
 
 ## Post-Release
 
