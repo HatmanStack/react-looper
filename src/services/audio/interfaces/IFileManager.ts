@@ -5,7 +5,7 @@
  * Handles file I/O, storage management, and file system interactions.
  */
 
-import { AudioFormat } from '../../../types/audio';
+import { AudioFormat } from "../../../types/audio";
 
 export interface IFileManager {
   /**
@@ -17,7 +17,11 @@ export interface IFileManager {
    * @returns Promise resolving to the URI of the saved file
    * @throws {AudioError} if save operation fails
    */
-  saveAudioFile(data: any, filename: string, format: AudioFormat): Promise<string>;
+  saveAudioFile(
+    data: any,
+    filename: string,
+    format: AudioFormat,
+  ): Promise<string>;
 
   /**
    * Delete an audio file

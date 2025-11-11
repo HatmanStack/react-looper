@@ -1,5 +1,5 @@
-import { Platform } from 'react-native';
-import { getPlatformName } from '@utils/platform';
+import { Platform } from "react-native";
+import { getPlatformName } from "@utils/platform";
 
 /**
  * Platform-specific constants

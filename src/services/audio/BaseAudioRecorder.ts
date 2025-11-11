@@ -5,9 +5,9 @@
  * Platform-specific implementations should extend this class.
  */
 
-import { IAudioRecorder } from './interfaces/IAudioRecorder';
-import { RecordingOptions, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { IAudioRecorder } from "./interfaces/IAudioRecorder";
+import { RecordingOptions, AudioErrorCode } from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export abstract class BaseAudioRecorder implements IAudioRecorder {
   /**
@@ -58,8 +58,8 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
     if (this._isRecording) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Cannot start recording: already recording',
-        'Recording is already in progress'
+        "Cannot start recording: already recording",
+        "Recording is already in progress",
       );
     }
 
@@ -69,9 +69,9 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
       if (!hasPermission) {
         throw new AudioError(
           AudioErrorCode.PERMISSION_DENIED,
-          'Microphone permission denied',
+          "Microphone permission denied",
           undefined,
-          { options }
+          { options },
         );
       }
 
@@ -99,7 +99,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
         AudioErrorCode.RECORDING_FAILED,
         `Failed to start recording: ${(error as Error).message}`,
         undefined,
-        { originalError: error, options }
+        { originalError: error, options },
       );
     }
   }
@@ -111,8 +111,8 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
     if (!this._isRecording) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Cannot stop recording: not recording',
-        'No recording in progress'
+        "Cannot stop recording: not recording",
+        "No recording in progress",
       );
     }
 
@@ -138,7 +138,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
         AudioErrorCode.RECORDING_FAILED,
         `Failed to stop recording: ${(error as Error).message}`,
         undefined,
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -189,7 +189,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
         AudioErrorCode.PERMISSION_DENIED,
         `Permission request failed: ${(error as Error).message}`,
         undefined,
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -207,7 +207,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
       await this._cleanup();
     } catch (error) {
       // Log but don't throw - cleanup should be best-effort
-      console.error('Error during recorder cleanup:', error);
+      console.error("Error during recorder cleanup:", error);
     }
   }
 
@@ -218,32 +218,32 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
     if (options.sampleRate && options.sampleRate < 8000) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Sample rate must be at least 8000 Hz',
-        'Invalid recording settings'
+        "Sample rate must be at least 8000 Hz",
+        "Invalid recording settings",
       );
     }
 
     if (options.bitRate && options.bitRate < 32) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Bit rate must be at least 32 kbps',
-        'Invalid recording settings'
+        "Bit rate must be at least 32 kbps",
+        "Invalid recording settings",
       );
     }
 
     if (options.channels && (options.channels < 1 || options.channels > 2)) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Channels must be 1 (mono) or 2 (stereo)',
-        'Invalid recording settings'
+        "Channels must be 1 (mono) or 2 (stereo)",
+        "Invalid recording settings",
       );
     }
 
     if (options.maxDuration && options.maxDuration <= 0) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Max duration must be positive',
-        'Invalid recording settings'
+        "Max duration must be positive",
+        "Invalid recording settings",
       );
     }
   }

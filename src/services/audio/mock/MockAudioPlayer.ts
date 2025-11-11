@@ -5,9 +5,9 @@
  * No actual audio is played - updates state and simulates progress.
  */
 
-import { BaseAudioPlayer } from '../BaseAudioPlayer';
-import { PlaybackOptions, AudioMetadata } from '../../../types/audio';
-import { getMockMetadata } from '../../../../__tests__/__fixtures__/mockAudioData';
+import { BaseAudioPlayer } from "../BaseAudioPlayer";
+import { PlaybackOptions, AudioMetadata } from "../../../types/audio";
+import { getMockMetadata } from "../../../mocks/mockAudioData";
 
 export class MockAudioPlayer extends BaseAudioPlayer {
   private playbackTimer: NodeJS.Timeout | null = null;
@@ -18,7 +18,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate loading audio
    */
   protected async _load(uri: string, options?: PlaybackOptions): Promise<void> {
-    console.log('[MockAudioPlayer] Loading audio:', uri, options);
+    console.log("[MockAudioPlayer] Loading audio:", uri, options);
 
     // Simulate loading delay
     await this.delay(150);
@@ -28,14 +28,16 @@ export class MockAudioPlayer extends BaseAudioPlayer {
     this.duration = metadata.duration;
     this.currentPosition = 0;
 
-    console.log(`[MockAudioPlayer] Loaded ${uri}, duration: ${this.duration}ms`);
+    console.log(
+      `[MockAudioPlayer] Loaded ${uri}, duration: ${this.duration}ms`,
+    );
   }
 
   /**
    * Simulate playback start
    */
   protected async _play(): Promise<void> {
-    console.log('[MockAudioPlayer] Starting playback');
+    console.log("[MockAudioPlayer] Starting playback");
 
     // Start playback timer
     this.startPlaybackTimer();
@@ -45,7 +47,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate playback pause
    */
   protected async _pause(): Promise<void> {
-    console.log('[MockAudioPlayer] Pausing playback');
+    console.log("[MockAudioPlayer] Pausing playback");
 
     // Stop playback timer
     this.stopPlaybackTimer();
@@ -55,7 +57,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate playback stop
    */
   protected async _stop(): Promise<void> {
-    console.log('[MockAudioPlayer] Stopping playback');
+    console.log("[MockAudioPlayer] Stopping playback");
 
     // Stop timer and reset position
     this.stopPlaybackTimer();
@@ -66,7 +68,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate speed change
    */
   protected async _setSpeed(speed: number): Promise<void> {
-    console.log('[MockAudioPlayer] Setting speed to:', speed);
+    console.log("[MockAudioPlayer] Setting speed to:", speed);
 
     // If playing, restart timer with new speed
     if (this._isPlaying) {
@@ -79,14 +81,14 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate volume change
    */
   protected async _setVolume(volume: number): Promise<void> {
-    console.log('[MockAudioPlayer] Setting volume to:', volume);
+    console.log("[MockAudioPlayer] Setting volume to:", volume);
   }
 
   /**
    * Simulate looping setting
    */
   protected async _setLooping(loop: boolean): Promise<void> {
-    console.log('[MockAudioPlayer] Setting looping to:', loop);
+    console.log("[MockAudioPlayer] Setting looping to:", loop);
   }
 
   /**
@@ -107,7 +109,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Set playback position
    */
   protected async _setPosition(position: number): Promise<void> {
-    console.log('[MockAudioPlayer] Seeking to:', position);
+    console.log("[MockAudioPlayer] Seeking to:", position);
     this.currentPosition = Math.max(0, Math.min(position, this.duration));
 
     // Notify position update callback
@@ -130,7 +132,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
    * Simulate unload
    */
   protected async _unload(): Promise<void> {
-    console.log('[MockAudioPlayer] Unloading audio');
+    console.log("[MockAudioPlayer] Unloading audio");
 
     this.stopPlaybackTimer();
     this.currentPosition = 0;

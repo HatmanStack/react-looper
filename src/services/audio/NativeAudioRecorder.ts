@@ -5,11 +5,15 @@
  * Platform-specific file uses .native.ts extension for native builds.
  */
 
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
-import { BaseAudioRecorder } from './BaseAudioRecorder';
-import { RecordingOptions, AudioFormat, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
+import { BaseAudioRecorder } from "./BaseAudioRecorder";
+import {
+  RecordingOptions,
+  AudioFormat,
+  AudioErrorCode,
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export class NativeAudioRecorder extends BaseAudioRecorder {
   private recording: Audio.Recording | null = null;
@@ -30,23 +34,26 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
       // Start recording
       await this.recording.startAsync();
 
-      console.log('[NativeAudioRecorder] Recording started with options:', recordingOptions);
+      console.log(
+        "[NativeAudioRecorder] Recording started with options:",
+        recordingOptions,
+      );
     } catch (error) {
       // Cleanup on error
       this.recording = null;
 
-      if ((error as Error).message?.includes('PERMISSION')) {
+      if ((error as Error).message?.includes("PERMISSION")) {
         throw new AudioError(
           AudioErrorCode.PERMISSION_DENIED,
-          'Microphone permission denied',
-          'Please allow microphone access in your device settings.'
+          "Microphone permission denied",
+          "Please allow microphone access in your device settings.",
         );
       }
 
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
         `Failed to start recording: ${(error as Error).message}`,
-        'Failed to start recording. Please check your microphone and try again.'
+        "Failed to start recording. Please check your microphone and try again.",
       );
     }
   }
@@ -58,8 +65,8 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
     if (!this.recording) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Recording instance not found',
-        'Recording session not found.'
+        "Recording instance not found",
+        "Recording session not found.",
       );
     }
 
@@ -73,8 +80,8 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
       if (!uri) {
         throw new AudioError(
           AudioErrorCode.RECORDING_FAILED,
-          'No recording URI returned',
-          'Failed to save recording.'
+          "No recording URI returned",
+          "Failed to save recording.",
         );
       }
 
@@ -85,12 +92,12 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
         throw new AudioError(
           AudioErrorCode.FILE_NOT_FOUND,
           `Recording file not found at ${uri}`,
-          'Failed to save recording file.'
+          "Failed to save recording file.",
         );
       }
 
       console.log(
-        `[NativeAudioRecorder] Recording stopped. URI: ${uri}, Size: ${fileInfo.size} bytes`
+        `[NativeAudioRecorder] Recording stopped. URI: ${uri}, Size: ${fileInfo.size} bytes`,
       );
 
       // Clear recording instance
@@ -108,7 +115,7 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
         `Failed to stop recording: ${(error as Error).message}`,
-        'Failed to save recording.'
+        "Failed to save recording.",
       );
     }
   }
@@ -117,7 +124,7 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
    * Cancel recording without saving
    */
   protected async _cancelRecording(): Promise<void> {
-    console.log('[NativeAudioRecorder] Cancelling recording');
+    console.log("[NativeAudioRecorder] Cancelling recording");
 
     if (this.recording) {
       try {
@@ -131,11 +138,14 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
             console.log(`[NativeAudioRecorder] Deleted recording file: ${uri}`);
           } catch (deleteError) {
             // Non-critical error, just log it
-            console.warn('[NativeAudioRecorder] Failed to delete recording file:', deleteError);
+            console.warn(
+              "[NativeAudioRecorder] Failed to delete recording file:",
+              deleteError,
+            );
           }
         }
       } catch (error) {
-        console.error('[NativeAudioRecorder] Error during cancel:', error);
+        console.error("[NativeAudioRecorder] Error during cancel:", error);
       }
 
       this.recording = null;
@@ -151,9 +161,9 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
 
       console.log(`[NativeAudioRecorder] Permission status: ${status}`);
 
-      return status === 'granted';
+      return status === "granted";
     } catch (error) {
-      console.error('[NativeAudioRecorder] Permission request error:', error);
+      console.error("[NativeAudioRecorder] Permission request error:", error);
       return false;
     }
   }
@@ -162,13 +172,13 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
    * Cleanup resources
    */
   protected async _cleanup(): Promise<void> {
-    console.log('[NativeAudioRecorder] Cleaning up resources');
+    console.log("[NativeAudioRecorder] Cleaning up resources");
 
     if (this.recording) {
       try {
         await this.recording.stopAndUnloadAsync();
       } catch (error) {
-        console.error('[NativeAudioRecorder] Cleanup error:', error);
+        console.error("[NativeAudioRecorder] Cleanup error:", error);
       }
 
       this.recording = null;
@@ -178,7 +188,9 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
   /**
    * Get expo-av recording options based on app recording options
    */
-  private getRecordingOptions(options?: RecordingOptions): Audio.RecordingOptions {
+  private getRecordingOptions(
+    options?: RecordingOptions,
+  ): Audio.RecordingOptions {
     const format = options?.format || AudioFormat.MP3;
 
     // Base configuration matching Android app quality
@@ -203,7 +215,7 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
         linearPCMIsFloat: false,
       },
       web: {
-        mimeType: 'audio/webm',
+        mimeType: "audio/webm",
         bitsPerSecond: (options?.bitRate || 128) * 1000,
       },
     };

@@ -4,22 +4,28 @@
  * Native (iOS/Android) permission handling using expo-av and expo-media-library.
  */
 
-import { Audio } from 'expo-av';
-import * as MediaLibrary from 'expo-media-library';
-import * as Linking from 'expo-linking';
-import { Platform } from 'react-native';
-import { PermissionType, PermissionStatus, PermissionResult } from './permissions';
+import { Audio } from "expo-av";
+import * as MediaLibrary from "expo-media-library";
+import * as Linking from "expo-linking";
+import { Platform } from "react-native";
+import {
+  PermissionType,
+  PermissionStatus,
+  PermissionResult,
+} from "./permissions";
 
 /**
  * Convert expo permission status to our PermissionStatus
  */
-function convertPermissionStatus(status: 'granted' | 'denied' | 'undetermined'): PermissionStatus {
+function convertPermissionStatus(
+  status: "granted" | "denied" | "undetermined",
+): PermissionStatus {
   switch (status) {
-    case 'granted':
+    case "granted":
       return PermissionStatus.GRANTED;
-    case 'denied':
+    case "denied":
       return PermissionStatus.DENIED;
-    case 'undetermined':
+    case "undetermined":
       return PermissionStatus.UNDETERMINED;
     default:
       return PermissionStatus.UNDETERMINED;
@@ -38,7 +44,7 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
       canAskAgain: canAskAgain !== false,
     };
   } catch (error) {
-    console.error('[Permissions] Microphone permission error:', error);
+    console.error("[Permissions] Microphone permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: false,
@@ -51,14 +57,15 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
  */
 export async function requestStoragePermission(): Promise<PermissionResult> {
   try {
-    const { status, canAskAgain } = await MediaLibrary.requestPermissionsAsync();
+    const { status, canAskAgain } =
+      await MediaLibrary.requestPermissionsAsync();
 
     return {
       status: convertPermissionStatus(status),
       canAskAgain: canAskAgain !== false,
     };
   } catch (error) {
-    console.error('[Permissions] Storage permission error:', error);
+    console.error("[Permissions] Storage permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: false,
@@ -69,7 +76,9 @@ export async function requestStoragePermission(): Promise<PermissionResult> {
 /**
  * Check current permission status without requesting
  */
-export async function checkPermission(type: PermissionType): Promise<PermissionStatus> {
+export async function checkPermission(
+  type: PermissionType,
+): Promise<PermissionStatus> {
   try {
     if (type === PermissionType.MICROPHONE) {
       const { status } = await Audio.getPermissionsAsync();
@@ -83,7 +92,7 @@ export async function checkPermission(type: PermissionType): Promise<PermissionS
 
     return PermissionStatus.UNDETERMINED;
   } catch (error) {
-    console.error('[Permissions] Check permission error:', error);
+    console.error("[Permissions] Check permission error:", error);
     return PermissionStatus.UNDETERMINED;
   }
 }
@@ -93,15 +102,15 @@ export async function checkPermission(type: PermissionType): Promise<PermissionS
  */
 export async function openSettings(): Promise<void> {
   try {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       // On iOS, open app-specific settings
       await Linking.openSettings();
-    } else if (Platform.OS === 'android') {
+    } else if (Platform.OS === "android") {
       // On Android, open app settings
       await Linking.openSettings();
     }
   } catch (error) {
-    console.error('[Permissions] Failed to open settings:', error);
-    throw new Error('Failed to open settings. Please open them manually.');
+    console.error("[Permissions] Failed to open settings:", error);
+    throw new Error("Failed to open settings. Please open them manually.");
   }
 }

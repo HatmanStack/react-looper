@@ -6,10 +6,10 @@
  * Provides clean API for UI layer.
  */
 
-import { IAudioRecorder } from './interfaces/IAudioRecorder';
-import { IAudioPlayer } from './interfaces/IAudioPlayer';
-import { IAudioMixer } from './interfaces/IAudioMixer';
-import { IFileManager } from './interfaces/IFileManager';
+import { IAudioRecorder } from "./interfaces/IAudioRecorder";
+import { IAudioPlayer } from "./interfaces/IAudioPlayer";
+import { IAudioMixer } from "./interfaces/IAudioMixer";
+import { IFileManager } from "./interfaces/IFileManager";
 import {
   RecordingOptions,
   PlaybackOptions,
@@ -18,8 +18,8 @@ import {
   AudioErrorCode,
   AudioFormat,
   ProgressCallback,
-} from '../../types/audio';
-import { AudioError } from './AudioError';
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 /**
  * Configuration for AudioService
@@ -80,13 +80,13 @@ export class AudioService {
     if (this.currentRecording) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Cannot start recording: recording already in progress',
-        'Recording is already in progress'
+        "Cannot start recording: recording already in progress",
+        "Recording is already in progress",
       );
     }
 
     await this.recorder.startRecording(options);
-    this.currentRecording = 'recording'; // Temporary marker
+    this.currentRecording = "recording"; // Temporary marker
   }
 
   /**
@@ -96,8 +96,8 @@ export class AudioService {
     if (!this.currentRecording) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'Cannot stop recording: no recording in progress',
-        'No active recording to stop'
+        "Cannot stop recording: no recording in progress",
+        "No active recording to stop",
       );
     }
 
@@ -149,13 +149,17 @@ export class AudioService {
   /**
    * Load audio track for playback
    */
-  public async loadTrack(trackId: string, uri: string, options?: PlaybackOptions): Promise<void> {
+  public async loadTrack(
+    trackId: string,
+    uri: string,
+    options?: PlaybackOptions,
+  ): Promise<void> {
     // Check if we've hit the concurrent player limit
     if (this.players.size >= this.maxConcurrentPlayers) {
       throw new AudioError(
         AudioErrorCode.RESOURCE_UNAVAILABLE,
         `Cannot load track: maximum ${this.maxConcurrentPlayers} concurrent players`,
-        'Too many audio tracks loaded'
+        "Too many audio tracks loaded",
       );
     }
 
@@ -251,7 +255,10 @@ export class AudioService {
   /**
    * Set track position
    */
-  public async setTrackPosition(trackId: string, position: number): Promise<void> {
+  public async setTrackPosition(
+    trackId: string,
+    position: number,
+  ): Promise<void> {
     const track = this.getTrack(trackId);
     await track.player.setPosition(position);
   }
@@ -282,7 +289,7 @@ export class AudioService {
    */
   public async unloadAllTracks(): Promise<void> {
     const unloadPromises = Array.from(this.players.keys()).map((trackId) =>
-      this.unloadTrack(trackId)
+      this.unloadTrack(trackId),
     );
     await Promise.all(unloadPromises);
   }
@@ -291,7 +298,9 @@ export class AudioService {
    * Play all loaded tracks simultaneously
    */
   public async playAllTracks(): Promise<void> {
-    const playPromises = Array.from(this.players.keys()).map((trackId) => this.playTrack(trackId));
+    const playPromises = Array.from(this.players.keys()).map((trackId) =>
+      this.playTrack(trackId),
+    );
     await Promise.all(playPromises);
   }
 
@@ -328,7 +337,7 @@ export class AudioService {
     tracks: MixerTrackInput[],
     outputPath: string,
     options?: MixingOptions,
-    progressCallback?: ProgressCallback
+    progressCallback?: ProgressCallback,
   ): Promise<string> {
     // Validate tracks before mixing
     await this.mixer.validateTracks(tracks);
@@ -375,14 +384,20 @@ export class AudioService {
   /**
    * Copy audio file to app storage
    */
-  public async copyToAppStorage(sourceUri: string, filename: string): Promise<string> {
+  public async copyToAppStorage(
+    sourceUri: string,
+    filename: string,
+  ): Promise<string> {
     return this.fileManager.copyToAppStorage(sourceUri, filename);
   }
 
   /**
    * Export audio file to external storage
    */
-  public async exportToExternalStorage(uri: string, filename: string): Promise<string> {
+  public async exportToExternalStorage(
+    uri: string,
+    filename: string,
+  ): Promise<string> {
     return this.fileManager.exportToExternalStorage(uri, filename);
   }
 
@@ -472,7 +487,7 @@ export class AudioService {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Track not found: ${trackId}`,
-        'Audio track not loaded'
+        "Audio track not loaded",
       );
     }
     return track;

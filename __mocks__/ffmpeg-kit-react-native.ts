@@ -10,8 +10,8 @@ export const FFmpegKit = {
   execute: jest.fn().mockResolvedValue({
     getSessionId: jest.fn().mockReturnValue(1),
     getReturnCode: jest.fn().mockResolvedValue({ getValue: () => 0 }),
-    getOutput: jest.fn().mockResolvedValue(''),
-    getFailStackTrace: jest.fn().mockResolvedValue(''),
+    getOutput: jest.fn().mockResolvedValue(""),
+    getFailStackTrace: jest.fn().mockResolvedValue(""),
   }),
   cancel: jest.fn().mockResolvedValue(undefined),
 };

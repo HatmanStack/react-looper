@@ -2,8 +2,8 @@
  * NativeAudioPlayer Tests
  */
 
-import { NativeAudioPlayer } from '../../../src/services/audio/NativeAudioPlayer';
-import { Audio } from 'expo-av';
+import { NativeAudioPlayer } from "../../../src/services/audio/NativeAudioPlayer";
+import { Audio } from "expo-av";
 
 // expo-av is already mocked in jest.setup.js
 // We just need to access the mocked functions
@@ -22,7 +22,7 @@ interface MockSound {
   setOnPlaybackStatusUpdate: jest.Mock;
 }
 
-describe('NativeAudioPlayer', () => {
+describe("NativeAudioPlayer", () => {
   let player: NativeAudioPlayer;
   let mockSound: MockSound;
 
@@ -39,7 +39,7 @@ describe('NativeAudioPlayer', () => {
           isPlaying: false,
           didJustFinish: false,
           isLooping: true,
-        })
+        }),
       ),
       unloadAsync: jest.fn(() => Promise.resolve()),
       playAsync: jest.fn(() => Promise.resolve()),
@@ -66,25 +66,25 @@ describe('NativeAudioPlayer', () => {
     }
   });
 
-  describe('load', () => {
-    it('should load audio from URI', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("load", () => {
+    it("should load audio from URI", async () => {
+      await player.load("file:///test-audio.m4a");
 
       expect(Audio.Sound.createAsync).toHaveBeenCalledWith(
-        { uri: 'file:///test-audio.m4a' },
+        { uri: "file:///test-audio.m4a" },
         expect.objectContaining({
           shouldPlay: false,
-        })
+        }),
       );
       expect(player.isLoaded()).toBe(true);
     });
 
-    it('should throw error for invalid URI', async () => {
-      await expect(player.load('')).rejects.toThrow();
+    it("should throw error for invalid URI", async () => {
+      await expect(player.load("")).rejects.toThrow();
     });
 
-    it('should apply playback options', async () => {
-      await player.load('file:///test-audio.m4a', {
+    it("should apply playback options", async () => {
+      await player.load("file:///test-audio.m4a", {
         speed: 1.5,
         volume: 75,
         loop: true,
@@ -94,23 +94,23 @@ describe('NativeAudioPlayer', () => {
     });
   });
 
-  describe('play', () => {
-    it('should play loaded audio', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("play", () => {
+    it("should play loaded audio", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.play();
 
       expect(mockSound.playAsync).toHaveBeenCalled();
       expect(player.isPlaying()).toBe(true);
     });
 
-    it('should throw error if not loaded', async () => {
+    it("should throw error if not loaded", async () => {
       await expect(player.play()).rejects.toThrow();
     });
   });
 
-  describe('pause', () => {
-    it('should pause playing audio', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("pause", () => {
+    it("should pause playing audio", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.play();
       await player.pause();
 
@@ -119,9 +119,9 @@ describe('NativeAudioPlayer', () => {
     });
   });
 
-  describe('stop', () => {
-    it('should stop playing audio', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("stop", () => {
+    it("should stop playing audio", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.play();
       await player.stop();
 
@@ -130,33 +130,33 @@ describe('NativeAudioPlayer', () => {
     });
   });
 
-  describe('setSpeed', () => {
-    it('should set playback speed with pitch correction', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("setSpeed", () => {
+    it("should set playback speed with pitch correction", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setSpeed(1.5);
 
       expect(mockSound.setRateAsync).toHaveBeenCalledWith(
         1.5,
-        true // shouldCorrectPitch
+        true, // shouldCorrectPitch
       );
     });
 
-    it('should reject invalid speed', async () => {
+    it("should reject invalid speed", async () => {
       await expect(player.setSpeed(3.0)).rejects.toThrow();
       await expect(player.setSpeed(0.01)).rejects.toThrow();
     });
 
-    it('should accept valid speed range (0.05 - 2.50)', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should accept valid speed range (0.05 - 2.50)", async () => {
+      await player.load("file:///test-audio.m4a");
 
       await expect(player.setSpeed(0.05)).resolves.not.toThrow();
       await expect(player.setSpeed(2.5)).resolves.not.toThrow();
     });
   });
 
-  describe('setVolume', () => {
-    it('should set volume with scaling', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("setVolume", () => {
+    it("should set volume with scaling", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setVolume(75);
 
       expect(mockSound.setVolumeAsync).toHaveBeenCalled();
@@ -165,36 +165,36 @@ describe('NativeAudioPlayer', () => {
       expect(callArg).toBeLessThanOrEqual(1);
     });
 
-    it('should handle mute (volume = 0)', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should handle mute (volume = 0)", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setVolume(0);
 
       expect(mockSound.setVolumeAsync).toHaveBeenCalledWith(0);
     });
 
-    it('should reject invalid volume', async () => {
+    it("should reject invalid volume", async () => {
       await expect(player.setVolume(-1)).rejects.toThrow();
       await expect(player.setVolume(101)).rejects.toThrow();
     });
   });
 
-  describe('setLooping', () => {
-    it('should enable looping', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("setLooping", () => {
+    it("should enable looping", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setLooping(true);
 
       expect(mockSound.setIsLoopingAsync).toHaveBeenCalledWith(true);
     });
 
-    it('should disable looping', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should disable looping", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setLooping(false);
 
       expect(mockSound.setIsLoopingAsync).toHaveBeenCalledWith(false);
     });
 
-    it('should allow speed changes while looping', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should allow speed changes while looping", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setLooping(true);
       await player.play();
 
@@ -207,8 +207,8 @@ describe('NativeAudioPlayer', () => {
       // Looping should remain enabled (setIsLoopingAsync not called again)
     });
 
-    it('should allow volume changes while looping', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should allow volume changes while looping", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.setLooping(true);
       await player.play();
 
@@ -222,9 +222,9 @@ describe('NativeAudioPlayer', () => {
     });
   });
 
-  describe('getDuration', () => {
-    it('should return audio duration', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("getDuration", () => {
+    it("should return audio duration", async () => {
+      await player.load("file:///test-audio.m4a");
 
       const duration = await player.getDuration();
 
@@ -232,15 +232,15 @@ describe('NativeAudioPlayer', () => {
       expect(duration).toBe(120000);
     });
 
-    it('should return 0 if not loaded', async () => {
+    it("should return 0 if not loaded", async () => {
       const duration = await player.getDuration();
       expect(duration).toBe(0);
     });
   });
 
-  describe('getPosition', () => {
-    it('should return current position', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("getPosition", () => {
+    it("should return current position", async () => {
+      await player.load("file:///test-audio.m4a");
 
       const position = await player.getPosition();
 
@@ -248,17 +248,17 @@ describe('NativeAudioPlayer', () => {
     });
   });
 
-  describe('unload', () => {
-    it('should unload audio and release resources', async () => {
-      await player.load('file:///test-audio.m4a');
+  describe("unload", () => {
+    it("should unload audio and release resources", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.unload();
 
       expect(mockSound.unloadAsync).toHaveBeenCalled();
       expect(player.isLoaded()).toBe(false);
     });
 
-    it('should stop playback when unloading', async () => {
-      await player.load('file:///test-audio.m4a');
+    it("should stop playback when unloading", async () => {
+      await player.load("file:///test-audio.m4a");
       await player.play();
       await player.unload();
 

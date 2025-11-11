@@ -4,11 +4,15 @@
  * Uses IndexedDB to store file metadata and blob URLs for web platform.
  */
 
-import { AudioFileManager, AudioFileInfo, StorageInfo } from './AudioFileManager';
+import {
+  AudioFileManager,
+  AudioFileInfo,
+  StorageInfo,
+} from "./AudioFileManager";
 
-const DB_NAME = 'AudioLooperDB';
+const DB_NAME = "AudioLooperDB";
 const DB_VERSION = 1;
-const STORE_NAME = 'audioFiles';
+const STORE_NAME = "audioFiles";
 
 interface StoredFileRecord {
   uri: string; // blob URL
@@ -39,7 +43,7 @@ export class WebAudioFileManager extends AudioFileManager {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        reject(new Error('Failed to open IndexedDB'));
+        reject(new Error("Failed to open IndexedDB"));
       };
 
       request.onsuccess = () => {
@@ -52,10 +56,14 @@ export class WebAudioFileManager extends AudioFileManager {
 
         // Create object store if it doesn't exist
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'uri' });
-          objectStore.createIndex('name', 'name', { unique: false });
-          objectStore.createIndex('createdAt', 'createdAt', { unique: false });
-          objectStore.createIndex('isTemporary', 'isTemporary', { unique: false });
+          const objectStore = db.createObjectStore(STORE_NAME, {
+            keyPath: "uri",
+          });
+          objectStore.createIndex("name", "name", { unique: false });
+          objectStore.createIndex("createdAt", "createdAt", { unique: false });
+          objectStore.createIndex("isTemporary", "isTemporary", {
+            unique: false,
+          });
         }
       };
     });
@@ -66,11 +74,15 @@ export class WebAudioFileManager extends AudioFileManager {
   /**
    * Save file to IndexedDB
    */
-  async saveFile(blobOrUri: Blob | string, name: string, isTemporary = true): Promise<string> {
+  async saveFile(
+    blobOrUri: Blob | string,
+    name: string,
+    isTemporary = true,
+  ): Promise<string> {
     await this.init();
 
     let blob: Blob;
-    if (typeof blobOrUri === 'string') {
+    if (typeof blobOrUri === "string") {
       // If it's a blob URL, fetch the blob
       const response = await fetch(blobOrUri);
       blob = await response.blob();
@@ -80,8 +92,8 @@ export class WebAudioFileManager extends AudioFileManager {
 
     const sanitizedName = this.sanitizeFilename(name);
     const uniqueName = this.generateUniqueFilename(
-      sanitizedName.replace(/\.[^/.]+$/, ''), // Remove extension
-      sanitizedName.substring(sanitizedName.lastIndexOf('.') + 1) || 'mp3'
+      sanitizedName.replace(/\.[^/.]+$/, ""), // Remove extension
+      sanitizedName.substring(sanitizedName.lastIndexOf(".") + 1) || "mp3",
     );
 
     const blobUrl = URL.createObjectURL(blob);
@@ -90,19 +102,21 @@ export class WebAudioFileManager extends AudioFileManager {
       uri: blobUrl,
       name: uniqueName,
       size: blob.size,
-      type: blob.type || 'audio/mpeg',
+      type: blob.type || "audio/mpeg",
       createdAt: Date.now(),
       isTemporary,
       blob,
     };
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.put(record);
 
       request.onsuccess = () => {
-        console.log(`[WebAudioFileManager] Saved file: ${uniqueName} (${blob.size} bytes)`);
+        console.log(
+          `[WebAudioFileManager] Saved file: ${uniqueName} (${blob.size} bytes)`,
+        );
         resolve(blobUrl);
       };
 
@@ -119,7 +133,7 @@ export class WebAudioFileManager extends AudioFileManager {
     await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readonly');
+      const transaction = this.db!.transaction([STORE_NAME], "readonly");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.get(uri);
 
@@ -159,7 +173,7 @@ export class WebAudioFileManager extends AudioFileManager {
     URL.revokeObjectURL(uri);
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.delete(uri);
 
@@ -181,7 +195,7 @@ export class WebAudioFileManager extends AudioFileManager {
     await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readonly');
+      const transaction = this.db!.transaction([STORE_NAME], "readonly");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.getAll();
 
@@ -203,7 +217,7 @@ export class WebAudioFileManager extends AudioFileManager {
       };
 
       request.onerror = () => {
-        reject(new Error('Failed to list files'));
+        reject(new Error("Failed to list files"));
       };
     });
   }
@@ -215,7 +229,7 @@ export class WebAudioFileManager extends AudioFileManager {
     await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.get(tempUri);
 
@@ -258,13 +272,14 @@ export class WebAudioFileManager extends AudioFileManager {
     let deletedCount = 0;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('isTemporary');
+      const index = store.index("isTemporary");
       const request = index.openCursor(IDBKeyRange.only(true));
 
       request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result as IDBCursorWithValue | null;
+        const cursor = (event.target as IDBRequest)
+          .result as IDBCursorWithValue | null;
         if (cursor) {
           const record = cursor.value as StoredFileRecord;
           if (record.createdAt < cutoffTime) {
@@ -275,13 +290,15 @@ export class WebAudioFileManager extends AudioFileManager {
           }
           cursor.continue();
         } else {
-          console.log(`[WebAudioFileManager] Cleaned up ${deletedCount} temporary files`);
+          console.log(
+            `[WebAudioFileManager] Cleaned up ${deletedCount} temporary files`,
+          );
           resolve(deletedCount);
         }
       };
 
       request.onerror = () => {
-        reject(new Error('Failed to cleanup temp files'));
+        reject(new Error("Failed to cleanup temp files"));
       };
     });
   }
@@ -303,9 +320,11 @@ export class WebAudioFileManager extends AudioFileManager {
       try {
         const estimate = await navigator.storage.estimate();
         totalSpace = estimate.quota;
-        availableSpace = estimate.quota ? estimate.quota - (estimate.usage || 0) : undefined;
+        availableSpace = estimate.quota
+          ? estimate.quota - (estimate.usage || 0)
+          : undefined;
       } catch (error) {
-        console.warn('[WebAudioFileManager] Storage estimate not available');
+        console.warn("[WebAudioFileManager] Storage estimate not available");
       }
     }
 

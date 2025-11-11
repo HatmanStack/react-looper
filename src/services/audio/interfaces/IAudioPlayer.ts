@@ -8,7 +8,7 @@
  * create multiple player instances.
  */
 
-import { PlaybackOptions, AudioMetadata } from '../../../types/audio';
+import { PlaybackOptions, AudioMetadata } from "../../../types/audio";
 
 export interface IAudioPlayer {
   /**
@@ -139,5 +139,8 @@ export interface IAudioPlayer {
    * @param callback - Function to call with current position in ms
    * @param interval - Update interval in milliseconds (default: 100ms)
    */
-  onPositionUpdate(callback: (position: number) => void, interval?: number): void;
+  onPositionUpdate(
+    callback: (position: number) => void,
+    interval?: number,
+  ): void;
 }

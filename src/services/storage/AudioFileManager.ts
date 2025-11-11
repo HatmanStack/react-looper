@@ -36,7 +36,11 @@ export abstract class AudioFileManager {
    * @param isTemporary - Whether this is a temporary file
    * @returns URI of saved file
    */
-  abstract saveFile(blob: Blob | string, name: string, isTemporary?: boolean): Promise<string>;
+  abstract saveFile(
+    blob: Blob | string,
+    name: string,
+    isTemporary?: boolean,
+  ): Promise<string>;
 
   /**
    * Get file information
@@ -68,7 +72,10 @@ export abstract class AudioFileManager {
    * @param permanentName - New filename for permanent storage
    * @returns New permanent URI
    */
-  abstract makePermanent(tempUri: string, permanentName: string): Promise<string>;
+  abstract makePermanent(
+    tempUri: string,
+    permanentName: string,
+  ): Promise<string>;
 
   /**
    * Clean up temporary files
@@ -101,19 +108,19 @@ export abstract class AudioFileManager {
    */
   protected sanitizeFilename(filename: string): string {
     // Remove path separators and invalid characters
-    let sanitized = filename.replace(/[/\\?%*:|"<>]/g, '_');
+    let sanitized = filename.replace(/[/\\?%*:|"<>]/g, "_");
 
     // Remove leading/trailing dots and spaces
-    sanitized = sanitized.replace(/^[.\s]+|[.\s]+$/g, '');
+    sanitized = sanitized.replace(/^[.\s]+|[.\s]+$/g, "");
 
     // Ensure filename is not empty
     if (!sanitized) {
-      sanitized = 'untitled';
+      sanitized = "untitled";
     }
 
     // Limit length
     if (sanitized.length > 200) {
-      const ext = sanitized.substring(sanitized.lastIndexOf('.'));
+      const ext = sanitized.substring(sanitized.lastIndexOf("."));
       const name = sanitized.substring(0, 200 - ext.length);
       sanitized = name + ext;
     }
@@ -128,9 +135,12 @@ export abstract class AudioFileManager {
    * @param extension - File extension (with or without dot)
    * @returns Unique filename
    */
-  protected generateUniqueFilename(baseName: string, extension: string): string {
+  protected generateUniqueFilename(
+    baseName: string,
+    extension: string,
+  ): string {
     const sanitizedBase = this.sanitizeFilename(baseName);
-    const ext = extension.startsWith('.') ? extension : `.${extension}`;
+    const ext = extension.startsWith(".") ? extension : `.${extension}`;
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
 

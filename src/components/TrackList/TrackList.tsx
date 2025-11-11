@@ -7,11 +7,11 @@
  * - Optimized for performance with many tracks
  */
 
-import React from 'react';
-import { FlatList, View, Text } from 'react-native';
-import { TrackListItem } from '../TrackListItem';
-import type { Track } from '../../types';
-import { styles } from './TrackList.styles';
+import React from "react";
+import { FlatList, View, Text } from "react-native";
+import { TrackListItem } from "../TrackListItem";
+import type { Track } from "../../types";
+import { styles } from "./TrackList.styles";
 
 export interface TrackListProps {
   tracks: Track[];
@@ -20,6 +20,7 @@ export interface TrackListProps {
   onDelete?: (trackId: string) => void;
   onVolumeChange?: (trackId: string, volume: number) => void;
   onSpeedChange?: (trackId: string, speed: number) => void;
+  onSelect?: (trackId: string) => void;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
@@ -29,6 +30,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   onDelete,
   onVolumeChange,
   onSpeedChange,
+  onSelect,
 }) => {
   const renderItem = ({ item }: { item: Track }) => (
     <TrackListItem
@@ -38,6 +40,7 @@ export const TrackList: React.FC<TrackListProps> = ({
       onDelete={onDelete}
       onVolumeChange={onVolumeChange}
       onSpeedChange={onSpeedChange}
+      onSelect={onSelect}
     />
   );
 
@@ -50,7 +53,9 @@ export const TrackList: React.FC<TrackListProps> = ({
       <Text style={styles.emptyTitle} accessibilityRole="header">
         No tracks yet
       </Text>
-      <Text style={styles.emptySubtitle}>Record audio or import tracks to get started</Text>
+      <Text style={styles.emptySubtitle}>
+        Record audio or import tracks to get started
+      </Text>
     </View>
   );
 

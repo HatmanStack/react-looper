@@ -7,10 +7,10 @@
  * Supports both native (AppState) and web (visibilitychange) platforms.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import { AppState, AppStateStatus, Platform } from 'react-native';
+import { useEffect, useRef, useCallback } from "react";
+import { AppState, AppStateStatus, Platform } from "react-native";
 
-export type LifecycleState = 'active' | 'background' | 'inactive';
+export type LifecycleState = "active" | "background" | "inactive";
 
 export interface AppLifecycleCallbacks {
   /**
@@ -31,7 +31,10 @@ export interface AppLifecycleCallbacks {
   /**
    * Called on any state change with previous and current state
    */
-  onChange?: (currentState: LifecycleState, previousState: LifecycleState) => void;
+  onChange?: (
+    currentState: LifecycleState,
+    previousState: LifecycleState,
+  ) => void;
 }
 
 /**
@@ -56,7 +59,9 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks = {}) {
   const { onActive, onBackground, onInactive, onChange } = callbacks;
 
   // Track previous state
-  const previousStateRef = useRef<LifecycleState>(AppState.currentState as LifecycleState);
+  const previousStateRef = useRef<LifecycleState>(
+    AppState.currentState as LifecycleState,
+  );
 
   const handleStateChange = useCallback(
     (nextAppState: AppStateStatus) => {
@@ -66,11 +71,11 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks = {}) {
       // Only trigger callbacks if state actually changed
       if (currentState !== previousState) {
         // Call state-specific callbacks
-        if (currentState === 'active' && onActive) {
+        if (currentState === "active" && onActive) {
           onActive();
-        } else if (currentState === 'background' && onBackground) {
+        } else if (currentState === "background" && onBackground) {
           onBackground();
-        } else if (currentState === 'inactive' && onInactive) {
+        } else if (currentState === "inactive" && onInactive) {
           onInactive();
         }
 
@@ -83,24 +88,24 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks = {}) {
         previousStateRef.current = currentState;
       }
     },
-    [onActive, onBackground, onInactive, onChange]
+    [onActive, onBackground, onInactive, onChange],
   );
 
   useEffect(() => {
     // Native platforms: use AppState
-    const subscription = AppState.addEventListener('change', handleStateChange);
+    const subscription = AppState.addEventListener("change", handleStateChange);
 
     // Web platform: also listen to visibility changes
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       const handleVisibilityChange = () => {
         if (document.hidden) {
-          handleStateChange('background');
+          handleStateChange("background");
         } else {
-          handleStateChange('active');
+          handleStateChange("active");
         }
       };
 
-      document.addEventListener('visibilitychange', handleVisibilityChange);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
 
       // beforeunload for cleanup before page closes
       const handleBeforeUnload = () => {
@@ -109,12 +114,15 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks = {}) {
         }
       };
 
-      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener("beforeunload", handleBeforeUnload);
 
       return () => {
         subscription.remove();
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange,
+        );
+        window.removeEventListener("beforeunload", handleBeforeUnload);
       };
     }
 
@@ -141,7 +149,10 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks = {}) {
  * );
  * ```
  */
-export function useBackgroundHandler(onBackground: () => void, onForeground?: () => void) {
+export function useBackgroundHandler(
+  onBackground: () => void,
+  onForeground?: () => void,
+) {
   return useAppLifecycle({
     onBackground,
     onActive: onForeground,

@@ -9,7 +9,7 @@ import type {
   MigrationResult,
   VersionedState,
   VersionHistoryEntry,
-} from './types';
+} from "./types";
 
 /**
  * Run migrations on a persisted state
@@ -20,7 +20,7 @@ import type {
  */
 export function runMigrations<TState>(
   persistedData: any,
-  config: MigrationConfig<TState>
+  config: MigrationConfig<TState>,
 ): MigrationResult<TState> {
   const errors: string[] = [];
 
@@ -28,7 +28,9 @@ export function runMigrations<TState>(
     // Parse versioned state
     // Check for 'version' property to distinguish versioned from non-versioned data
     const versionedState: VersionedState<TState> =
-      typeof persistedData === 'object' && persistedData !== null && 'version' in persistedData
+      typeof persistedData === "object" &&
+      persistedData !== null &&
+      "version" in persistedData
         ? persistedData
         : { version: 0, state: persistedData };
 
@@ -78,13 +80,15 @@ export function runMigrations<TState>(
           throw new Error(errorMsg);
         }
       } else {
-        console.warn(`[Migration] No migration found for v${version}, skipping`);
+        console.warn(
+          `[Migration] No migration found for v${version}, skipping`,
+        );
       }
     }
 
     // Validate final state
     if (config.validate && !config.validate(currentState)) {
-      const errorMsg = 'State validation failed after migration';
+      const errorMsg = "State validation failed after migration";
       console.error(`[Migration] ${errorMsg}`);
       errors.push(errorMsg);
 
@@ -111,7 +115,7 @@ export function runMigrations<TState>(
       errors: errors.length > 0 ? errors : undefined,
     };
   } catch (error) {
-    console.error('[Migration] Critical migration error:', error);
+    console.error("[Migration] Critical migration error:", error);
 
     // Return default state if available
     if (config.defaultState) {
@@ -138,7 +142,7 @@ export function runMigrations<TState>(
 export function createVersionedState<TState>(
   state: TState,
   version: number,
-  previousHistory?: VersionHistoryEntry[]
+  previousHistory?: VersionHistoryEntry[],
 ): VersionedState<TState> {
   const history: VersionHistoryEntry[] = previousHistory || [];
 
@@ -166,7 +170,7 @@ export function createMigratedStorage<TState>(
     getItem: (name: string) => Promise<string | null>;
     setItem: (name: string, value: string) => Promise<void>;
     removeItem: (name: string) => Promise<void>;
-  }
+  },
 ) {
   return {
     getItem: async (name: string): Promise<string | null> => {
@@ -178,18 +182,30 @@ export function createMigratedStorage<TState>(
         const migrationResult = runMigrations(parsed, config);
 
         if (!migrationResult.success && migrationResult.errors) {
-          console.error('[Migration] Migration had errors:', migrationResult.errors);
+          console.error(
+            "[Migration] Migration had errors:",
+            migrationResult.errors,
+          );
         }
 
         // Return migrated state as versioned state
-        const versionedState = createVersionedState(migrationResult.state, config.currentVersion);
+        const versionedState = createVersionedState(
+          migrationResult.state,
+          config.currentVersion,
+        );
 
         return JSON.stringify(versionedState);
       } catch (error) {
-        console.error('[Migration] Failed to parse/migrate stored data:', error);
+        console.error(
+          "[Migration] Failed to parse/migrate stored data:",
+          error,
+        );
 
         if (config.defaultState) {
-          const versionedState = createVersionedState(config.defaultState, config.currentVersion);
+          const versionedState = createVersionedState(
+            config.defaultState,
+            config.currentVersion,
+          );
           return JSON.stringify(versionedState);
         }
 
@@ -203,13 +219,13 @@ export function createMigratedStorage<TState>(
 
         // Wrap in versioned state if not already
         const versionedState: VersionedState<TState> =
-          typeof parsed.version === 'number'
+          typeof parsed.version === "number"
             ? parsed
             : createVersionedState(parsed, config.currentVersion);
 
         await baseStorage.setItem(name, JSON.stringify(versionedState));
       } catch (error) {
-        console.error('[Migration] Failed to save versioned state:', error);
+        console.error("[Migration] Failed to save versioned state:", error);
         throw error;
       }
     },

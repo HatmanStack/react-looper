@@ -5,8 +5,8 @@
  * Web and native platforms have different capabilities and constraints.
  */
 
-import { Platform } from 'react-native';
-import { AudioFormat, AudioQuality } from '../../types/audio';
+import { Platform } from "react-native";
+import { AudioFormat, AudioQuality } from "../../types/audio";
 
 /**
  * Audio configuration interface
@@ -113,7 +113,12 @@ const WEB_CONFIG: AudioConfig = {
  */
 const NATIVE_CONFIG: AudioConfig = {
   defaultFormat: AudioFormat.M4A, // Better compression on mobile
-  supportedFormats: [AudioFormat.MP3, AudioFormat.WAV, AudioFormat.M4A, AudioFormat.THREE_GPP],
+  supportedFormats: [
+    AudioFormat.MP3,
+    AudioFormat.WAV,
+    AudioFormat.M4A,
+    AudioFormat.THREE_GPP,
+  ],
   defaultQuality: AudioQuality.HIGH,
   sampleRate: 44100,
   bitRate: 192,
@@ -142,10 +147,10 @@ export function getAudioConfig(): AudioConfig {
  */
 export function getPlatformName(): string {
   return Platform.select({
-    web: 'Web',
-    ios: 'iOS',
-    android: 'Android',
-    default: 'Unknown',
+    web: "Web",
+    ios: "iOS",
+    android: "Android",
+    default: "Unknown",
   }) as string;
 }
 
@@ -153,7 +158,9 @@ export function getPlatformName(): string {
  * Check if current platform supports a feature
  */
 export function isPlatformSupported(): boolean {
-  return Platform.OS === 'web' || Platform.OS === 'ios' || Platform.OS === 'android';
+  return (
+    Platform.OS === "web" || Platform.OS === "ios" || Platform.OS === "android"
+  );
 }
 
 /**

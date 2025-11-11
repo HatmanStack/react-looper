@@ -4,10 +4,10 @@
  * Slider for controlling track volume (0-100)
  */
 
-import React from 'react';
-import { View, Text } from 'react-native';
-import Slider from '@react-native-community/slider';
-import { styles } from './VolumeSlider.styles';
+import React from "react";
+import { View, Text } from "react-native";
+import Slider from "@react-native-community/slider";
+import { styles } from "./VolumeSlider.styles";
 
 export interface VolumeSliderProps {
   value: number; // 0-100
@@ -34,7 +34,7 @@ export const VolumeSlider: React.FC<VolumeSliderProps> = ({
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        minimumTrackTintColor="#BB86FC" // Theme primary color
+        minimumTrackTintColor="#EF5555" // Red accent color from Android app
         maximumTrackTintColor="#666"
         thumbTintColor="#FFFFFF"
         accessibilityLabel="Volume"

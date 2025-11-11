@@ -4,10 +4,10 @@
  * @see https://playwright.dev/docs/test-configuration
  */
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e/web',
+  testDir: "./e2e/web",
 
   // Timeout for each test
   timeout: 30 * 1000,
@@ -30,71 +30,75 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter to use
-  reporter: [['html'], ['list'], ...(process.env.CI ? [['github'] as ['github']] : [])],
+  reporter: [
+    ["html"],
+    ["list"],
+    ...(process.env.CI ? [["github"] as ["github"]] : []),
+  ],
 
   // Shared settings for all projects
   use: {
     // Base URL for tests
-    baseURL: 'http://localhost:8081',
+    baseURL: "http://localhost:8081",
 
     // Collect trace on first retry
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     // Screenshot on failure
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
 
     // Video on first retry
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
   },
 
   // Configure projects for major browsers
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices['Desktop Chrome'],
-        permissions: ['microphone'],
+        ...devices["Desktop Chrome"],
+        permissions: ["microphone"],
       },
     },
 
     {
-      name: 'firefox',
+      name: "firefox",
       use: {
-        ...devices['Desktop Firefox'],
-        permissions: ['microphone'],
+        ...devices["Desktop Firefox"],
+        permissions: ["microphone"],
       },
     },
 
     {
-      name: 'webkit',
+      name: "webkit",
       use: {
-        ...devices['Desktop Safari'],
-        permissions: ['microphone'],
+        ...devices["Desktop Safari"],
+        permissions: ["microphone"],
       },
     },
 
     // Mobile viewports
     {
-      name: 'Mobile Chrome',
+      name: "Mobile Chrome",
       use: {
-        ...devices['Pixel 5'],
-        permissions: ['microphone'],
+        ...devices["Pixel 5"],
+        permissions: ["microphone"],
       },
     },
 
     {
-      name: 'Mobile Safari',
+      name: "Mobile Safari",
       use: {
-        ...devices['iPhone 13'],
-        permissions: ['microphone'],
+        ...devices["iPhone 13"],
+        permissions: ["microphone"],
       },
     },
   ],
 
   // Run web server before starting the tests
   webServer: {
-    command: 'npm run web',
-    url: 'http://localhost:8081',
+    command: "npm run web",
+    url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

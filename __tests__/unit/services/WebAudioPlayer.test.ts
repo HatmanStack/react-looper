@@ -2,7 +2,7 @@
  * WebAudioPlayer Tests
  */
 
-import { WebAudioPlayer } from '../../../src/services/audio/WebAudioPlayer';
+import { WebAudioPlayer } from "../../../src/services/audio/WebAudioPlayer";
 
 // Mock Web Audio API
 const mockAudioContext = {
@@ -40,10 +40,12 @@ const mockGainNode = {
 };
 
 // Setup global mocks
-global.AudioContext = jest.fn(() => mockAudioContext) as unknown as typeof AudioContext;
+global.AudioContext = jest.fn(
+  () => mockAudioContext,
+) as unknown as typeof AudioContext;
 global.fetch = jest.fn();
 
-describe('WebAudioPlayer', () => {
+describe("WebAudioPlayer", () => {
   let player: WebAudioPlayer;
 
   beforeEach(() => {
@@ -66,44 +68,44 @@ describe('WebAudioPlayer', () => {
     }
   });
 
-  describe('load', () => {
-    it('should load audio from URI', async () => {
-      await player.load('blob:test-audio');
+  describe("load", () => {
+    it("should load audio from URI", async () => {
+      await player.load("blob:test-audio");
 
-      expect(global.fetch).toHaveBeenCalledWith('blob:test-audio');
+      expect(global.fetch).toHaveBeenCalledWith("blob:test-audio");
       expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
       expect(player.isLoaded()).toBe(true);
     });
 
-    it('should throw error for invalid URI', async () => {
-      await expect(player.load('')).rejects.toThrow();
+    it("should throw error for invalid URI", async () => {
+      await expect(player.load("")).rejects.toThrow();
     });
 
-    it('should unload previous audio before loading new', async () => {
-      await player.load('blob:audio1');
-      await player.load('blob:audio2');
+    it("should unload previous audio before loading new", async () => {
+      await player.load("blob:audio1");
+      await player.load("blob:audio2");
 
       expect(player.isLoaded()).toBe(true);
     });
   });
 
-  describe('play', () => {
-    it('should play loaded audio', async () => {
-      await player.load('blob:test-audio');
+  describe("play", () => {
+    it("should play loaded audio", async () => {
+      await player.load("blob:test-audio");
       await player.play();
 
       expect(mockBufferSource.start).toHaveBeenCalled();
       expect(player.isPlaying()).toBe(true);
     });
 
-    it('should throw error if not loaded', async () => {
+    it("should throw error if not loaded", async () => {
       await expect(player.play()).rejects.toThrow();
     });
   });
 
-  describe('pause', () => {
-    it('should pause playing audio', async () => {
-      await player.load('blob:test-audio');
+  describe("pause", () => {
+    it("should pause playing audio", async () => {
+      await player.load("blob:test-audio");
       await player.play();
       await player.pause();
 
@@ -111,68 +113,68 @@ describe('WebAudioPlayer', () => {
     });
   });
 
-  describe('setSpeed', () => {
-    it('should set playback speed', async () => {
-      await player.load('blob:test-audio');
+  describe("setSpeed", () => {
+    it("should set playback speed", async () => {
+      await player.load("blob:test-audio");
       await player.setSpeed(1.5);
       await player.play(); // Speed is applied when play() is called
 
       expect(mockBufferSource.playbackRate.value).toBe(1.5);
     });
 
-    it('should reject invalid speed', async () => {
+    it("should reject invalid speed", async () => {
       await expect(player.setSpeed(3.0)).rejects.toThrow();
       await expect(player.setSpeed(0.01)).rejects.toThrow();
     });
 
-    it('should accept valid speed range (0.05 - 2.50)', async () => {
-      await player.load('blob:test-audio');
+    it("should accept valid speed range (0.05 - 2.50)", async () => {
+      await player.load("blob:test-audio");
       await expect(player.setSpeed(0.05)).resolves.not.toThrow();
       await expect(player.setSpeed(2.5)).resolves.not.toThrow();
     });
   });
 
-  describe('setVolume', () => {
-    it('should set volume with logarithmic scaling', async () => {
-      await player.load('blob:test-audio');
+  describe("setVolume", () => {
+    it("should set volume with logarithmic scaling", async () => {
+      await player.load("blob:test-audio");
       await player.setVolume(75);
 
       expect(mockGainNode.gain.value).toBeGreaterThan(0);
       expect(mockGainNode.gain.value).toBeLessThanOrEqual(1);
     });
 
-    it('should handle mute (volume = 0)', async () => {
-      await player.load('blob:test-audio');
+    it("should handle mute (volume = 0)", async () => {
+      await player.load("blob:test-audio");
       await player.setVolume(0);
 
       expect(mockGainNode.gain.value).toBe(0);
     });
 
-    it('should reject invalid volume', async () => {
+    it("should reject invalid volume", async () => {
       await expect(player.setVolume(-1)).rejects.toThrow();
       await expect(player.setVolume(101)).rejects.toThrow();
     });
   });
 
-  describe('setLooping', () => {
-    it('should enable looping', async () => {
-      await player.load('blob:test-audio');
+  describe("setLooping", () => {
+    it("should enable looping", async () => {
+      await player.load("blob:test-audio");
       await player.setLooping(true);
       await player.play(); // Looping is applied when play() is called
 
       expect(mockBufferSource.loop).toBe(true);
     });
 
-    it('should disable looping', async () => {
-      await player.load('blob:test-audio');
+    it("should disable looping", async () => {
+      await player.load("blob:test-audio");
       await player.setLooping(false);
       await player.play(); // Looping is applied when play() is called
 
       expect(mockBufferSource.loop).toBe(false);
     });
 
-    it('should allow speed changes while looping', async () => {
-      await player.load('blob:test-audio');
+    it("should allow speed changes while looping", async () => {
+      await player.load("blob:test-audio");
       await player.setLooping(true);
       await player.play();
 
@@ -185,8 +187,8 @@ describe('WebAudioPlayer', () => {
       expect(mockBufferSource.loop).toBe(true); // Loop should still be enabled
     });
 
-    it('should allow volume changes while looping', async () => {
-      await player.load('blob:test-audio');
+    it("should allow volume changes while looping", async () => {
+      await player.load("blob:test-audio");
       await player.setLooping(true);
       await player.play();
 
@@ -200,31 +202,31 @@ describe('WebAudioPlayer', () => {
     });
   });
 
-  describe('getDuration', () => {
-    it('should return audio duration', async () => {
-      await player.load('blob:test-audio');
+  describe("getDuration", () => {
+    it("should return audio duration", async () => {
+      await player.load("blob:test-audio");
       const duration = await player.getDuration();
 
       // Duration should be in milliseconds (120s * 1000)
       expect(duration).toBe(120000);
     });
 
-    it('should return 0 if not loaded', async () => {
+    it("should return 0 if not loaded", async () => {
       const duration = await player.getDuration();
       expect(duration).toBe(0);
     });
   });
 
-  describe('unload', () => {
-    it('should unload audio and release resources', async () => {
-      await player.load('blob:test-audio');
+  describe("unload", () => {
+    it("should unload audio and release resources", async () => {
+      await player.load("blob:test-audio");
       await player.unload();
 
       expect(player.isLoaded()).toBe(false);
     });
 
-    it('should stop playback when unloading', async () => {
-      await player.load('blob:test-audio');
+    it("should stop playback when unloading", async () => {
+      await player.load("blob:test-audio");
       await player.play();
       await player.unload();
 

@@ -15,14 +15,14 @@ export interface PerformanceBenchmark {
   target: number;
   actual: number;
   passed: boolean;
-  unit: 'ms' | 'MB' | 'fps';
+  unit: "ms" | "MB" | "fps";
 }
 
 /**
  * Measure execution time of async function
  */
 export async function measureDuration<T>(
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<{ result: T; duration: number }> {
   const startTime = performance.now();
   const result = await fn();
@@ -37,7 +37,10 @@ export async function measureDuration<T>(
 /**
  * Measure execution time of sync function
  */
-export function measureDurationSync<T>(fn: () => T): { result: T; duration: number } {
+export function measureDurationSync<T>(fn: () => T): {
+  result: T;
+  duration: number;
+} {
   const startTime = performance.now();
   const result = fn();
   const endTime = performance.now();
@@ -52,16 +55,20 @@ export function measureDurationSync<T>(fn: () => T): { result: T; duration: numb
  * Measure memory usage before and after function execution
  */
 export async function measureMemory<T>(
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<{ result: T; memoryDelta: number }> {
   // Force garbage collection if available (Node.js with --expose-gc flag)
   if (global.gc) {
     global.gc();
   }
 
-  const startMemory = (performance as any).memory?.usedJSHeapSize ?? 0;
+  const startMemory =
+    (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory
+      ?.usedJSHeapSize ?? 0;
   const result = await fn();
-  const endMemory = (performance as any).memory?.usedJSHeapSize ?? 0;
+  const endMemory =
+    (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory
+      ?.usedJSHeapSize ?? 0;
 
   return {
     result,
@@ -110,7 +117,7 @@ export function calculateP95(values: number[]): number {
 export async function runBenchmark(
   name: string,
   fn: () => Promise<void>,
-  iterations: number = 10
+  iterations: number = 10,
 ): Promise<{
   name: string;
   iterations: number;
@@ -143,7 +150,7 @@ export function assertPerformance(
   name: string,
   actual: number,
   target: number,
-  unit: 'ms' | 'MB' | 'fps' = 'ms'
+  unit: "ms" | "MB" | "fps" = "ms",
 ): PerformanceBenchmark {
   const passed = actual <= target;
 
@@ -157,11 +164,11 @@ export function assertPerformance(
 
   if (!passed) {
     console.warn(
-      `⚠️  Performance regression: ${name} took ${actual}${unit} (target: ${target}${unit})`
+      `⚠️  Performance regression: ${name} took ${actual}${unit} (target: ${target}${unit})`,
     );
   } else {
     console.log(
-      `✓ Performance check passed: ${name} took ${actual}${unit} (target: ${target}${unit})`
+      `✓ Performance check passed: ${name} took ${actual}${unit} (target: ${target}${unit})`,
     );
   }
 
@@ -178,9 +185,13 @@ export function mark(name: string): void {
 /**
  * Measure between two marks
  */
-export function measure(name: string, startMark: string, endMark: string): number {
+export function measure(
+  name: string,
+  startMark: string,
+  endMark: string,
+): number {
   performance.measure(name, startMark, endMark);
-  const measures = performance.getEntriesByName(name, 'measure');
+  const measures = performance.getEntriesByName(name, "measure");
 
   if (measures.length > 0) {
     return measures[measures.length - 1].duration;
@@ -232,10 +243,10 @@ export function wait(ms: number): Promise<void> {
  * Format bytes to human readable string
  */
 export function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
 
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
@@ -263,7 +274,10 @@ export function formatDuration(ms: number): string {
  * Get current memory usage
  */
 export function getCurrentMemory(): number {
-  return (performance as any).memory?.usedJSHeapSize ?? 0;
+  return (
+    (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory
+      ?.usedJSHeapSize ?? 0
+  );
 }
 
 /**
@@ -271,7 +285,7 @@ export function getCurrentMemory(): number {
  */
 export async function profile<T>(
   name: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<{ result: T; metrics: PerformanceMetrics }> {
   const startMark = `${name}-start`;
   const endMark = `${name}-end`;

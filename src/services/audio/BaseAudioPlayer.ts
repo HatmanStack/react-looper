@@ -5,9 +5,13 @@
  * Platform-specific implementations should extend this class.
  */
 
-import { IAudioPlayer } from './interfaces/IAudioPlayer';
-import { PlaybackOptions, AudioMetadata, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { IAudioPlayer } from "./interfaces/IAudioPlayer";
+import {
+  PlaybackOptions,
+  AudioMetadata,
+  AudioErrorCode,
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export abstract class BaseAudioPlayer implements IAudioPlayer {
   /**
@@ -57,7 +61,10 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
 
   // Abstract methods - must be implemented by platform-specific classes
 
-  protected abstract _load(uri: string, options?: PlaybackOptions): Promise<void>;
+  protected abstract _load(
+    uri: string,
+    options?: PlaybackOptions,
+  ): Promise<void>;
   protected abstract _play(): Promise<void>;
   protected abstract _pause(): Promise<void>;
   protected abstract _stop(): Promise<void>;
@@ -75,11 +82,11 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
    */
   public async load(uri: string, options?: PlaybackOptions): Promise<void> {
     // Validate URI
-    if (!uri || typeof uri !== 'string') {
+    if (!uri || typeof uri !== "string") {
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
-        'Invalid URI provided',
-        'Invalid audio file'
+        "Invalid URI provided",
+        "Invalid audio file",
       );
     }
 
@@ -117,7 +124,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to load audio: ${(error as Error).message}`,
         undefined,
-        { uri, originalError: error }
+        { uri, originalError: error },
       );
     }
   }
@@ -129,8 +136,8 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
     if (!this._isLoaded) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
-        'Cannot play: no audio loaded',
-        'Please load an audio file first'
+        "Cannot play: no audio loaded",
+        "Please load an audio file first",
       );
     }
 
@@ -147,7 +154,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to play audio: ${(error as Error).message}`,
         undefined,
-        { uri: this._currentUri, originalError: error }
+        { uri: this._currentUri, originalError: error },
       );
     }
   }
@@ -171,7 +178,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to pause audio: ${(error as Error).message}`,
         undefined,
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -195,7 +202,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to stop audio: ${(error as Error).message}`,
         undefined,
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -209,7 +216,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Speed must be between 0.05 and 2.50, got ${speed}`,
-        'Invalid playback speed'
+        "Invalid playback speed",
       );
     }
 
@@ -230,7 +237,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set speed: ${(error as Error).message}`,
         undefined,
-        { speed, originalError: error }
+        { speed, originalError: error },
       );
     }
   }
@@ -244,7 +251,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Volume must be between 0 and 100, got ${volume}`,
-        'Invalid volume level'
+        "Invalid volume level",
       );
     }
 
@@ -265,7 +272,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set volume: ${(error as Error).message}`,
         undefined,
-        { volume, originalError: error }
+        { volume, originalError: error },
       );
     }
   }
@@ -291,7 +298,7 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set looping: ${(error as Error).message}`,
         undefined,
-        { loop, originalError: error }
+        { loop, originalError: error },
       );
     }
   }
@@ -327,8 +334,8 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
     if (position < 0) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
-        'Position cannot be negative',
-        'Invalid position'
+        "Position cannot be negative",
+        "Invalid position",
       );
     }
 
@@ -388,7 +395,10 @@ export abstract class BaseAudioPlayer implements IAudioPlayer {
   /**
    * Set position update callback
    */
-  public onPositionUpdate(callback: (position: number) => void, interval: number = 100): void {
+  public onPositionUpdate(
+    callback: (position: number) => void,
+    interval: number = 100,
+  ): void {
     this._onPositionUpdate = callback;
     this._updateInterval = interval;
   }

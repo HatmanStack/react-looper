@@ -5,9 +5,16 @@
  * Shows progress bar, estimated time, and cancel button.
  */
 
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Portal, Modal, ProgressBar, Text, Button, useTheme } from 'react-native-paper';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import {
+  Portal,
+  Modal,
+  ProgressBar,
+  Text,
+  Button,
+  useTheme,
+} from "react-native-paper";
 
 export interface MixingProgressProps {
   visible: boolean;
@@ -30,12 +37,12 @@ export const MixingProgress: React.FC<MixingProgressProps> = ({
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   const getEstimatedTimeRemaining = (): string => {
     if (!totalDuration || !currentTime || progress === 0) {
-      return 'Calculating...';
+      return "Calculating...";
     }
 
     const elapsed = currentTime;
@@ -49,10 +56,17 @@ export const MixingProgress: React.FC<MixingProgressProps> = ({
       <Modal
         visible={visible}
         dismissable={false}
-        contentContainerStyle={[styles.modal, { backgroundColor: theme.colors.surface }]}
+        contentContainerStyle={[
+          styles.modal,
+          { backgroundColor: theme.colors.surface },
+        ]}
       >
         <View style={styles.content}>
-          <Text variant="headlineSmall" style={styles.title} accessibilityRole="header">
+          <Text
+            variant="headlineSmall"
+            style={styles.title}
+            accessibilityRole="header"
+          >
             Mixing Audio
           </Text>
 
@@ -64,7 +78,11 @@ export const MixingProgress: React.FC<MixingProgressProps> = ({
             style={styles.progressContainer}
             accessibilityLabel={`Mixing progress: ${Math.round(progress * 100)} percent complete`}
             accessibilityRole="progressbar"
-            accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
+            accessibilityValue={{
+              min: 0,
+              max: 100,
+              now: Math.round(progress * 100),
+            }}
             accessibilityLiveRegion="polite"
           >
             <ProgressBar
@@ -124,19 +142,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
   progressContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 16,
   },
   progressBar: {
@@ -145,12 +163,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressText: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   timeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     marginBottom: 24,
     paddingHorizontal: 8,
   },

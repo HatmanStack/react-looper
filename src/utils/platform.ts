@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 /**
  * Platform detection utilities
@@ -11,28 +11,28 @@ import { Platform } from 'react-native';
  * Returns true if running on web platform
  */
 export const isWeb = (): boolean => {
-  return Platform.OS === 'web';
+  return Platform.OS === "web";
 };
 
 /**
  * Returns true if running on native platforms (iOS or Android)
  */
 export const isNative = (): boolean => {
-  return Platform.OS === 'ios' || Platform.OS === 'android';
+  return Platform.OS === "ios" || Platform.OS === "android";
 };
 
 /**
  * Returns true if running on iOS
  */
 export const isIOS = (): boolean => {
-  return Platform.OS === 'ios';
+  return Platform.OS === "ios";
 };
 
 /**
  * Returns true if running on Android
  */
 export const isAndroid = (): boolean => {
-  return Platform.OS === 'android';
+  return Platform.OS === "android";
 };
 
 /**
@@ -40,13 +40,13 @@ export const isAndroid = (): boolean => {
  */
 export const getPlatformName = (): string => {
   switch (Platform.OS) {
-    case 'ios':
-      return 'iOS';
-    case 'android':
-      return 'Android';
-    case 'web':
-      return 'Web';
+    case "ios":
+      return "iOS";
+    case "android":
+      return "Android";
+    case "web":
+      return "Web";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 };

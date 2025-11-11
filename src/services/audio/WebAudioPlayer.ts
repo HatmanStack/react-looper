@@ -5,9 +5,13 @@
  * Provides multi-track playback with independent speed and volume controls.
  */
 
-import { BaseAudioPlayer } from './BaseAudioPlayer';
-import { PlaybackOptions, AudioMetadata, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { BaseAudioPlayer } from "./BaseAudioPlayer";
+import {
+  PlaybackOptions,
+  AudioMetadata,
+  AudioErrorCode,
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export class WebAudioPlayer extends BaseAudioPlayer {
   private audioContext: AudioContext | null = null;
@@ -33,7 +37,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       }
 
       // Resume context if suspended (autoplay policy)
-      if (this.audioContext.state === 'suspended') {
+      if (this.audioContext.state === "suspended") {
         await this.audioContext.resume();
       }
 
@@ -46,7 +50,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 
       console.log(
-        `[WebAudioPlayer] Loaded audio: ${this.audioBuffer.duration}s, ${this.audioBuffer.sampleRate}Hz`
+        `[WebAudioPlayer] Loaded audio: ${this.audioBuffer.duration}s, ${this.audioBuffer.sampleRate}Hz`,
       );
 
       // Create gain node for volume control
@@ -63,8 +67,8 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to load audio: ${(error as Error).message}`,
-        'Unable to load audio file',
-        { uri, originalError: error }
+        "Unable to load audio file",
+        { uri, originalError: error },
       );
     }
   }
@@ -76,14 +80,14 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     if (!this.audioContext || !this.audioBuffer || !this.gainNode) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
-        'Audio not loaded',
-        'Please load an audio file first'
+        "Audio not loaded",
+        "Please load an audio file first",
       );
     }
 
     try {
       // Resume context if suspended
-      if (this.audioContext.state === 'suspended') {
+      if (this.audioContext.state === "suspended") {
         await this.audioContext.resume();
       }
 
@@ -120,8 +124,8 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to start playback: ${(error as Error).message}`,
-        'Unable to play audio',
-        { originalError: error }
+        "Unable to play audio",
+        { originalError: error },
       );
     }
   }
@@ -149,7 +153,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       console.log(`[WebAudioPlayer] Paused at ${this.pauseTime}s`);
     } catch (error) {
       // Ignore errors if already stopped
-      console.warn('[WebAudioPlayer] Pause error:', error);
+      console.warn("[WebAudioPlayer] Pause error:", error);
     }
   }
 
@@ -176,7 +180,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     // Stop position updates
     this.stopPositionUpdateTimer();
 
-    console.log('[WebAudioPlayer] Stopped');
+    console.log("[WebAudioPlayer] Stopped");
   }
 
   /**
@@ -226,7 +230,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     if (this.sourceNode) {
       this.sourceNode.loop = loop;
     }
-    console.log(`[WebAudioPlayer] Looping ${loop ? 'enabled' : 'disabled'}`);
+    console.log(`[WebAudioPlayer] Looping ${loop ? "enabled" : "disabled"}`);
   }
 
   /**
@@ -333,7 +337,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     this.startTime = 0;
     this.pauseTime = 0;
 
-    console.log('[WebAudioPlayer] Unloaded');
+    console.log("[WebAudioPlayer] Unloaded");
   }
 
   /**

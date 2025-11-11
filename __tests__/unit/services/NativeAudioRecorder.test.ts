@@ -2,12 +2,12 @@
  * NativeAudioRecorder Tests
  */
 
-import { NativeAudioRecorder } from '../../../src/services/audio/NativeAudioRecorder';
-import { AudioError, AudioErrorCode } from '../../../src/services/audio/AudioError';
-import { Audio } from 'expo-av';
+import { NativeAudioRecorder } from "../../../src/services/audio/NativeAudioRecorder";
+import { AudioError } from "../../../src/services/audio/AudioError";
+import { Audio } from "expo-av";
 
 // Mock expo-av
-jest.mock('expo-av', () => ({
+jest.mock("expo-av", () => ({
   Audio: {
     requestPermissionsAsync: jest.fn(),
     setAudioModeAsync: jest.fn(),
@@ -25,7 +25,7 @@ jest.mock('expo-av', () => ({
   },
 }));
 
-describe('NativeAudioRecorder', () => {
+describe("NativeAudioRecorder", () => {
   let recorder: NativeAudioRecorder;
   let mockRecording: any;
 
@@ -37,18 +37,20 @@ describe('NativeAudioRecorder', () => {
     mockRecording = {
       prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
       startAsync: jest.fn().mockResolvedValue(undefined),
-      stopAndUnloadAsync: jest.fn().mockResolvedValue({ uri: 'file://recording.m4a' }),
-      getURI: jest.fn().mockReturnValue('file://recording.m4a'),
+      stopAndUnloadAsync: jest
+        .fn()
+        .mockResolvedValue({ uri: "file://recording.m4a" }),
+      getURI: jest.fn().mockReturnValue("file://recording.m4a"),
       getDurationMillis: jest.fn().mockResolvedValue(5000),
     };
 
     (Audio.Recording as jest.Mock).mockImplementation(() => mockRecording);
   });
 
-  describe('checkPermission', () => {
-    it('should request and return permissions', async () => {
+  describe("checkPermission", () => {
+    it("should request and return permissions", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
 
@@ -58,9 +60,9 @@ describe('NativeAudioRecorder', () => {
       expect(Audio.requestPermissionsAsync).toHaveBeenCalled();
     });
 
-    it('should return false if permission denied', async () => {
+    it("should return false if permission denied", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'denied',
+        status: "denied",
         granted: false,
       });
 
@@ -69,26 +71,28 @@ describe('NativeAudioRecorder', () => {
       expect(result).toBe(false);
     });
 
-    it('should throw AudioError on permission check failure', async () => {
-      (Audio.requestPermissionsAsync as jest.Mock).mockRejectedValue(new Error('Permission error'));
+    it("should throw AudioError on permission check failure", async () => {
+      (Audio.requestPermissionsAsync as jest.Mock).mockRejectedValue(
+        new Error("Permission error"),
+      );
 
       await expect(recorder.checkPermission()).rejects.toThrow(AudioError);
       await expect(recorder.checkPermission()).rejects.toThrow(
-        'Failed to check recording permissions'
+        "Failed to check recording permissions",
       );
     });
   });
 
-  describe('startRecording', () => {
+  describe("startRecording", () => {
     beforeEach(() => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
       (Audio.setAudioModeAsync as jest.Mock).mockResolvedValue(undefined);
     });
 
-    it('should start recording with permissions', async () => {
+    it("should start recording with permissions", async () => {
       await recorder.startRecording();
 
       expect(Audio.requestPermissionsAsync).toHaveBeenCalled();
@@ -97,60 +101,68 @@ describe('NativeAudioRecorder', () => {
       expect(mockRecording.startAsync).toHaveBeenCalled();
     });
 
-    it('should throw if permissions denied', async () => {
+    it("should throw if permissions denied", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'denied',
+        status: "denied",
         granted: false,
       });
 
       await expect(recorder.startRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.startRecording()).rejects.toThrow('Recording permission denied');
+      await expect(recorder.startRecording()).rejects.toThrow(
+        "Recording permission denied",
+      );
     });
 
-    it('should throw if already recording', async () => {
+    it("should throw if already recording", async () => {
       await recorder.startRecording();
 
       await expect(recorder.startRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.startRecording()).rejects.toThrow('Already recording');
+      await expect(recorder.startRecording()).rejects.toThrow(
+        "Already recording",
+      );
     });
   });
 
-  describe('stopRecording', () => {
-    it('should stop recording and return URI', async () => {
+  describe("stopRecording", () => {
+    it("should stop recording and return URI", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
 
       await recorder.startRecording();
       const uri = await recorder.stopRecording();
 
-      expect(uri).toBe('file://recording.m4a');
+      expect(uri).toBe("file://recording.m4a");
       expect(mockRecording.stopAndUnloadAsync).toHaveBeenCalled();
     });
 
-    it('should throw if not recording', async () => {
+    it("should throw if not recording", async () => {
       await expect(recorder.stopRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.stopRecording()).rejects.toThrow('No active recording');
+      await expect(recorder.stopRecording()).rejects.toThrow(
+        "No active recording",
+      );
     });
 
-    it('should throw if stop fails', async () => {
+    it("should throw if stop fails", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
 
-      mockRecording.stopAndUnloadAsync.mockRejectedValue(new Error('Stop failed'));
+      mockRecording.stopAndUnloadAsync.mockRejectedValue(
+        new Error("Stop failed"),
+      );
 
       await recorder.startRecording();
       await expect(recorder.stopRecording()).rejects.toThrow(AudioError);
     });
   });
 
-  describe('getDuration', () => {
-    it('should return recording duration', async () => {
+  describe("getDuration", () => {
+    it("should return recording duration", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
 
@@ -161,16 +173,16 @@ describe('NativeAudioRecorder', () => {
       expect(duration).toBe(5000);
     });
 
-    it('should return 0 if no recording', async () => {
+    it("should return 0 if no recording", async () => {
       const duration = await recorder.getDuration();
       expect(duration).toBe(0);
     });
   });
 
-  describe('cleanup', () => {
-    it('should cleanup recording instance', async () => {
+  describe("cleanup", () => {
+    it("should cleanup recording instance", async () => {
       (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
-        status: 'granted',
+        status: "granted",
         granted: true,
       });
 

@@ -5,30 +5,41 @@
  * speed/volume changes during playback, and edge cases.
  */
 
-import { AudioService, AudioServiceConfig } from '../../src/services/audio/AudioService';
-import { WebAudioPlayer } from '../../src/services/audio/WebAudioPlayer';
-import { PlaybackOptions } from '../../src/types/audio';
-import { BaseAudioPlayer } from '../../src/services/audio/BaseAudioPlayer';
+import {
+  AudioService,
+  AudioServiceConfig,
+} from "../../src/services/audio/AudioService";
+import { WebAudioPlayer } from "../../src/services/audio/WebAudioPlayer";
+import { PlaybackOptions } from "../../src/types/audio";
+import { BaseAudioPlayer } from "../../src/services/audio/BaseAudioPlayer";
 
 // Mock WebAudioPlayer
-jest.mock('../../src/services/audio/WebAudioPlayer');
+jest.mock("../../src/services/audio/WebAudioPlayer");
 
 // Mock types for test configuration
-type MockRecorder = Pick<AudioServiceConfig['recorder'], 'isRecording' | 'stop' | 'cleanup'>;
-type MockMixer = Pick<AudioServiceConfig['mixer'], 'cleanup' | 'isMixing'>;
-type MockFileManager = Pick<AudioServiceConfig['fileManager'], 'cleanup' | 'cleanupTempFiles'>;
+type MockRecorder = Pick<
+  AudioServiceConfig["recorder"],
+  "isRecording" | "stop" | "cleanup"
+>;
+type MockMixer = Pick<AudioServiceConfig["mixer"], "cleanup" | "isMixing">;
+type MockFileManager = Pick<
+  AudioServiceConfig["fileManager"],
+  "cleanup" | "cleanupTempFiles"
+>;
 
-describe('Playback Integration Tests', () => {
+describe("Playback Integration Tests", () => {
   let audioService: AudioService;
-  const mockTrackUri1 = 'blob:test-track-1';
-  const mockTrackUri2 = 'blob:test-track-2';
-  const mockTrackUri3 = 'blob:test-track-3';
+  const mockTrackUri1 = "blob:test-track-1";
+  const mockTrackUri2 = "blob:test-track-2";
+  const mockTrackUri3 = "blob:test-track-3";
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Setup WebAudioPlayer mock
-    (WebAudioPlayer as jest.MockedClass<typeof WebAudioPlayer>).mockImplementation(() => {
+    (
+      WebAudioPlayer as jest.MockedClass<typeof WebAudioPlayer>
+    ).mockImplementation(() => {
       let playing = false;
       const mockPlayer = {
         load: jest.fn().mockResolvedValue(undefined),
@@ -65,7 +76,7 @@ describe('Playback Integration Tests', () => {
     const mockConfig: AudioServiceConfig = {
       recorder: {
         isRecording: jest.fn().mockReturnValue(false),
-        stop: jest.fn().mockResolvedValue('mock-uri'),
+        stop: jest.fn().mockResolvedValue("mock-uri"),
         cleanup: jest.fn().mockResolvedValue(undefined),
       } as unknown as MockRecorder,
       playerFactory: () => new WebAudioPlayer() as unknown as BaseAudioPlayer,
@@ -86,9 +97,9 @@ describe('Playback Integration Tests', () => {
     await audioService.cleanup();
   });
 
-  describe('single track playback', () => {
-    it('should load, play, and pause a single track', async () => {
-      const trackId = 'track-1';
+  describe("single track playback", () => {
+    it("should load, play, and pause a single track", async () => {
+      const trackId = "track-1";
 
       // Load track
       await audioService.loadTrack(trackId, mockTrackUri1, {
@@ -106,8 +117,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(false);
     });
 
-    it('should change speed during playback', async () => {
-      const trackId = 'track-1';
+    it("should change speed during playback", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -119,8 +130,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should change volume during playback', async () => {
-      const trackId = 'track-1';
+    it("should change volume during playback", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -132,8 +143,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should unload track and release resources', async () => {
-      const trackId = 'track-1';
+    it("should unload track and release resources", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -143,11 +154,11 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('multi-track playback', () => {
-    it('should play multiple tracks simultaneously', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
-      const track3 = 'track-3';
+  describe("multi-track playback", () => {
+    it("should play multiple tracks simultaneously", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
+      const track3 = "track-3";
 
       // Load multiple tracks
       await audioService.loadTrack(track1, mockTrackUri1);
@@ -165,9 +176,9 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track3)).toBe(true);
     });
 
-    it('should pause all tracks simultaneously', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
+    it("should pause all tracks simultaneously", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
 
       await audioService.loadTrack(track1, mockTrackUri1);
       await audioService.loadTrack(track2, mockTrackUri2);
@@ -182,9 +193,9 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track2)).toBe(false);
     });
 
-    it('should play all tracks simultaneously', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
+    it("should play all tracks simultaneously", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
 
       await audioService.loadTrack(track1, mockTrackUri1);
       await audioService.loadTrack(track2, mockTrackUri2);
@@ -196,9 +207,9 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track2)).toBe(true);
     });
 
-    it('should control individual track speed independently', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
+    it("should control individual track speed independently", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
 
       await audioService.loadTrack(track1, mockTrackUri1);
       await audioService.loadTrack(track2, mockTrackUri2);
@@ -215,9 +226,9 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track2)).toBe(true);
     });
 
-    it('should control individual track volume independently', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
+    it("should control individual track volume independently", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
 
       await audioService.loadTrack(track1, mockTrackUri1);
       await audioService.loadTrack(track2, mockTrackUri2);
@@ -235,9 +246,9 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('speed edge cases', () => {
-    it('should handle very slow speed (0.05x)', async () => {
-      const trackId = 'track-1';
+  describe("speed edge cases", () => {
+    it("should handle very slow speed (0.05x)", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.setTrackSpeed(trackId, 0.05);
@@ -246,8 +257,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should handle very fast speed (2.50x)', async () => {
-      const trackId = 'track-1';
+    it("should handle very fast speed (2.50x)", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.setTrackSpeed(trackId, 2.5);
@@ -256,8 +267,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should transition between speed extremes', async () => {
-      const trackId = 'track-1';
+    it("should transition between speed extremes", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -275,9 +286,9 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('volume edge cases', () => {
-    it('should handle mute (volume = 0)', async () => {
-      const trackId = 'track-1';
+  describe("volume edge cases", () => {
+    it("should handle mute (volume = 0)", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.setTrackVolume(trackId, 0);
@@ -287,8 +298,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should handle max volume (volume = 100)', async () => {
-      const trackId = 'track-1';
+    it("should handle max volume (volume = 100)", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.setTrackVolume(trackId, 100);
@@ -297,8 +308,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should transition from mute to max volume', async () => {
-      const trackId = 'track-1';
+    it("should transition from mute to max volume", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -313,9 +324,9 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('looping functionality', () => {
-    it('should enable looping for track', async () => {
-      const trackId = 'track-1';
+  describe("looping functionality", () => {
+    it("should enable looping for track", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1, { loop: true });
       await audioService.playTrack(trackId);
@@ -323,8 +334,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should disable looping for track', async () => {
-      const trackId = 'track-1';
+    it("should disable looping for track", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1, { loop: false });
       await audioService.setTrackLooping(trackId, false);
@@ -333,8 +344,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should change looping state during playback', async () => {
-      const trackId = 'track-1';
+    it("should change looping state during playback", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1, { loop: true });
       await audioService.playTrack(trackId);
@@ -351,9 +362,9 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('playback options', () => {
-    it('should apply all playback options when loading', async () => {
-      const trackId = 'track-1';
+  describe("playback options", () => {
+    it("should apply all playback options when loading", async () => {
+      const trackId = "track-1";
       const options: PlaybackOptions = {
         speed: 1.5,
         volume: 50,
@@ -366,8 +377,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(trackId)).toBe(true);
     });
 
-    it('should handle options with extreme values', async () => {
-      const trackId = 'track-1';
+    it("should handle options with extreme values", async () => {
+      const trackId = "track-1";
       const options: PlaybackOptions = {
         speed: 0.05,
         volume: 0,
@@ -381,25 +392,29 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should throw error when playing non-existent track', async () => {
-      await expect(audioService.playTrack('non-existent')).rejects.toThrow();
+  describe("error handling", () => {
+    it("should throw error when playing non-existent track", async () => {
+      await expect(audioService.playTrack("non-existent")).rejects.toThrow();
     });
 
-    it('should throw error when pausing non-existent track', async () => {
-      await expect(audioService.pauseTrack('non-existent')).rejects.toThrow();
+    it("should throw error when pausing non-existent track", async () => {
+      await expect(audioService.pauseTrack("non-existent")).rejects.toThrow();
     });
 
-    it('should throw error when setting speed on non-existent track', async () => {
-      await expect(audioService.setTrackSpeed('non-existent', 1.5)).rejects.toThrow();
+    it("should throw error when setting speed on non-existent track", async () => {
+      await expect(
+        audioService.setTrackSpeed("non-existent", 1.5),
+      ).rejects.toThrow();
     });
 
-    it('should throw error when setting volume on non-existent track', async () => {
-      await expect(audioService.setTrackVolume('non-existent', 75)).rejects.toThrow();
+    it("should throw error when setting volume on non-existent track", async () => {
+      await expect(
+        audioService.setTrackVolume("non-existent", 75),
+      ).rejects.toThrow();
     });
 
-    it('should handle track unload gracefully', async () => {
-      const trackId = 'track-1';
+    it("should handle track unload gracefully", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);
@@ -412,11 +427,11 @@ describe('Playback Integration Tests', () => {
     });
   });
 
-  describe('complex scenarios', () => {
-    it('should handle adding tracks during multi-track playback', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
-      const track3 = 'track-3';
+  describe("complex scenarios", () => {
+    it("should handle adding tracks during multi-track playback", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
+      const track3 = "track-3";
 
       // Load and play first two tracks
       await audioService.loadTrack(track1, mockTrackUri1);
@@ -434,10 +449,10 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track3)).toBe(true);
     });
 
-    it('should handle removing tracks during multi-track playback', async () => {
-      const track1 = 'track-1';
-      const track2 = 'track-2';
-      const track3 = 'track-3';
+    it("should handle removing tracks during multi-track playback", async () => {
+      const track1 = "track-1";
+      const track2 = "track-2";
+      const track3 = "track-3";
 
       await audioService.loadTrack(track1, mockTrackUri1);
       await audioService.loadTrack(track2, mockTrackUri2);
@@ -454,8 +469,8 @@ describe('Playback Integration Tests', () => {
       expect(audioService.isTrackPlaying(track3)).toBe(true);
     });
 
-    it('should handle rapid speed/volume changes', async () => {
-      const trackId = 'track-1';
+    it("should handle rapid speed/volume changes", async () => {
+      const trackId = "track-1";
 
       await audioService.loadTrack(trackId, mockTrackUri1);
       await audioService.playTrack(trackId);

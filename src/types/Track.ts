@@ -42,6 +42,12 @@ export interface Track {
   isPlaying: boolean;
 
   /**
+   * Whether the track is selected for saving
+   * When selected, shows red highlight border
+   */
+  selected?: boolean;
+
+  /**
    * Timestamp when the track was created
    */
   createdAt: number;

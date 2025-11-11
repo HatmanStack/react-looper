@@ -4,16 +4,16 @@
  * Tests Zustand store performance for state updates and subscriptions
  */
 
-import { useTrackStore } from '../../src/store/useTrackStore';
-import { usePlaybackStore } from '../../src/store/usePlaybackStore';
-import { useUIStore } from '../../src/store/useUIStore';
-import type { Track } from '../../src/types';
+import { useTrackStore } from "../../src/store/useTrackStore";
+import { usePlaybackStore } from "../../src/store/usePlaybackStore";
+import { useUIStore } from "../../src/store/useUIStore";
+import type { Track } from "../../src/types";
 import {
   measureDuration,
   assertPerformance,
   runBenchmark,
   calculateAverage,
-} from '../../src/test-utils/performanceUtils';
+} from "../../src/test-utils/performanceUtils";
 
 // Mock track generator
 function generateMockTrack(id: number): Track {
@@ -29,23 +29,23 @@ function generateMockTrack(id: number): Track {
   };
 }
 
-describe('Performance - TrackStore', () => {
+describe("Performance - TrackStore", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should add track in < 10ms', async () => {
+  it("should add track in < 10ms", async () => {
     const track = generateMockTrack(1);
 
     const { duration } = await measureDuration(async () => {
       useTrackStore.getState().addTrack(track);
     });
 
-    const benchmark = assertPerformance('Add track', duration, 10);
+    const benchmark = assertPerformance("Add track", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should add 100 tracks in < 500ms', async () => {
+  it("should add 100 tracks in < 500ms", async () => {
     const tracks = Array.from({ length: 100 }, (_, i) => generateMockTrack(i));
 
     const { duration } = await measureDuration(async () => {
@@ -54,11 +54,11 @@ describe('Performance - TrackStore', () => {
       });
     });
 
-    const benchmark = assertPerformance('Add 100 tracks', duration, 500);
+    const benchmark = assertPerformance("Add 100 tracks", duration, 500);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should update track quickly', async () => {
+  it("should update track quickly", async () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
@@ -66,11 +66,11 @@ describe('Performance - TrackStore', () => {
       useTrackStore.getState().updateTrack(track.id, { volume: 50 });
     });
 
-    const benchmark = assertPerformance('Update track', duration, 10);
+    const benchmark = assertPerformance("Update track", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should delete track quickly', async () => {
+  it("should delete track quickly", async () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
@@ -78,26 +78,30 @@ describe('Performance - TrackStore', () => {
       useTrackStore.getState().removeTrack(track.id);
     });
 
-    const benchmark = assertPerformance('Delete track', duration, 10);
+    const benchmark = assertPerformance("Delete track", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should get track by ID quickly from large list', async () => {
+  it("should get track by ID quickly from large list", async () => {
     // Add 1000 tracks
     const tracks = Array.from({ length: 1000 }, (_, i) => generateMockTrack(i));
     tracks.forEach((track) => useTrackStore.getState().addTrack(track));
 
-    const targetTrackId = 'track-500';
+    const targetTrackId = "track-500";
 
     const { duration } = await measureDuration(async () => {
       useTrackStore.getState().getTrack(targetTrackId);
     });
 
-    const benchmark = assertPerformance('Get track from 1000 tracks', duration, 5);
+    const benchmark = assertPerformance(
+      "Get track from 1000 tracks",
+      duration,
+      5,
+    );
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should handle rapid updates efficiently', async () => {
+  it("should handle rapid updates efficiently", async () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
@@ -112,19 +116,23 @@ describe('Performance - TrackStore', () => {
 
     const avgDuration = calculateAverage(updateDurations);
 
-    const benchmark = assertPerformance('Average update (100 updates)', avgDuration, 10);
+    const benchmark = assertPerformance(
+      "Average update (100 updates)",
+      avgDuration,
+      10,
+    );
     expect(benchmark.passed).toBe(true);
   });
 });
 
-describe('Performance - PlaybackStore', () => {
+describe("Performance - PlaybackStore", () => {
   beforeEach(() => {
     usePlaybackStore.getState().reset();
   });
 
-  it('should add track state quickly', async () => {
+  it("should add track state quickly", async () => {
     const { duration } = await measureDuration(async () => {
-      usePlaybackStore.getState().addTrack('track-1', {
+      usePlaybackStore.getState().addTrack("track-1", {
         speed: 1.0,
         volume: 75,
         isLooping: true,
@@ -132,12 +140,12 @@ describe('Performance - PlaybackStore', () => {
       });
     });
 
-    const benchmark = assertPerformance('Add track state', duration, 10);
+    const benchmark = assertPerformance("Add track state", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should update track state quickly', async () => {
-    usePlaybackStore.getState().addTrack('track-1', {
+  it("should update track state quickly", async () => {
+    usePlaybackStore.getState().addTrack("track-1", {
       speed: 1.0,
       volume: 75,
       isLooping: true,
@@ -145,14 +153,14 @@ describe('Performance - PlaybackStore', () => {
     });
 
     const { duration } = await measureDuration(async () => {
-      usePlaybackStore.getState().updateTrackState('track-1', { volume: 50 });
+      usePlaybackStore.getState().updateTrackState("track-1", { volume: 50 });
     });
 
-    const benchmark = assertPerformance('Update track state', duration, 10);
+    const benchmark = assertPerformance("Update track state", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should handle 100 simultaneous tracks efficiently', async () => {
+  it("should handle 100 simultaneous tracks efficiently", async () => {
     const { duration } = await measureDuration(async () => {
       for (let i = 0; i < 100; i++) {
         usePlaybackStore.getState().addTrack(`track-${i}`, {
@@ -164,12 +172,12 @@ describe('Performance - PlaybackStore', () => {
       }
     });
 
-    const benchmark = assertPerformance('Add 100 track states', duration, 500);
+    const benchmark = assertPerformance("Add 100 track states", duration, 500);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should start playing track quickly', async () => {
-    usePlaybackStore.getState().addTrack('track-1', {
+  it("should start playing track quickly", async () => {
+    usePlaybackStore.getState().addTrack("track-1", {
       speed: 1.0,
       volume: 75,
       isLooping: true,
@@ -177,14 +185,14 @@ describe('Performance - PlaybackStore', () => {
     });
 
     const { duration } = await measureDuration(async () => {
-      usePlaybackStore.getState().setPlaying('track-1', true);
+      usePlaybackStore.getState().setPlaying("track-1", true);
     });
 
-    const benchmark = assertPerformance('Set track playing', duration, 10);
+    const benchmark = assertPerformance("Set track playing", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should pause all tracks quickly', async () => {
+  it("should pause all tracks quickly", async () => {
     // Add 20 playing tracks
     for (let i = 0; i < 20; i++) {
       usePlaybackStore.getState().addTrack(`track-${i}`, {
@@ -199,35 +207,35 @@ describe('Performance - PlaybackStore', () => {
       usePlaybackStore.getState().pauseAll();
     });
 
-    const benchmark = assertPerformance('Pause all 20 tracks', duration, 50);
+    const benchmark = assertPerformance("Pause all 20 tracks", duration, 50);
     expect(benchmark.passed).toBe(true);
   });
 });
 
-describe('Performance - UIStore', () => {
+describe("Performance - UIStore", () => {
   beforeEach(() => {
     useUIStore.getState().reset();
   });
 
-  it('should toggle modal visibility quickly', async () => {
+  it("should toggle modal visibility quickly", async () => {
     const { duration } = await measureDuration(async () => {
       useUIStore.getState().showSaveModal();
     });
 
-    const benchmark = assertPerformance('Show modal', duration, 5);
+    const benchmark = assertPerformance("Show modal", duration, 5);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should update mixing progress quickly', async () => {
+  it("should update mixing progress quickly", async () => {
     const { duration } = await measureDuration(async () => {
       useUIStore.getState().setMixingProgress(0.5);
     });
 
-    const benchmark = assertPerformance('Update mixing progress', duration, 5);
+    const benchmark = assertPerformance("Update mixing progress", duration, 5);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should handle rapid progress updates', async () => {
+  it("should handle rapid progress updates", async () => {
     const updateDurations: number[] = [];
 
     for (let i = 0; i <= 100; i++) {
@@ -239,21 +247,25 @@ describe('Performance - UIStore', () => {
 
     const avgDuration = calculateAverage(updateDurations);
 
-    const benchmark = assertPerformance('Average progress update (100 updates)', avgDuration, 5);
+    const benchmark = assertPerformance(
+      "Average progress update (100 updates)",
+      avgDuration,
+      5,
+    );
     expect(benchmark.passed).toBe(true);
   });
 });
 
-describe('Performance - Store Subscriptions', () => {
+describe("Performance - Store Subscriptions", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should notify subscribers quickly', async () => {
+  it("should notify subscribers quickly", async () => {
     let notificationCount = 0;
     const notificationTimes: number[] = [];
 
-    const unsubscribe = useTrackStore.subscribe((state) => {
+    const unsubscribe = useTrackStore.subscribe((_state) => {
       notificationCount++;
       notificationTimes.push(performance.now());
     });
@@ -269,13 +281,13 @@ describe('Performance - Store Subscriptions', () => {
 
     expect(notificationCount).toBe(1);
 
-    const benchmark = assertPerformance('Notify subscribers', duration, 10);
+    const benchmark = assertPerformance("Notify subscribers", duration, 10);
     expect(benchmark.passed).toBe(true);
 
     unsubscribe();
   });
 
-  it('should handle multiple subscribers efficiently', async () => {
+  it("should handle multiple subscribers efficiently", async () => {
     const subscriberCount = 10;
     const unsubscribers: (() => void)[] = [];
 
@@ -293,7 +305,7 @@ describe('Performance - Store Subscriptions', () => {
       useTrackStore.getState().addTrack(track);
     });
 
-    const benchmark = assertPerformance('Notify 10 subscribers', duration, 20);
+    const benchmark = assertPerformance("Notify 10 subscribers", duration, 20);
     expect(benchmark.passed).toBe(true);
 
     // Clean up
@@ -301,12 +313,12 @@ describe('Performance - Store Subscriptions', () => {
   });
 });
 
-describe('Performance - Store Selectors', () => {
+describe("Performance - Store Selectors", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should select tracks quickly from large store', async () => {
+  it("should select tracks quickly from large store", async () => {
     // Add 1000 tracks
     const tracks = Array.from({ length: 1000 }, (_, i) => generateMockTrack(i));
     tracks.forEach((track) => useTrackStore.getState().addTrack(track));
@@ -316,11 +328,11 @@ describe('Performance - Store Selectors', () => {
       expect(allTracks.length).toBe(1000);
     });
 
-    const benchmark = assertPerformance('Select 1000 tracks', duration, 5);
+    const benchmark = assertPerformance("Select 1000 tracks", duration, 5);
     expect(benchmark.passed).toBe(true);
   });
 
-  it('should filter playing tracks quickly', async () => {
+  it("should filter playing tracks quickly", async () => {
     // Add 100 tracks, 10 playing
     const tracks = Array.from({ length: 100 }, (_, i) => ({
       ...generateMockTrack(i),
@@ -329,47 +341,49 @@ describe('Performance - Store Selectors', () => {
     tracks.forEach((track) => useTrackStore.getState().addTrack(track));
 
     const { duration } = await measureDuration(async () => {
-      const playingTracks = useTrackStore.getState().tracks.filter((t) => t.isPlaying);
+      const playingTracks = useTrackStore
+        .getState()
+        .tracks.filter((t) => t.isPlaying);
       expect(playingTracks.length).toBe(10);
     });
 
-    const benchmark = assertPerformance('Filter playing tracks', duration, 10);
+    const benchmark = assertPerformance("Filter playing tracks", duration, 10);
     expect(benchmark.passed).toBe(true);
   });
 });
 
-describe('Performance - Stress Tests', () => {
-  it('should benchmark rapid track additions', async () => {
+describe("Performance - Stress Tests", () => {
+  it("should benchmark rapid track additions", async () => {
     const stats = await runBenchmark(
-      'Add track',
+      "Add track",
       async () => {
         const track = generateMockTrack(Math.random() * 10000);
         useTrackStore.getState().addTrack(track);
       },
-      100
+      100,
     );
 
-    console.log('Rapid track additions stats:', stats);
+    console.log("Rapid track additions stats:", stats);
 
     expect(stats.avg).toBeLessThan(10);
     expect(stats.p95).toBeLessThan(20);
   });
 
-  it('should benchmark rapid state updates', async () => {
+  it("should benchmark rapid state updates", async () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
     const stats = await runBenchmark(
-      'Update track',
+      "Update track",
       async () => {
         useTrackStore.getState().updateTrack(track.id, {
           volume: Math.random() * 100,
         });
       },
-      100
+      100,
     );
 
-    console.log('Rapid state updates stats:', stats);
+    console.log("Rapid state updates stats:", stats);
 
     expect(stats.avg).toBeLessThan(10);
     expect(stats.p95).toBeLessThan(20);

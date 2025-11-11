@@ -4,5 +4,5 @@
  * Automatically loads the correct platform implementation
  */
 
-export * from './types';
-export { getFFmpegService } from './FFmpegService';
+export * from "./types";
+export { getFFmpegService } from "./FFmpegService";

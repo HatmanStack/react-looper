@@ -5,9 +5,13 @@
  * Records audio from the user's microphone using getUserMedia.
  */
 
-import { BaseAudioRecorder } from './BaseAudioRecorder';
-import { RecordingOptions, AudioFormat, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { BaseAudioRecorder } from "./BaseAudioRecorder";
+import {
+  RecordingOptions,
+  AudioFormat,
+  AudioErrorCode,
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export class WebAudioRecorder extends BaseAudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
@@ -50,11 +54,11 @@ export class WebAudioRecorder extends BaseAudioRecorder {
 
       // Handle errors
       this.mediaRecorder.onerror = (event: Event) => {
-        console.error('[WebAudioRecorder] MediaRecorder error:', event);
+        console.error("[WebAudioRecorder] MediaRecorder error:", event);
         throw new AudioError(
           AudioErrorCode.RECORDING_FAILED,
-          'MediaRecorder error occurred',
-          'Recording failed. Please try again.'
+          "MediaRecorder error occurred",
+          "Recording failed. Please try again.",
         );
       };
 
@@ -62,7 +66,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Request data every 100ms for better progress tracking
       this.mediaRecorder.start(100);
 
-      console.log(`[WebAudioRecorder] Recording started with MIME type: ${mimeType}`);
+      console.log(
+        `[WebAudioRecorder] Recording started with MIME type: ${mimeType}`,
+      );
     } catch (error) {
       // Cleanup on error
       this.cleanupMediaStream();
@@ -72,26 +78,26 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       }
 
       // Check for specific errors
-      if ((error as Error).name === 'NotAllowedError') {
+      if ((error as Error).name === "NotAllowedError") {
         throw new AudioError(
           AudioErrorCode.PERMISSION_DENIED,
-          'Microphone access denied',
-          'Please allow microphone access to record audio.'
+          "Microphone access denied",
+          "Please allow microphone access to record audio.",
         );
       }
 
-      if ((error as Error).name === 'NotFoundError') {
+      if ((error as Error).name === "NotFoundError") {
         throw new AudioError(
           AudioErrorCode.RESOURCE_UNAVAILABLE,
-          'No microphone found',
-          'No microphone detected. Please connect a microphone and try again.'
+          "No microphone found",
+          "No microphone detected. Please connect a microphone and try again.",
         );
       }
 
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
         `Failed to start recording: ${(error as Error).message}`,
-        'Failed to start recording. Please check your microphone and try again.'
+        "Failed to start recording. Please check your microphone and try again.",
       );
     }
   }
@@ -103,8 +109,8 @@ export class WebAudioRecorder extends BaseAudioRecorder {
     if (!this.mediaRecorder) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
-        'MediaRecorder not initialized',
-        'Recording session not found.'
+        "MediaRecorder not initialized",
+        "Recording session not found.",
       );
     }
 
@@ -113,9 +119,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
         reject(
           new AudioError(
             AudioErrorCode.RECORDING_FAILED,
-            'MediaRecorder lost during stop',
-            'Recording session was interrupted.'
-          )
+            "MediaRecorder lost during stop",
+            "Recording session was interrupted.",
+          ),
         );
         return;
       }
@@ -124,14 +130,14 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       this.mediaRecorder.onstop = () => {
         try {
           // Create blob from chunks
-          const mimeType = this.mediaRecorder?.mimeType || 'audio/webm';
+          const mimeType = this.mediaRecorder?.mimeType || "audio/webm";
           const audioBlob = new Blob(this.audioChunks, { type: mimeType });
 
           // Create blob URL
           const blobUrl = URL.createObjectURL(audioBlob);
 
           console.log(
-            `[WebAudioRecorder] Recording stopped. Blob size: ${audioBlob.size} bytes, URL: ${blobUrl}`
+            `[WebAudioRecorder] Recording stopped. Blob size: ${audioBlob.size} bytes, URL: ${blobUrl}`,
           );
 
           // Cleanup media stream
@@ -144,18 +150,18 @@ export class WebAudioRecorder extends BaseAudioRecorder {
             new AudioError(
               AudioErrorCode.RECORDING_FAILED,
               `Failed to create blob: ${(error as Error).message}`,
-              'Failed to save recording.'
-            )
+              "Failed to save recording.",
+            ),
           );
         }
       };
 
       // Stop the recorder
-      if (this.mediaRecorder.state !== 'inactive') {
+      if (this.mediaRecorder.state !== "inactive") {
         this.mediaRecorder.stop();
       } else {
         // Already stopped, resolve immediately
-        this.mediaRecorder.onstop?.(new Event('stop'));
+        this.mediaRecorder.onstop?.(new Event("stop"));
       }
     });
   }
@@ -164,9 +170,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    * Cancel recording without saving
    */
   protected async _cancelRecording(): Promise<void> {
-    console.log('[WebAudioRecorder] Cancelling recording');
+    console.log("[WebAudioRecorder] Cancelling recording");
 
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+    if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
       this.mediaRecorder.stop();
     }
 
@@ -183,24 +189,27 @@ export class WebAudioRecorder extends BaseAudioRecorder {
   protected async _getPermissions(): Promise<boolean> {
     try {
       // Try permissions API first (not supported in all browsers)
-      if ('permissions' in navigator) {
+      if ("permissions" in navigator) {
         try {
           const result = await navigator.permissions.query({
-            name: 'microphone',
+            name: "microphone",
           } as any);
 
-          if (result.state === 'granted') {
+          if (result.state === "granted") {
             return true;
           }
 
-          if (result.state === 'denied') {
+          if (result.state === "denied") {
             return false;
           }
 
           // State is 'prompt' - will be requested when getUserMedia is called
         } catch (permError) {
           // Permissions API not fully supported, fall through
-          console.warn('[WebAudioRecorder] Permissions API not available:', permError);
+          console.warn(
+            "[WebAudioRecorder] Permissions API not available:",
+            permError,
+          );
         }
       }
 
@@ -214,12 +223,12 @@ export class WebAudioRecorder extends BaseAudioRecorder {
 
       return true;
     } catch (error) {
-      if ((error as Error).name === 'NotAllowedError') {
+      if ((error as Error).name === "NotAllowedError") {
         return false;
       }
 
       // Other errors (no microphone, etc.)
-      console.error('[WebAudioRecorder] Permission check error:', error);
+      console.error("[WebAudioRecorder] Permission check error:", error);
       return false;
     }
   }
@@ -228,10 +237,10 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    * Cleanup resources
    */
   protected async _cleanup(): Promise<void> {
-    console.log('[WebAudioRecorder] Cleaning up resources');
+    console.log("[WebAudioRecorder] Cleaning up resources");
 
     // Stop and clear media recorder
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+    if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
       this.mediaRecorder.stop();
     }
     this.mediaRecorder = null;
@@ -248,10 +257,10 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    */
   private getPreferredMimeType(format?: AudioFormat): string {
     const mimeTypes: Record<AudioFormat, string[]> = {
-      [AudioFormat.MP3]: ['audio/mpeg', 'audio/mp3'],
-      [AudioFormat.M4A]: ['audio/mp4', 'audio/aac'],
-      [AudioFormat.WAV]: ['audio/wav', 'audio/wave'],
-      [AudioFormat.THREE_GPP]: ['audio/3gpp'],
+      [AudioFormat.MP3]: ["audio/mpeg", "audio/mp3"],
+      [AudioFormat.M4A]: ["audio/mp4", "audio/aac"],
+      [AudioFormat.WAV]: ["audio/wav", "audio/wave"],
+      [AudioFormat.THREE_GPP]: ["audio/3gpp"],
     };
 
     // If format is specified, try to find supported MIME type for it
@@ -266,11 +275,11 @@ export class WebAudioRecorder extends BaseAudioRecorder {
 
     // Fallback: try common formats in order of preference
     const preferredFormats = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/ogg;codecs=opus',
-      'audio/mp4',
-      'audio/wav',
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg;codecs=opus",
+      "audio/mp4",
+      "audio/wav",
     ];
 
     for (const type of preferredFormats) {
@@ -280,7 +289,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
     }
 
     // Last resort: use whatever the browser's default is
-    return '';
+    return "";
   }
 
   /**

@@ -4,12 +4,12 @@
  * Tests app behavior under heavy load and stress conditions
  */
 
-import { useTrackStore } from '../../src/store/useTrackStore';
-import { usePlaybackStore } from '../../src/store/usePlaybackStore';
-import type { Track } from '../../src/types';
+import { useTrackStore } from "../../src/store/useTrackStore";
+import { usePlaybackStore } from "../../src/store/usePlaybackStore";
+import type { Track } from "../../src/types";
 
 // Mock track generator
-function generateMockTrack(id: number, sizeKB: number = 1024): Track {
+function generateMockTrack(id: number, _sizeKB: number = 1024): Track {
   return {
     id: `track-${id}`,
     name: `Track ${id}`,
@@ -26,13 +26,13 @@ function generateMockTracks(count: number): Track[] {
   return Array.from({ length: count }, (_, i) => generateMockTrack(i));
 }
 
-describe('Load Tests - Many Tracks', () => {
+describe("Load Tests - Many Tracks", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
     usePlaybackStore.getState().reset();
   });
 
-  it('should handle 10 tracks (typical usage)', () => {
+  it("should handle 10 tracks (typical usage)", () => {
     const tracks = generateMockTracks(10);
 
     const startTime = performance.now();
@@ -56,7 +56,7 @@ describe('Load Tests - Many Tracks', () => {
     console.log(`Loaded 10 tracks in ${duration}ms`);
   });
 
-  it('should handle 20 tracks (heavy usage)', () => {
+  it("should handle 20 tracks (heavy usage)", () => {
     const tracks = generateMockTracks(20);
 
     const startTime = performance.now();
@@ -80,7 +80,7 @@ describe('Load Tests - Many Tracks', () => {
     console.log(`Loaded 20 tracks in ${duration}ms`);
   });
 
-  it('should handle 50 tracks (stress test)', () => {
+  it("should handle 50 tracks (stress test)", () => {
     const tracks = generateMockTracks(50);
 
     const startTime = performance.now();
@@ -104,7 +104,7 @@ describe('Load Tests - Many Tracks', () => {
     console.log(`Loaded 50 tracks in ${duration}ms`);
   });
 
-  it('should handle 100 tracks (extreme stress)', () => {
+  it("should handle 100 tracks (extreme stress)", () => {
     const tracks = generateMockTracks(100);
 
     const startTime = performance.now();
@@ -122,12 +122,12 @@ describe('Load Tests - Many Tracks', () => {
   });
 });
 
-describe('Stress Tests - Rapid Operations', () => {
+describe("Stress Tests - Rapid Operations", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should handle rapid track additions', () => {
+  it("should handle rapid track additions", () => {
     const operations = 1000;
     const startTime = performance.now();
 
@@ -146,7 +146,7 @@ describe('Stress Tests - Rapid Operations', () => {
     console.log(`1000 rapid additions: ${duration}ms (avg: ${avgTime}ms)`);
   });
 
-  it('should handle rapid track deletions', () => {
+  it("should handle rapid track deletions", () => {
     // First, add 1000 tracks
     const tracks = generateMockTracks(1000);
     tracks.forEach((track) => useTrackStore.getState().addTrack(track));
@@ -168,7 +168,7 @@ describe('Stress Tests - Rapid Operations', () => {
     console.log(`1000 rapid deletions: ${duration}ms (avg: ${avgTime}ms)`);
   });
 
-  it('should handle rapid track updates', () => {
+  it("should handle rapid track updates", () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
@@ -191,7 +191,7 @@ describe('Stress Tests - Rapid Operations', () => {
     console.log(`1000 rapid updates: ${duration}ms (avg: ${avgTime}ms)`);
   });
 
-  it('should handle rapid playback state changes', () => {
+  it("should handle rapid playback state changes", () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
     usePlaybackStore.getState().addTrack(track.id, {
@@ -218,12 +218,12 @@ describe('Stress Tests - Rapid Operations', () => {
   });
 });
 
-describe('Endurance Tests - Memory Leaks', () => {
+describe("Endurance Tests - Memory Leaks", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should not leak memory with repeated add/remove cycles', () => {
+  it("should not leak memory with repeated add/remove cycles", () => {
     const cycles = 100;
     const tracksPerCycle = 10;
     const memorySnapshots: number[] = [];
@@ -245,11 +245,17 @@ describe('Endurance Tests - Memory Leaks', () => {
 
     // Analyze memory trend
     if (memorySnapshots.length >= 2) {
-      const firstHalf = memorySnapshots.slice(0, Math.floor(memorySnapshots.length / 2));
-      const secondHalf = memorySnapshots.slice(Math.floor(memorySnapshots.length / 2));
+      const firstHalf = memorySnapshots.slice(
+        0,
+        Math.floor(memorySnapshots.length / 2),
+      );
+      const secondHalf = memorySnapshots.slice(
+        Math.floor(memorySnapshots.length / 2),
+      );
 
       const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-      const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+      const avgSecond =
+        secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
 
       const growthRatio = avgSecond / avgFirst;
 
@@ -262,7 +268,7 @@ describe('Endurance Tests - Memory Leaks', () => {
     }
   });
 
-  it('should not leak memory with repeated state updates', () => {
+  it("should not leak memory with repeated state updates", () => {
     const track = generateMockTrack(1);
     useTrackStore.getState().addTrack(track);
 
@@ -286,19 +292,21 @@ describe('Endurance Tests - Memory Leaks', () => {
       const last = memorySnapshots[memorySnapshots.length - 1];
       const growthRatio = last / first;
 
-      console.log(`Memory growth after ${updates} updates: ${growthRatio.toFixed(2)}`);
+      console.log(
+        `Memory growth after ${updates} updates: ${growthRatio.toFixed(2)}`,
+      );
 
       expect(growthRatio).toBeLessThan(1.2);
     }
   });
 });
 
-describe('Performance Degradation Tests', () => {
+describe("Performance Degradation Tests", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should maintain performance with increasing track count', () => {
+  it("should maintain performance with increasing track count", () => {
     const trackCounts = [10, 20, 50, 100];
     const results: { count: number; time: number }[] = [];
 
@@ -331,12 +339,12 @@ describe('Performance Degradation Tests', () => {
       expect(timeRatio).toBeLessThan(countRatio * 1.5);
 
       console.log(
-        `${curr.count} tracks: ${curr.time}ms (vs ${prev.count} tracks: ${prev.time}ms, ratio: ${timeRatio.toFixed(2)})`
+        `${curr.count} tracks: ${curr.time}ms (vs ${prev.count} tracks: ${prev.time}ms, ratio: ${timeRatio.toFixed(2)})`,
       );
     }
   });
 
-  it('should maintain update performance regardless of track count', () => {
+  it("should maintain update performance regardless of track count", () => {
     const trackCounts = [1, 10, 50, 100];
     const results: { count: number; avgTime: number }[] = [];
 
@@ -367,7 +375,7 @@ describe('Performance Degradation Tests', () => {
     for (const result of results) {
       const ratio = result.avgTime / baseline;
       console.log(
-        `${result.count} tracks: avg update ${result.avgTime.toFixed(2)}ms (ratio: ${ratio.toFixed(2)})`
+        `${result.count} tracks: avg update ${result.avgTime.toFixed(2)}ms (ratio: ${ratio.toFixed(2)})`,
       );
 
       // Update time shouldn't grow more than 2x
@@ -376,12 +384,12 @@ describe('Performance Degradation Tests', () => {
   });
 });
 
-describe('Concurrent Operations', () => {
+describe("Concurrent Operations", () => {
   beforeEach(() => {
     useTrackStore.getState().clearTracks();
   });
 
-  it('should handle concurrent track additions', async () => {
+  it("should handle concurrent track additions", async () => {
     const concurrentOps = 50;
     const promises: Promise<void>[] = [];
 
@@ -392,7 +400,7 @@ describe('Concurrent Operations', () => {
         Promise.resolve().then(() => {
           const track = generateMockTrack(i);
           useTrackStore.getState().addTrack(track);
-        })
+        }),
       );
     }
 
@@ -405,7 +413,7 @@ describe('Concurrent Operations', () => {
     console.log(`${concurrentOps} concurrent additions: ${duration}ms`);
   });
 
-  it('should handle mixed concurrent operations', async () => {
+  it("should handle mixed concurrent operations", async () => {
     // Pre-populate
     const tracks = generateMockTracks(50);
     tracks.forEach((track) => useTrackStore.getState().addTrack(track));
@@ -422,7 +430,7 @@ describe('Concurrent Operations', () => {
           Promise.resolve().then(() => {
             const track = generateMockTrack(50 + i);
             useTrackStore.getState().addTrack(track);
-          })
+          }),
         );
       } else if (op === 1) {
         // Update
@@ -430,7 +438,7 @@ describe('Concurrent Operations', () => {
           Promise.resolve().then(() => {
             const trackId = `track-${i % 50}`;
             useTrackStore.getState().updateTrack(trackId, { volume: i % 100 });
-          })
+          }),
         );
       } else {
         // Remove
@@ -438,7 +446,7 @@ describe('Concurrent Operations', () => {
           Promise.resolve().then(() => {
             const trackId = `track-${i % 50}`;
             useTrackStore.getState().removeTrack(trackId);
-          })
+          }),
         );
       }
     }

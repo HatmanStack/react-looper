@@ -6,15 +6,15 @@
  * Supports service registration and dependency injection.
  */
 
-import { Platform } from 'react-native';
-import { IAudioRecorder } from './interfaces/IAudioRecorder';
-import { IAudioPlayer } from './interfaces/IAudioPlayer';
-import { IAudioMixer } from './interfaces/IAudioMixer';
-import { IFileManager } from './interfaces/IFileManager';
-import { AudioService, AudioServiceConfig } from './AudioService';
-import { getAudioConfig, getPlatformName } from './PlatformAudioConfig';
-import { AudioError } from './AudioError';
-import { AudioErrorCode } from '../../types/audio';
+import { Platform } from "react-native";
+import { IAudioRecorder } from "./interfaces/IAudioRecorder";
+import { IAudioPlayer } from "./interfaces/IAudioPlayer";
+import { IAudioMixer } from "./interfaces/IAudioMixer";
+import { IFileManager } from "./interfaces/IFileManager";
+import { AudioService, AudioServiceConfig } from "./AudioService";
+import { getAudioConfig, getPlatformName } from "./PlatformAudioConfig";
+import { AudioError } from "./AudioError";
+import { AudioErrorCode } from "../../types/audio";
 
 /**
  * Service constructor types
@@ -46,7 +46,7 @@ class ServiceRegistry {
    */
   registerWebServices(services: PlatformServices): void {
     this.webServices = services;
-    console.log('[AudioServiceFactory] Web services registered');
+    console.log("[AudioServiceFactory] Web services registered");
   }
 
   /**
@@ -54,7 +54,7 @@ class ServiceRegistry {
    */
   registerNativeServices(services: PlatformServices): void {
     this.nativeServices = services;
-    console.log('[AudioServiceFactory] Native services registered');
+    console.log("[AudioServiceFactory] Native services registered");
   }
 
   /**
@@ -104,8 +104,11 @@ class AudioServiceFactoryClass {
    * This should be called during app initialization to register
    * the appropriate platform implementations.
    */
-  public registerServices(platform: 'web' | 'native', services: PlatformServices): void {
-    if (platform === 'web') {
+  public registerServices(
+    platform: "web" | "native",
+    services: PlatformServices,
+  ): void {
+    if (platform === "web") {
       this.registry.registerWebServices(services);
     } else {
       this.registry.registerNativeServices(services);
@@ -113,7 +116,9 @@ class AudioServiceFactoryClass {
 
     // Reset instance if services are re-registered
     if (this.audioServiceInstance) {
-      console.log('[AudioServiceFactory] Services re-registered, resetting instance');
+      console.log(
+        "[AudioServiceFactory] Services re-registered, resetting instance",
+      );
       this.audioServiceInstance = null;
       this.isInitialized = false;
     }
@@ -132,7 +137,7 @@ class AudioServiceFactoryClass {
       throw new AudioError(
         AudioErrorCode.RESOURCE_UNAVAILABLE,
         `Audio services not registered for platform: ${platformName}`,
-        `Audio services unavailable on ${platformName}. Please ensure platform-specific services are registered.`
+        `Audio services unavailable on ${platformName}. Please ensure platform-specific services are registered.`,
       );
     }
 
@@ -159,15 +164,17 @@ class AudioServiceFactoryClass {
 
       const audioService = new AudioService(serviceConfig);
 
-      console.log(`[AudioServiceFactory] Created AudioService for ${getPlatformName()}`);
+      console.log(
+        `[AudioServiceFactory] Created AudioService for ${getPlatformName()}`,
+      );
 
       return audioService;
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.UNKNOWN_ERROR,
         `Failed to create AudioService: ${(error as Error).message}`,
-        'Failed to initialize audio services',
-        { originalError: error }
+        "Failed to initialize audio services",
+        { originalError: error },
       );
     }
   }
@@ -209,7 +216,7 @@ class AudioServiceFactoryClass {
    */
   public async cleanup(): Promise<void> {
     if (this.audioServiceInstance) {
-      console.log('[AudioServiceFactory] Cleaning up AudioService');
+      console.log("[AudioServiceFactory] Cleaning up AudioService");
       await this.audioServiceInstance.cleanup();
       this.audioServiceInstance = null;
       this.isInitialized = false;
@@ -246,8 +253,8 @@ export const AudioServiceFactory = AudioServiceFactoryClass.getInstance();
  * ```
  */
 export function registerAudioServices(
-  platform: 'web' | 'native',
-  services: PlatformServices
+  platform: "web" | "native",
+  services: PlatformServices,
 ): void {
   AudioServiceFactory.registerServices(platform, services);
 }

@@ -5,7 +5,7 @@
  * Handles track coordination, synchronization, and drift detection.
  */
 
-import { BaseAudioPlayer } from './BaseAudioPlayer';
+import { BaseAudioPlayer } from "./BaseAudioPlayer";
 
 export class MultiTrackManager {
   private tracks: Map<string, BaseAudioPlayer>;
@@ -22,7 +22,9 @@ export class MultiTrackManager {
   public addTrack(player: BaseAudioPlayer): string {
     const trackId = this.generateTrackId();
     this.tracks.set(trackId, player);
-    console.log(`[MultiTrackManager] Added track ${trackId} (total: ${this.tracks.size})`);
+    console.log(
+      `[MultiTrackManager] Added track ${trackId} (total: ${this.tracks.size})`,
+    );
     return trackId;
   }
 
@@ -41,7 +43,9 @@ export class MultiTrackManager {
       // Sync new track to current position
       await player.setPosition(currentPosition);
       await player.play();
-      console.log(`[MultiTrackManager] Track ${trackId} synced to position ${currentPosition}ms`);
+      console.log(
+        `[MultiTrackManager] Track ${trackId} synced to position ${currentPosition}ms`,
+      );
     }
 
     return trackId;
@@ -53,7 +57,9 @@ export class MultiTrackManager {
   public removeTrack(trackId: string): void {
     if (this.tracks.has(trackId)) {
       this.tracks.delete(trackId);
-      console.log(`[MultiTrackManager] Removed track ${trackId} (remaining: ${this.tracks.size})`);
+      console.log(
+        `[MultiTrackManager] Removed track ${trackId} (remaining: ${this.tracks.size})`,
+      );
     }
   }
 
@@ -69,7 +75,7 @@ export class MultiTrackManager {
    */
   public clearAllTracks(): void {
     this.tracks.clear();
-    console.log('[MultiTrackManager] Cleared all tracks');
+    console.log("[MultiTrackManager] Cleared all tracks");
   }
 
   /**
@@ -85,14 +91,16 @@ export class MultiTrackManager {
   public async playAll(): Promise<void> {
     console.log(`[MultiTrackManager] Playing all tracks (${this.tracks.size})`);
 
-    const playPromises = Array.from(this.tracks.values()).map(async (player) => {
-      try {
-        await player.play();
-      } catch (error) {
-        console.error('[MultiTrackManager] Error playing track:', error);
-        // Continue with other tracks even if one fails
-      }
-    });
+    const playPromises = Array.from(this.tracks.values()).map(
+      async (player) => {
+        try {
+          await player.play();
+        } catch (error) {
+          console.error("[MultiTrackManager] Error playing track:", error);
+          // Continue with other tracks even if one fails
+        }
+      },
+    );
 
     await Promise.all(playPromises);
   }
@@ -103,13 +111,15 @@ export class MultiTrackManager {
   public async pauseAll(): Promise<void> {
     console.log(`[MultiTrackManager] Pausing all tracks (${this.tracks.size})`);
 
-    const pausePromises = Array.from(this.tracks.values()).map(async (player) => {
-      try {
-        await player.pause();
-      } catch (error) {
-        console.error('[MultiTrackManager] Error pausing track:', error);
-      }
-    });
+    const pausePromises = Array.from(this.tracks.values()).map(
+      async (player) => {
+        try {
+          await player.pause();
+        } catch (error) {
+          console.error("[MultiTrackManager] Error pausing track:", error);
+        }
+      },
+    );
 
     await Promise.all(pausePromises);
   }
@@ -118,15 +128,19 @@ export class MultiTrackManager {
    * Stop all tracks simultaneously
    */
   public async stopAll(): Promise<void> {
-    console.log(`[MultiTrackManager] Stopping all tracks (${this.tracks.size})`);
+    console.log(
+      `[MultiTrackManager] Stopping all tracks (${this.tracks.size})`,
+    );
 
-    const stopPromises = Array.from(this.tracks.values()).map(async (player) => {
-      try {
-        await player.stop();
-      } catch (error) {
-        console.error('[MultiTrackManager] Error stopping track:', error);
-      }
-    });
+    const stopPromises = Array.from(this.tracks.values()).map(
+      async (player) => {
+        try {
+          await player.stop();
+        } catch (error) {
+          console.error("[MultiTrackManager] Error stopping track:", error);
+        }
+      },
+    );
 
     await Promise.all(stopPromises);
   }
@@ -135,7 +149,9 @@ export class MultiTrackManager {
    * Check if any track is currently playing
    */
   public isPlaying(): boolean {
-    return Array.from(this.tracks.values()).some((player) => player.isPlaying());
+    return Array.from(this.tracks.values()).some((player) =>
+      player.isPlaying(),
+    );
   }
 
   /**
@@ -147,7 +163,7 @@ export class MultiTrackManager {
     }
 
     const positions = await Promise.all(
-      Array.from(this.tracks.values()).map((player) => player.getPosition())
+      Array.from(this.tracks.values()).map((player) => player.getPosition()),
     );
 
     const sum = positions.reduce((acc, pos) => acc + pos, 0);
@@ -160,15 +176,19 @@ export class MultiTrackManager {
    * Set playback position on all tracks
    */
   public async setPosition(position: number): Promise<void> {
-    console.log(`[MultiTrackManager] Setting position to ${position}ms on all tracks`);
+    console.log(
+      `[MultiTrackManager] Setting position to ${position}ms on all tracks`,
+    );
 
-    const setPositionPromises = Array.from(this.tracks.values()).map(async (player) => {
-      try {
-        await player.setPosition(position);
-      } catch (error) {
-        console.error('[MultiTrackManager] Error setting position:', error);
-      }
-    });
+    const setPositionPromises = Array.from(this.tracks.values()).map(
+      async (player) => {
+        try {
+          await player.setPosition(position);
+        } catch (error) {
+          console.error("[MultiTrackManager] Error setting position:", error);
+        }
+      },
+    );
 
     await Promise.all(setPositionPromises);
   }
@@ -183,7 +203,7 @@ export class MultiTrackManager {
     }
 
     const positions = await Promise.all(
-      Array.from(this.tracks.values()).map((player) => player.getPosition())
+      Array.from(this.tracks.values()).map((player) => player.getPosition()),
     );
 
     const minPosition = Math.min(...positions);
@@ -201,7 +221,7 @@ export class MultiTrackManager {
     const drift = await this.getDrift();
 
     console.log(
-      `[MultiTrackManager] Resyncing tracks (drift: ${drift}ms) to position ${averagePosition}ms`
+      `[MultiTrackManager] Resyncing tracks (drift: ${drift}ms) to position ${averagePosition}ms`,
     );
 
     await this.setPosition(averagePosition);
@@ -215,7 +235,9 @@ export class MultiTrackManager {
       return true;
     }
 
-    return Array.from(this.tracks.values()).every((player) => player.isLoaded());
+    return Array.from(this.tracks.values()).every((player) =>
+      player.isLoaded(),
+    );
   }
 
   /**

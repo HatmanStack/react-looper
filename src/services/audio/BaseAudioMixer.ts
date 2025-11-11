@@ -5,14 +5,14 @@
  * Platform-specific implementations should extend this class.
  */
 
-import { IAudioMixer } from './interfaces/IAudioMixer';
+import { IAudioMixer } from "./interfaces/IAudioMixer";
 import {
   MixerTrackInput,
   MixingOptions,
   ProgressCallback,
   AudioErrorCode,
-} from '../../types/audio';
-import { AudioError } from './AudioError';
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export abstract class BaseAudioMixer implements IAudioMixer {
   /**
@@ -36,7 +36,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
   protected abstract _mixTracks(
     tracks: MixerTrackInput[],
     outputPath: string,
-    options?: MixingOptions
+    options?: MixingOptions,
   ): Promise<string>;
 
   /**
@@ -50,14 +50,14 @@ export abstract class BaseAudioMixer implements IAudioMixer {
   public async mixTracks(
     tracks: MixerTrackInput[],
     outputPath: string,
-    options?: MixingOptions
+    options?: MixingOptions,
   ): Promise<string> {
     // Validate state
     if (this._isMixing) {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'Cannot start mixing: operation already in progress',
-        'A mixing operation is already in progress'
+        "Cannot start mixing: operation already in progress",
+        "A mixing operation is already in progress",
       );
     }
 
@@ -80,7 +80,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix tracks: ${(error as Error).message}`,
         undefined,
-        { trackCount: tracks.length, outputPath, originalError: error }
+        { trackCount: tracks.length, outputPath, originalError: error },
       );
     } finally {
       this._isMixing = false;
@@ -144,8 +144,8 @@ export abstract class BaseAudioMixer implements IAudioMixer {
     if (!tracks || tracks.length === 0) {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'Cannot mix: no tracks provided',
-        'Please add at least one track to mix'
+        "Cannot mix: no tracks provided",
+        "Please add at least one track to mix",
       );
     }
 
@@ -154,11 +154,11 @@ export abstract class BaseAudioMixer implements IAudioMixer {
       const track = tracks[i];
 
       // Validate URI
-      if (!track.uri || typeof track.uri !== 'string') {
+      if (!track.uri || typeof track.uri !== "string") {
         throw new AudioError(
           AudioErrorCode.FILE_NOT_FOUND,
           `Track ${i}: invalid URI`,
-          'Invalid track file'
+          "Invalid track file",
         );
       }
 
@@ -167,7 +167,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
           `Track ${i}: speed must be between 0.05 and 2.50`,
-          'Invalid track speed setting'
+          "Invalid track speed setting",
         );
       }
 
@@ -176,7 +176,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
           `Track ${i}: volume must be between 0 and 100`,
-          'Invalid track volume setting'
+          "Invalid track volume setting",
         );
       }
 
@@ -185,7 +185,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
           `Track ${i}: startTime cannot be negative`,
-          'Invalid track start time'
+          "Invalid track start time",
         );
       }
 
@@ -193,7 +193,7 @@ export abstract class BaseAudioMixer implements IAudioMixer {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
           `Track ${i}: duration must be positive`,
-          'Invalid track duration'
+          "Invalid track duration",
         );
       }
     }
@@ -205,11 +205,11 @@ export abstract class BaseAudioMixer implements IAudioMixer {
    * Validate output path
    */
   protected validateOutputPath(outputPath: string): void {
-    if (!outputPath || typeof outputPath !== 'string') {
+    if (!outputPath || typeof outputPath !== "string") {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'Invalid output path',
-        'Invalid output file path'
+        "Invalid output path",
+        "Invalid output file path",
       );
     }
 
@@ -218,8 +218,8 @@ export abstract class BaseAudioMixer implements IAudioMixer {
     if (invalidChars.test(outputPath)) {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'Output path contains invalid characters',
-        'Invalid output file name'
+        "Output path contains invalid characters",
+        "Invalid output file name",
       );
     }
   }
@@ -243,8 +243,8 @@ export abstract class BaseAudioMixer implements IAudioMixer {
     if (this._cancelled) {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'Mixing operation was cancelled',
-        'Mixing cancelled'
+        "Mixing operation was cancelled",
+        "Mixing cancelled",
       );
     }
   }

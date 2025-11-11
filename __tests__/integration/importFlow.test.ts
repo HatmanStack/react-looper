@@ -4,21 +4,21 @@
  * Tests the complete file import workflow
  */
 
-import { getFileImporter } from '../../src/services/audio/FileImporterFactory';
-import { getAudioService } from '../../src/services/audio/AudioServiceFactory';
-import { useTrackStore } from '../../src/store/useTrackStore';
-import { usePlaybackStore } from '../../src/store/usePlaybackStore';
-import type { Track } from '../../src/types';
-import { getAudioMetadata } from '../../src/utils/audioUtils';
+import { getFileImporter } from "../../src/services/audio/FileImporterFactory";
+import { getAudioService } from "../../src/services/audio/AudioServiceFactory";
+import { useTrackStore } from "../../src/store/useTrackStore";
+import { usePlaybackStore } from "../../src/store/usePlaybackStore";
+import type { Track } from "../../src/types";
+import { getAudioMetadata } from "../../src/utils/audioUtils";
 
 // Mock audio metadata utility
-jest.mock('../../src/utils/audioUtils', () => ({
+jest.mock("../../src/utils/audioUtils", () => ({
   getAudioMetadata: jest.fn().mockResolvedValue({
     duration: 60000, // 60 seconds
   }),
 }));
 
-describe('Import Flow Integration', () => {
+describe("Import Flow Integration", () => {
   let audioService: ReturnType<typeof getAudioService>;
   let fileImporter: ReturnType<typeof getFileImporter>;
 
@@ -38,21 +38,21 @@ describe('Import Flow Integration', () => {
     audioService?.cleanup();
   });
 
-  it('should complete full import flow', async () => {
+  it("should complete full import flow", async () => {
     // Mock file picker to return a file
-    jest.spyOn(fileImporter, 'pickAudioFile').mockResolvedValue({
-      uri: 'file://imported-audio.mp3',
-      name: 'imported-audio.mp3',
+    jest.spyOn(fileImporter, "pickAudioFile").mockResolvedValue({
+      uri: "file://imported-audio.mp3",
+      name: "imported-audio.mp3",
       size: 1024000,
-      mimeType: 'audio/mpeg',
+      mimeType: "audio/mpeg",
     });
 
     // 1. Pick audio file
     const importedFile = await fileImporter.pickAudioFile();
 
     expect(importedFile).toBeDefined();
-    expect(importedFile.uri).toBe('file://imported-audio.mp3');
-    expect(importedFile.name).toBe('imported-audio.mp3');
+    expect(importedFile.uri).toBe("file://imported-audio.mp3");
+    expect(importedFile.name).toBe("imported-audio.mp3");
 
     // 2. Get audio metadata
     const metadata = await getAudioMetadata(importedFile.uri);
@@ -62,7 +62,7 @@ describe('Import Flow Integration', () => {
     // 3. Create track
     const track: Track = {
       id: `track-${Date.now()}`,
-      name: importedFile.name.replace(/\.[^/.]+$/, ''), // Remove extension
+      name: importedFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
       uri: importedFile.uri,
       duration: metadata.duration,
       speed: 1.0,
@@ -77,8 +77,8 @@ describe('Import Flow Integration', () => {
     // 5. Verify track added
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(1);
-    expect(tracks[0].name).toBe('imported-audio');
-    expect(tracks[0].uri).toBe('file://imported-audio.mp3');
+    expect(tracks[0].name).toBe("imported-audio");
+    expect(tracks[0].uri).toBe("file://imported-audio.mp3");
     expect(tracks[0].duration).toBe(60000);
 
     // 6. Load track for playback
@@ -102,24 +102,24 @@ describe('Import Flow Integration', () => {
     expect(playbackState?.isLooping).toBe(true);
   });
 
-  it('should handle importing multiple files', async () => {
+  it("should handle importing multiple files", async () => {
     const files = [
       {
-        uri: 'file://track1.mp3',
-        name: 'track1.mp3',
+        uri: "file://track1.mp3",
+        name: "track1.mp3",
         size: 1000000,
-        mimeType: 'audio/mpeg',
+        mimeType: "audio/mpeg",
       },
       {
-        uri: 'file://track2.wav',
-        name: 'track2.wav',
+        uri: "file://track2.wav",
+        name: "track2.wav",
         size: 2000000,
-        mimeType: 'audio/wav',
+        mimeType: "audio/wav",
       },
     ];
 
     let callCount = 0;
-    jest.spyOn(fileImporter, 'pickAudioFile').mockImplementation(async () => {
+    jest.spyOn(fileImporter, "pickAudioFile").mockImplementation(async () => {
       return files[callCount++];
     });
 
@@ -128,8 +128,8 @@ describe('Import Flow Integration', () => {
     const metadata1 = await getAudioMetadata(file1.uri);
 
     const track1: Track = {
-      id: 'track-1',
-      name: file1.name.replace(/\.[^/.]+$/, ''),
+      id: "track-1",
+      name: file1.name.replace(/\.[^/.]+$/, ""),
       uri: file1.uri,
       duration: metadata1.duration,
       speed: 1.0,
@@ -145,8 +145,8 @@ describe('Import Flow Integration', () => {
     const metadata2 = await getAudioMetadata(file2.uri);
 
     const track2: Track = {
-      id: 'track-2',
-      name: file2.name.replace(/\.[^/.]+$/, ''),
+      id: "track-2",
+      name: file2.name.replace(/\.[^/.]+$/, ""),
       uri: file2.uri,
       duration: metadata2.duration,
       speed: 1.0,
@@ -160,29 +160,31 @@ describe('Import Flow Integration', () => {
     // Verify both tracks added
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(2);
-    expect(tracks[0].name).toBe('track1');
-    expect(tracks[1].name).toBe('track2');
+    expect(tracks[0].name).toBe("track1");
+    expect(tracks[1].name).toBe("track2");
   });
 
-  it('should handle import cancellation', async () => {
+  it("should handle import cancellation", async () => {
     // Mock user cancelling
     jest
-      .spyOn(fileImporter, 'pickAudioFile')
-      .mockRejectedValue(new Error('File selection cancelled'));
+      .spyOn(fileImporter, "pickAudioFile")
+      .mockRejectedValue(new Error("File selection cancelled"));
 
-    await expect(fileImporter.pickAudioFile()).rejects.toThrow('File selection cancelled');
+    await expect(fileImporter.pickAudioFile()).rejects.toThrow(
+      "File selection cancelled",
+    );
 
     // Verify no tracks added
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(0);
   });
 
-  it('should preserve existing tracks when importing', async () => {
+  it("should preserve existing tracks when importing", async () => {
     // Add existing track
     const existingTrack: Track = {
-      id: 'existing',
-      name: 'Existing Track',
-      uri: 'file://existing.mp3',
+      id: "existing",
+      name: "Existing Track",
+      uri: "file://existing.mp3",
       duration: 30000,
       speed: 1.0,
       volume: 75,
@@ -193,19 +195,19 @@ describe('Import Flow Integration', () => {
     useTrackStore.getState().addTrack(existingTrack);
 
     // Import new file
-    jest.spyOn(fileImporter, 'pickAudioFile').mockResolvedValue({
-      uri: 'file://new.mp3',
-      name: 'new.mp3',
+    jest.spyOn(fileImporter, "pickAudioFile").mockResolvedValue({
+      uri: "file://new.mp3",
+      name: "new.mp3",
       size: 1000000,
-      mimeType: 'audio/mpeg',
+      mimeType: "audio/mpeg",
     });
 
     const importedFile = await fileImporter.pickAudioFile();
     const metadata = await getAudioMetadata(importedFile.uri);
 
     const newTrack: Track = {
-      id: 'new',
-      name: 'new',
+      id: "new",
+      name: "new",
       uri: importedFile.uri,
       duration: metadata.duration,
       speed: 1.0,
@@ -219,7 +221,7 @@ describe('Import Flow Integration', () => {
     // Verify both tracks present
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(2);
-    expect(tracks[0].name).toBe('Existing Track');
-    expect(tracks[1].name).toBe('new');
+    expect(tracks[0].name).toBe("Existing Track");
+    expect(tracks[1].name).toBe("new");
   });
 });

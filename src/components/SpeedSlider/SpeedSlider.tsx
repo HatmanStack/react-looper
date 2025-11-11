@@ -6,10 +6,10 @@
  * Matches Android implementation
  */
 
-import React from 'react';
-import { View, Text } from 'react-native';
-import Slider from '@react-native-community/slider';
-import { styles } from './SpeedSlider.styles';
+import React from "react";
+import { View, Text } from "react-native";
+import Slider from "@react-native-community/slider";
+import { styles } from "./SpeedSlider.styles";
 
 export interface SpeedSliderProps {
   value: number; // Speed multiplier (0.05 - 2.50)
@@ -50,7 +50,7 @@ export const SpeedSlider: React.FC<SpeedSliderProps> = ({
   // Android code: if (holder.equals("2.44")) speedText.setText("2.50")
   let displayValue = value.toFixed(2);
   if (parseFloat(displayValue) >= 2.44) {
-    displayValue = '2.50';
+    displayValue = "2.50";
   }
 
   return (
@@ -65,7 +65,7 @@ export const SpeedSlider: React.FC<SpeedSliderProps> = ({
         value={sliderValue}
         onValueChange={handleSliderChange}
         disabled={disabled}
-        minimumTrackTintColor="#BB86FC" // Theme primary color
+        minimumTrackTintColor="#EF5555" // Red accent color from Android app
         maximumTrackTintColor="#666"
         thumbTintColor="#FFFFFF"
         accessibilityLabel="Playback speed"

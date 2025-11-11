@@ -5,11 +5,11 @@
  * Allows users to select audio files from device storage.
  */
 
-import * as DocumentPicker from 'expo-document-picker';
-import { Paths, File } from 'expo-file-system';
-import { Audio } from 'expo-av';
-import { AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import * as DocumentPicker from "expo-document-picker";
+import { Paths, File } from "expo-file-system";
+import { Audio } from "expo-av";
+import { AudioErrorCode } from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export interface ImportedFile {
   uri: string;
@@ -20,13 +20,13 @@ export interface ImportedFile {
 
 export class NativeFileImporter {
   private static SUPPORTED_AUDIO_TYPES = [
-    'audio/mpeg', // MP3
-    'audio/mp4', // M4A
-    'audio/wav',
-    'audio/wave',
-    'audio/aac',
-    'audio/x-m4a',
-    'audio/ogg',
+    "audio/mpeg", // MP3
+    "audio/mp4", // M4A
+    "audio/wav",
+    "audio/wave",
+    "audio/aac",
+    "audio/x-m4a",
+    "audio/ogg",
   ];
 
   /**
@@ -36,7 +36,7 @@ export class NativeFileImporter {
     try {
       // Open document picker for audio files
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
+        type: "audio/*",
         copyToCacheDirectory: true,
       });
 
@@ -44,8 +44,8 @@ export class NativeFileImporter {
       if (result.canceled) {
         throw new AudioError(
           AudioErrorCode.FILE_NOT_FOUND,
-          'File selection cancelled',
-          'File selection was cancelled.'
+          "File selection cancelled",
+          "File selection was cancelled.",
         );
       }
 
@@ -55,8 +55,8 @@ export class NativeFileImporter {
       if (!file) {
         throw new AudioError(
           AudioErrorCode.FILE_NOT_FOUND,
-          'No file selected',
-          'Please select an audio file.'
+          "No file selected",
+          "Please select an audio file.",
         );
       }
 
@@ -78,20 +78,20 @@ export class NativeFileImporter {
         }
         throw new AudioError(
           AudioErrorCode.INVALID_FORMAT,
-          'Audio file cannot be played',
-          'This audio file appears to be corrupted or in an unsupported format.'
+          "Audio file cannot be played",
+          "This audio file appears to be corrupted or in an unsupported format.",
         );
       }
 
       console.log(
-        `[NativeFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes, URI: ${copiedUri}`
+        `[NativeFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes, URI: ${copiedUri}`,
       );
 
       return {
         uri: copiedUri,
         name: file.name,
         size: file.size || 0,
-        type: file.mimeType || 'audio/mpeg',
+        type: file.mimeType || "audio/mpeg",
       };
     } catch (error) {
       if (error instanceof AudioError) {
@@ -101,7 +101,7 @@ export class NativeFileImporter {
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
         `Failed to import file: ${(error as Error).message}`,
-        'Failed to import audio file. Please try again.'
+        "Failed to import audio file. Please try again.",
       );
     }
   }
@@ -114,8 +114,8 @@ export class NativeFileImporter {
     if (!file.uri) {
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
-        'File URI is missing',
-        'Invalid file selection.'
+        "File URI is missing",
+        "Invalid file selection.",
       );
     }
 
@@ -124,7 +124,7 @@ export class NativeFileImporter {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
         `Unsupported file type: ${file.mimeType}`,
-        'This file type is not supported. Please select an MP3, WAV, or M4A file.'
+        "This file type is not supported. Please select an MP3, WAV, or M4A file.",
       );
     }
 
@@ -134,7 +134,7 @@ export class NativeFileImporter {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
         `File too large: ${file.size} bytes`,
-        'The selected file is too large. Please select a file smaller than 100MB.'
+        "The selected file is too large. Please select a file smaller than 100MB.",
       );
     }
   }
@@ -149,11 +149,14 @@ export class NativeFileImporter {
   /**
    * Copy file to app's document directory
    */
-  private static async copyToAppDirectory(uri: string, fileName: string): Promise<string> {
+  private static async copyToAppDirectory(
+    uri: string,
+    fileName: string,
+  ): Promise<string> {
     try {
       // Generate unique filename to avoid collisions
       const timestamp = Date.now();
-      const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
       const uniqueName = `imported_${timestamp}_${sanitizedName}`;
 
       // Create source and destination file instances
@@ -163,14 +166,16 @@ export class NativeFileImporter {
       // Copy file
       sourceFile.copy(destFile);
 
-      console.log(`[NativeFileImporter] Copied file from ${uri} to ${destFile.uri}`);
+      console.log(
+        `[NativeFileImporter] Copied file from ${uri} to ${destFile.uri}`,
+      );
 
       return destFile.uri;
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
         `Failed to copy file: ${(error as Error).message}`,
-        'Failed to import audio file.'
+        "Failed to import audio file.",
       );
     }
   }
@@ -187,7 +192,7 @@ export class NativeFileImporter {
         { uri },
         { shouldPlay: false },
         undefined,
-        false // Don't download
+        false, // Don't download
       );
 
       sound = loadedSound;
@@ -200,7 +205,10 @@ export class NativeFileImporter {
 
       return status.isLoaded;
     } catch (error) {
-      console.error('[NativeFileImporter] Playback verification failed:', error);
+      console.error(
+        "[NativeFileImporter] Playback verification failed:",
+        error,
+      );
 
       // Cleanup sound if it was created
       if (sound) {
@@ -224,11 +232,11 @@ export class NativeFileImporter {
       file.delete();
       console.log(`[NativeFileImporter] Deleted file: ${uri}`);
     } catch (error) {
-      console.error('[NativeFileImporter] Failed to delete file:', error);
+      console.error("[NativeFileImporter] Failed to delete file:", error);
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
         `Failed to delete file: ${(error as Error).message}`,
-        'Failed to delete audio file.'
+        "Failed to delete audio file.",
       );
     }
   }

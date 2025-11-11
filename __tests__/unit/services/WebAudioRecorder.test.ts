@@ -2,8 +2,8 @@
  * WebAudioRecorder Tests
  */
 
-import { WebAudioRecorder } from '../../../src/services/audio/WebAudioRecorder';
-import { AudioError, AudioErrorCode } from '../../../src/services/audio/AudioError';
+import { WebAudioRecorder } from "../../../src/services/audio/WebAudioRecorder";
+import { AudioError } from "../../../src/services/audio/AudioError";
 
 // Mock MediaRecorder
 const mockMediaRecorder = {
@@ -11,18 +11,20 @@ const mockMediaRecorder = {
   stop: jest.fn(),
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  state: 'inactive',
+  state: "inactive",
 };
 
-global.MediaRecorder = jest.fn().mockImplementation(() => mockMediaRecorder) as any;
+global.MediaRecorder = jest
+  .fn()
+  .mockImplementation(() => mockMediaRecorder) as any;
 global.navigator.mediaDevices = {
   getUserMedia: jest.fn(),
 } as any;
 
-global.URL.createObjectURL = jest.fn(() => 'blob:http://localhost/test');
+global.URL.createObjectURL = jest.fn(() => "blob:http://localhost/test");
 global.URL.revokeObjectURL = jest.fn();
 
-describe('WebAudioRecorder', () => {
+describe("WebAudioRecorder", () => {
   let recorder: WebAudioRecorder;
   let mockStream: MediaStream;
 
@@ -33,16 +35,18 @@ describe('WebAudioRecorder', () => {
       getTracks: jest.fn().mockReturnValue([{ stop: jest.fn() }]),
     } as any;
 
-    (navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(mockStream);
-    mockMediaRecorder.state = 'inactive';
+    (navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(
+      mockStream,
+    );
+    mockMediaRecorder.state = "inactive";
   });
 
   afterEach(() => {
     recorder?.cleanup();
   });
 
-  describe('checkPermission', () => {
-    it('should check media device permissions', async () => {
+  describe("checkPermission", () => {
+    it("should check media device permissions", async () => {
       recorder = new WebAudioRecorder();
       const hasPermission = await recorder.checkPermission();
 
@@ -52,9 +56,9 @@ describe('WebAudioRecorder', () => {
       });
     });
 
-    it('should return false if permission denied', async () => {
+    it("should return false if permission denied", async () => {
       (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValue(
-        new Error('Permission denied')
+        new Error("Permission denied"),
       );
 
       recorder = new WebAudioRecorder();
@@ -64,8 +68,8 @@ describe('WebAudioRecorder', () => {
     });
   });
 
-  describe('startRecording', () => {
-    it('should start recording with permissions', async () => {
+  describe("startRecording", () => {
+    it("should start recording with permissions", async () => {
       recorder = new WebAudioRecorder();
       await recorder.startRecording();
 
@@ -76,28 +80,32 @@ describe('WebAudioRecorder', () => {
       expect(mockMediaRecorder.start).toHaveBeenCalled();
     });
 
-    it('should throw if permission denied', async () => {
+    it("should throw if permission denied", async () => {
       (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValue(
-        new Error('Permission denied')
+        new Error("Permission denied"),
       );
 
       recorder = new WebAudioRecorder();
 
       await expect(recorder.startRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.startRecording()).rejects.toThrow('Microphone permission denied');
+      await expect(recorder.startRecording()).rejects.toThrow(
+        "Microphone permission denied",
+      );
     });
 
-    it('should throw if already recording', async () => {
+    it("should throw if already recording", async () => {
       recorder = new WebAudioRecorder();
       await recorder.startRecording();
 
-      mockMediaRecorder.state = 'recording';
+      mockMediaRecorder.state = "recording";
 
       await expect(recorder.startRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.startRecording()).rejects.toThrow('Already recording');
+      await expect(recorder.startRecording()).rejects.toThrow(
+        "Already recording",
+      );
     });
 
-    it('should use supported mime type', async () => {
+    it("should use supported mime type", async () => {
       // Mock MediaRecorder.isTypeSupported
       (MediaRecorder as any).isTypeSupported = jest
         .fn()
@@ -110,30 +118,30 @@ describe('WebAudioRecorder', () => {
       expect(MediaRecorder).toHaveBeenCalledWith(
         mockStream,
         expect.objectContaining({
-          mimeType: expect.stringContaining('mp4'),
-        })
+          mimeType: expect.stringContaining("mp4"),
+        }),
       );
     });
   });
 
-  describe('stopRecording', () => {
-    it('should stop recording and return blob URL', async () => {
+  describe("stopRecording", () => {
+    it("should stop recording and return blob URL", async () => {
       recorder = new WebAudioRecorder();
       await recorder.startRecording();
 
       // Simulate dataavailable event
-      const dataHandler = (mockMediaRecorder.addEventListener as jest.Mock).mock.calls.find(
-        ([event]) => event === 'dataavailable'
-      )?.[1];
+      const dataHandler = (
+        mockMediaRecorder.addEventListener as jest.Mock
+      ).mock.calls.find(([event]) => event === "dataavailable")?.[1];
 
-      const mockBlob = new Blob(['audio data'], { type: 'audio/webm' });
+      const mockBlob = new Blob(["audio data"], { type: "audio/webm" });
       dataHandler?.({ data: mockBlob });
 
       // Simulate stop event
-      mockMediaRecorder.state = 'inactive';
-      const stopHandler = (mockMediaRecorder.addEventListener as jest.Mock).mock.calls.find(
-        ([event]) => event === 'stop'
-      )?.[1];
+      mockMediaRecorder.state = "inactive";
+      const stopHandler = (
+        mockMediaRecorder.addEventListener as jest.Mock
+      ).mock.calls.find(([event]) => event === "stop")?.[1];
 
       const stopPromise = recorder.stopRecording();
       stopHandler?.();
@@ -141,23 +149,25 @@ describe('WebAudioRecorder', () => {
       const uri = await stopPromise;
 
       expect(mockMediaRecorder.stop).toHaveBeenCalled();
-      expect(uri).toBe('blob:http://localhost/test');
+      expect(uri).toBe("blob:http://localhost/test");
     });
 
-    it('should throw if not recording', async () => {
+    it("should throw if not recording", async () => {
       recorder = new WebAudioRecorder();
 
       await expect(recorder.stopRecording()).rejects.toThrow(AudioError);
-      await expect(recorder.stopRecording()).rejects.toThrow('No active recording');
+      await expect(recorder.stopRecording()).rejects.toThrow(
+        "No active recording",
+      );
     });
 
-    it('should stop media stream tracks', async () => {
+    it("should stop media stream tracks", async () => {
       recorder = new WebAudioRecorder();
       await recorder.startRecording();
 
-      const stopHandler = (mockMediaRecorder.addEventListener as jest.Mock).mock.calls.find(
-        ([event]) => event === 'stop'
-      )?.[1];
+      const stopHandler = (
+        mockMediaRecorder.addEventListener as jest.Mock
+      ).mock.calls.find(([event]) => event === "stop")?.[1];
 
       const stopPromise = recorder.stopRecording();
       stopHandler?.();
@@ -167,8 +177,8 @@ describe('WebAudioRecorder', () => {
     });
   });
 
-  describe('getDuration', () => {
-    it('should return 0 for web (duration not tracked)', async () => {
+  describe("getDuration", () => {
+    it("should return 0 for web (duration not tracked)", async () => {
       recorder = new WebAudioRecorder();
       const duration = await recorder.getDuration();
 
@@ -176,8 +186,8 @@ describe('WebAudioRecorder', () => {
     });
   });
 
-  describe('cleanup', () => {
-    it('should cleanup resources', async () => {
+  describe("cleanup", () => {
+    it("should cleanup resources", async () => {
       recorder = new WebAudioRecorder();
       await recorder.startRecording();
 
@@ -187,7 +197,7 @@ describe('WebAudioRecorder', () => {
       expect(mockStream.getTracks()[0].stop).toHaveBeenCalled();
     });
 
-    it('should handle cleanup when not recording', () => {
+    it("should handle cleanup when not recording", () => {
       recorder = new WebAudioRecorder();
 
       expect(() => recorder.cleanup()).not.toThrow();

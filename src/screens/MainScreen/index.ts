@@ -2,4 +2,4 @@
  * MainScreen barrel export
  */
 
-export { MainScreen } from './MainScreen';
+export { MainScreen } from "./MainScreen";

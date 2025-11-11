@@ -4,13 +4,13 @@
  * Tests the complete recording workflow from start to track addition
  */
 
-import { AudioService } from '../../src/services/audio/AudioService';
-import { getAudioService } from '../../src/services/audio/AudioServiceFactory';
-import { useTrackStore } from '../../src/store/useTrackStore';
-import { usePlaybackStore } from '../../src/store/usePlaybackStore';
-import type { Track } from '../../src/types';
+import { AudioService } from "../../src/services/audio/AudioService";
+import { getAudioService } from "../../src/services/audio/AudioServiceFactory";
+import { useTrackStore } from "../../src/store/useTrackStore";
+import { usePlaybackStore } from "../../src/store/usePlaybackStore";
+import type { Track } from "../../src/types";
 
-describe('Recording Flow Integration', () => {
+describe("Recording Flow Integration", () => {
   let audioService: AudioService;
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('Recording Flow Integration', () => {
     audioService?.cleanup();
   });
 
-  it('should complete full recording flow', async () => {
+  it("should complete full recording flow", async () => {
     // 1. Start recording
     await audioService.startRecording();
 
@@ -42,7 +42,7 @@ describe('Recording Flow Integration', () => {
 
     // Verify recording URI returned
     expect(recordingUri).toBeDefined();
-    expect(typeof recordingUri).toBe('string');
+    expect(typeof recordingUri).toBe("string");
 
     // 4. Get recording duration
     const duration = audioService.getRecordingDuration();
@@ -51,7 +51,7 @@ describe('Recording Flow Integration', () => {
     // 5. Create track from recording
     const track: Track = {
       id: `track-${Date.now()}`,
-      name: 'Test Recording',
+      name: "Test Recording",
       uri: recordingUri,
       duration,
       speed: 1.0,
@@ -66,7 +66,7 @@ describe('Recording Flow Integration', () => {
     // 7. Verify track added
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(1);
-    expect(tracks[0].name).toBe('Test Recording');
+    expect(tracks[0].name).toBe("Test Recording");
 
     // 8. Load track for playback
     await audioService.loadTrack(track.id, track.uri, {
@@ -90,7 +90,7 @@ describe('Recording Flow Integration', () => {
     expect(playbackState?.volume).toBe(75);
   });
 
-  it('should handle recording cancellation', async () => {
+  it("should handle recording cancellation", async () => {
     await audioService.startRecording();
 
     // Stop immediately
@@ -100,14 +100,14 @@ describe('Recording Flow Integration', () => {
     expect(uri).toBeDefined();
   });
 
-  it('should handle multiple recordings sequentially', async () => {
+  it("should handle multiple recordings sequentially", async () => {
     // First recording
     await audioService.startRecording();
     const uri1 = await audioService.stopRecording();
 
     const track1: Track = {
-      id: 'track-1',
-      name: 'Recording 1',
+      id: "track-1",
+      name: "Recording 1",
       uri: uri1,
       duration: audioService.getRecordingDuration(),
       speed: 1.0,
@@ -123,8 +123,8 @@ describe('Recording Flow Integration', () => {
     const uri2 = await audioService.stopRecording();
 
     const track2: Track = {
-      id: 'track-2',
-      name: 'Recording 2',
+      id: "track-2",
+      name: "Recording 2",
       uri: uri2,
       duration: audioService.getRecordingDuration(),
       speed: 1.0,
@@ -138,11 +138,11 @@ describe('Recording Flow Integration', () => {
     // Verify both tracks added
     const tracks = useTrackStore.getState().tracks;
     expect(tracks).toHaveLength(2);
-    expect(tracks[0].name).toBe('Recording 1');
-    expect(tracks[1].name).toBe('Recording 2');
+    expect(tracks[0].name).toBe("Recording 1");
+    expect(tracks[1].name).toBe("Recording 2");
   });
 
-  it('should handle recording errors gracefully', async () => {
+  it("should handle recording errors gracefully", async () => {
     // Try to stop without starting
     await expect(audioService.stopRecording()).rejects.toThrow();
 
@@ -151,7 +151,7 @@ describe('Recording Flow Integration', () => {
     expect(tracks).toHaveLength(0);
   });
 
-  it('should prevent simultaneous recordings', async () => {
+  it("should prevent simultaneous recordings", async () => {
     await audioService.startRecording();
 
     // Try to start again while recording

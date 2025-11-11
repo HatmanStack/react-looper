@@ -4,21 +4,21 @@
  * Tests file import functionality on web platform
  */
 
-import { test, expect } from '@playwright/test';
-import path from 'path';
+import { test, expect } from "@playwright/test";
+// import path from "path"; // Uncomment when implementing file import tests
 
-test.describe('Import Flow', () => {
+test.describe("Import Flow", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8081');
-    await page.waitForLoadState('networkidle');
+    await page.goto("http://localhost:8081");
+    await page.waitForLoadState("networkidle");
   });
 
-  test('should import audio file', async ({ page }) => {
+  test("should import audio file", async ({ page }) => {
     // Note: This test requires actual audio test fixtures
     // For now, this is a structural placeholder
 
     // Click Import Audio button
-    const importButton = page.getByRole('button', { name: /import audio/i });
+    const importButton = page.getByRole("button", { name: /import audio/i });
     await expect(importButton).toBeVisible();
 
     // In a real test, you would:
@@ -44,8 +44,8 @@ test.describe('Import Flow', () => {
     */
   });
 
-  test('should handle import cancellation', async ({ page }) => {
-    const importButton = page.getByRole('button', { name: /import audio/i });
+  test("should handle import cancellation", async ({ page }) => {
+    const _importButton = page.getByRole("button", { name: /import audio/i });
 
     // Note: Testing cancellation requires mocking file chooser behavior
     // This is a structural placeholder
@@ -64,13 +64,15 @@ test.describe('Import Flow', () => {
     */
   });
 
-  test('should show empty state when no files imported', async ({ page }) => {
+  test("should show empty state when no files imported", async ({ page }) => {
     // Verify empty state message
     await expect(page.getByText(/no tracks yet/i)).toBeVisible();
-    await expect(page.getByText(/record audio or import tracks/i)).toBeVisible();
+    await expect(
+      page.getByText(/record audio or import tracks/i),
+    ).toBeVisible();
   });
 
-  test('should import multiple files', async ({ page }) => {
+  test("should import multiple files", async ({ page: _page }) => {
     // Note: This test requires actual audio test fixtures
     // Placeholder for importing multiple files sequentially
     /*
@@ -93,7 +95,7 @@ test.describe('Import Flow', () => {
     */
   });
 
-  test('should handle unsupported file format', async ({ page }) => {
+  test("should handle unsupported file format", async ({ page: _page }) => {
     // Note: Test for importing non-audio file
     // Should show error message
     /*

@@ -7,24 +7,24 @@
  * - Bottom controls: Import Audio and Save buttons
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Alert } from 'react-native';
-import { Surface, ActivityIndicator } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TrackList } from '@components/TrackList';
-import { ActionButton } from '@components/ActionButton';
-import { SaveModal } from '@components/SaveModal';
-import { MixingProgress } from '@components/MixingProgress';
-import type { Track } from '../../types';
-import { styles } from './MainScreen.styles';
-import { initializeAudioServices } from '../../services/audio/initialize';
-import { getAudioService } from '../../services/audio/AudioServiceFactory';
-import { AudioService } from '../../services/audio/AudioService';
-import { AudioError } from '../../services/audio/AudioError';
-import { getFileImporter } from '../../services/audio/FileImporterFactory';
-import { getAudioMetadata } from '../../utils/audioUtils';
-import { getFFmpegService } from '../../services/ffmpeg/FFmpegService';
-import type { MixingProgress as MixingProgressType } from '../../services/ffmpeg/types';
+import React, { useState, useEffect, useRef } from "react";
+import { View } from "react-native";
+import { Surface, ActivityIndicator, IconButton } from "react-native-paper";
+import { Alert } from "../../utils/alert";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { TrackList } from "@components/TrackList";
+import { ActionButton } from "@components/ActionButton";
+import { SaveModal } from "@components/SaveModal";
+import { HelpModal } from "@components/HelpModal";
+import type { Track } from "../../types";
+import { styles } from "./MainScreen.styles";
+import { initializeAudioServices } from "../../services/audio/initialize";
+import { getAudioService } from "../../services/audio/AudioServiceFactory";
+import { AudioService } from "../../services/audio/AudioService";
+import { AudioError } from "../../services/audio/AudioError";
+import { getFileImporter } from "../../services/audio/FileImporterFactory";
+import { getAudioMetadata } from "../../utils/audioUtils";
+import { getFFmpegService } from "../../services/ffmpeg/FFmpegService";
 
 // Initialize audio services for current platform
 initializeAudioServices();
@@ -32,25 +32,22 @@ initializeAudioServices();
 export const MainScreen: React.FC = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMixing, setIsMixing] = useState(false);
-  const [mixingProgress, setMixingProgress] = useState<MixingProgressType>({
-    ratio: 0,
-    time: 0,
-    duration: 0,
-  });
+  const [baseLoopDuration, setBaseLoopDuration] = useState<number | null>(null); // Duration in ms
   const audioServiceRef = useRef<AudioService | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize AudioService
   useEffect(() => {
     try {
       audioServiceRef.current = getAudioService();
-      console.log('[MainScreen] AudioService initialized');
+      console.log("[MainScreen] AudioService initialized");
     } catch (error) {
-      console.error('[MainScreen] Failed to initialize AudioService:', error);
+      console.error("[MainScreen] Failed to initialize AudioService:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Error', error.userMessage);
+        Alert.alert("Error", error.userMessage);
       }
     }
 
@@ -59,26 +56,61 @@ export const MainScreen: React.FC = () => {
       if (audioServiceRef.current) {
         audioServiceRef.current.cleanup();
       }
+      if (recordingTimerRef.current) {
+        clearTimeout(recordingTimerRef.current);
+      }
     };
   }, []);
 
+  /**
+   * Calculate quantized duration based on base loop
+   * Returns the target duration (1x, 2x, 4x, 8x of base)
+   */
+  const calculateQuantizedDuration = (baseDuration: number): number => {
+    // Multiples: 1x, 2x, 4x, 8x
+    const multiples = [1, 2, 4, 8];
+
+    // For now, default to 1x (same as base loop)
+    // This will auto-stop at the same length as the first loop
+    return baseDuration * multiples[0];
+  };
+
   const handleRecord = async () => {
+    console.log("[MainScreen] handleRecord called");
+
     if (!audioServiceRef.current) {
-      Alert.alert('Error', 'Audio service not initialized');
+      console.error("[MainScreen] Audio service not initialized");
+      Alert.alert("Error", "Audio service not initialized");
       return;
     }
 
     try {
+      console.log("[MainScreen] Starting recording...");
       setIsLoading(true);
       await audioServiceRef.current.startRecording();
       setIsRecording(true);
-      console.log('[MainScreen] Recording started');
+      console.log("[MainScreen] Recording started successfully");
+
+      // If this isn't the first track, set up auto-stop timer
+      if (baseLoopDuration !== null) {
+        const targetDuration = calculateQuantizedDuration(baseLoopDuration);
+        console.log(
+          `[MainScreen] Auto-stop timer set for ${targetDuration}ms (base: ${baseLoopDuration}ms)`,
+        );
+
+        recordingTimerRef.current = setTimeout(() => {
+          console.log(
+            "[MainScreen] Auto-stopping recording at quantized duration",
+          );
+          handleStop();
+        }, targetDuration);
+      }
     } catch (error) {
-      console.error('[MainScreen] Recording failed:', error);
+      console.error("[MainScreen] Recording failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Recording Error', error.userMessage);
+        Alert.alert("Recording Error", error.userMessage);
       } else {
-        Alert.alert('Error', 'Failed to start recording');
+        Alert.alert("Error", "Failed to start recording");
       }
     } finally {
       setIsLoading(false);
@@ -87,8 +119,14 @@ export const MainScreen: React.FC = () => {
 
   const handleStop = async () => {
     if (!audioServiceRef.current) {
-      Alert.alert('Error', 'Audio service not initialized');
+      Alert.alert("Error", "Audio service not initialized");
       return;
+    }
+
+    // Clear the auto-stop timer if it exists
+    if (recordingTimerRef.current) {
+      clearTimeout(recordingTimerRef.current);
+      recordingTimerRef.current = null;
     }
 
     try {
@@ -96,15 +134,26 @@ export const MainScreen: React.FC = () => {
       const uri = await audioServiceRef.current.stopRecording();
       setIsRecording(false);
 
+      const recordingDuration = audioServiceRef.current.getRecordingDuration();
+
+      // If this is the first track, set it as the base loop duration
+      if (baseLoopDuration === null) {
+        setBaseLoopDuration(recordingDuration);
+        console.log(
+          `[MainScreen] Base loop duration set to ${recordingDuration}ms`,
+        );
+      }
+
       // Create new track
       const newTrack: Track = {
         id: `track-${Date.now()}`,
         name: `Recording ${tracks.length + 1}`,
         uri,
-        duration: audioServiceRef.current.getRecordingDuration(),
+        duration: recordingDuration,
         speed: 1.0,
         volume: 75,
         isPlaying: false,
+        selected: true,
         createdAt: Date.now(),
       };
 
@@ -116,13 +165,16 @@ export const MainScreen: React.FC = () => {
       });
 
       setTracks((prevTracks) => [...prevTracks, newTrack]);
-      console.log('[MainScreen] Recording stopped and track added:', newTrack.name);
+      console.log(
+        "[MainScreen] Recording stopped and track added:",
+        newTrack.name,
+      );
     } catch (error) {
-      console.error('[MainScreen] Stop recording failed:', error);
+      console.error("[MainScreen] Stop recording failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Error', error.userMessage);
+        Alert.alert("Error", error.userMessage);
       } else {
-        Alert.alert('Error', 'Failed to stop recording');
+        Alert.alert("Error", "Failed to stop recording");
       }
     } finally {
       setIsLoading(false);
@@ -131,19 +183,19 @@ export const MainScreen: React.FC = () => {
 
   const handleImport = async () => {
     if (!audioServiceRef.current) {
-      Alert.alert('Error', 'Audio service not initialized');
+      Alert.alert("Error", "Audio service not initialized");
       return;
     }
 
     try {
       setIsLoading(true);
-      console.log('[MainScreen] Starting file import...');
+      console.log("[MainScreen] Starting file import...");
 
       // Get the file importer for current platform
       const fileImporter = getFileImporter();
       const importedFile = await fileImporter.pickAudioFile();
 
-      console.log('[MainScreen] File imported:', importedFile.name);
+      console.log("[MainScreen] File imported:", importedFile.name);
 
       // Get audio metadata
       const metadata = await getAudioMetadata(importedFile.uri);
@@ -151,12 +203,13 @@ export const MainScreen: React.FC = () => {
       // Create new track
       const newTrack: Track = {
         id: `track-${Date.now()}`,
-        name: importedFile.name.replace(/\.[^/.]+$/, ''), // Remove extension
+        name: importedFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
         uri: importedFile.uri,
         duration: metadata.duration,
         speed: 1.0,
         volume: 75,
         isPlaying: false,
+        selected: true,
         createdAt: Date.now(),
       };
 
@@ -168,14 +221,14 @@ export const MainScreen: React.FC = () => {
       });
 
       setTracks((prevTracks) => [...prevTracks, newTrack]);
-      console.log('[MainScreen] Imported track added:', newTrack.name);
+      console.log("[MainScreen] Imported track added:", newTrack.name);
     } catch (error) {
-      console.error('[MainScreen] Import failed:', error);
+      console.error("[MainScreen] Import failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Import Error', error.userMessage);
+        Alert.alert("Import Error", error.userMessage);
       } else {
         // User cancelled
-        console.log('[MainScreen] Import cancelled by user');
+        console.log("[MainScreen] Import cancelled by user");
       }
     } finally {
       setIsLoading(false);
@@ -183,7 +236,7 @@ export const MainScreen: React.FC = () => {
   };
 
   const handleSave = () => {
-    console.log('Save button pressed');
+    console.log("Save button pressed");
     setSaveModalVisible(true);
   };
 
@@ -191,93 +244,102 @@ export const MainScreen: React.FC = () => {
     setSaveModalVisible(false);
   };
 
+  const handleHelp = () => {
+    setHelpModalVisible(true);
+  };
+
+  const handleHelpModalDismiss = () => {
+    setHelpModalVisible(false);
+  };
+
   const handleSaveModalSave = async (filename: string) => {
-    if (tracks.length < 1) {
-      Alert.alert('Error', 'Please add at least one track to mix');
+    // Filter only selected tracks
+    const selectedTracks = tracks.filter((track) => track.selected);
+
+    if (selectedTracks.length < 1) {
+      Alert.alert("Error", "Please select at least one track to save");
       return;
     }
 
     setSaveModalVisible(false);
-    setIsMixing(true);
-    setMixingProgress({ ratio: 0, time: 0, duration: 0 });
+    setIsLoading(true);
 
     try {
-      console.log(`[MainScreen] Starting mix for ${tracks.length} tracks...`);
+      console.log(
+        `[MainScreen] Starting mix for ${selectedTracks.length} selected tracks...`,
+      );
 
       // Get FFmpeg service
       const ffmpegService = getFFmpegService();
 
       // Ensure FFmpeg is loaded (especially important for web)
-      await ffmpegService.load((ratio) => {
-        setMixingProgress((prev) => ({ ...prev, ratio: ratio * 0.1 })); // Loading is 10% of progress
-      });
+      await ffmpegService.load();
 
       // Prepare tracks for mixing
-      const mixTracks = tracks.map((track) => ({
+      const mixTracks = selectedTracks.map((track) => ({
         uri: track.uri,
         speed: track.speed,
         volume: track.volume,
       }));
 
-      // Mix tracks with progress callback
+      // Mix tracks
       const result = await ffmpegService.mix({
         tracks: mixTracks,
-        onProgress: (progress) => {
-          // Offset by 10% for loading, scale remaining 90%
-          setMixingProgress({
-            ratio: 0.1 + progress.ratio * 0.9,
-            time: progress.time,
-            duration: progress.duration,
-          });
-        },
       });
 
-      setIsMixing(false);
+      setIsLoading(false);
 
-      console.log('[MainScreen] Mixing complete');
+      console.log("[MainScreen] Mixing complete");
 
       // Handle the result (Blob for web, URI for native)
-      if (typeof result === 'string') {
+      if (typeof result === "string") {
         // Native: result is a file URI
         Alert.alert(
-          'Success',
+          "Success",
           `Mixed audio saved successfully!\n\nFile: ${filename}.mp3\n\nLocation: ${result}`,
-          [{ text: 'OK' }]
+          [{ text: "OK" }],
         );
       } else {
-        // Web: result is a Blob
+        // Web: result is a Blob (WAV format from Web Audio API)
         // Create download link
         const url = URL.createObjectURL(result);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.download = `${filename}.mp3`;
+        link.download = `${filename}.wav`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        Alert.alert('Success', `Mixed audio downloaded as ${filename}.mp3`);
+        Alert.alert("Success", `Mixed audio downloaded as ${filename}.wav`);
       }
     } catch (error) {
-      setIsMixing(false);
-      console.error('[MainScreen] Mixing failed:', error);
+      setIsLoading(false);
+      console.error("[MainScreen] Mixing failed:", error);
+      console.error("[MainScreen] Error details:", {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        error,
+      });
 
       if (error instanceof AudioError) {
-        Alert.alert('Mixing Error', error.userMessage);
+        Alert.alert("Mixing Error", error.userMessage);
       } else {
-        Alert.alert('Error', 'Failed to mix audio tracks');
+        const errorMessage = (error as Error).message || "Unknown error";
+        Alert.alert("Error", `Failed to mix audio tracks: ${errorMessage}`);
       }
     }
   };
 
-  const handleCancelMixing = () => {
-    // TODO: Implement cancellation if FFmpegService supports it
-    console.log('[MainScreen] Mixing cancellation requested');
-    Alert.alert('Cannot Cancel', 'Mixing cannot be cancelled once started');
-  };
-
   const handlePlay = async (trackId: string) => {
     if (!audioServiceRef.current) {
+      return;
+    }
+
+    // Check if track is already playing
+    const track = tracks.find((t) => t.id === trackId);
+    if (track?.isPlaying) {
+      console.log(`[MainScreen] Track ${trackId} is already playing, ignoring`);
       return;
     }
 
@@ -286,14 +348,16 @@ export const MainScreen: React.FC = () => {
 
       // Update track state
       setTracks((prevTracks) =>
-        prevTracks.map((track) => (track.id === trackId ? { ...track, isPlaying: true } : track))
+        prevTracks.map((track) =>
+          track.id === trackId ? { ...track, isPlaying: true } : track,
+        ),
       );
 
       console.log(`[MainScreen] Playing track: ${trackId}`);
     } catch (error) {
-      console.error('[MainScreen] Play failed:', error);
+      console.error("[MainScreen] Play failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Playback Error', error.userMessage);
+        Alert.alert("Playback Error", error.userMessage);
       }
     }
   };
@@ -308,14 +372,16 @@ export const MainScreen: React.FC = () => {
 
       // Update track state
       setTracks((prevTracks) =>
-        prevTracks.map((track) => (track.id === trackId ? { ...track, isPlaying: false } : track))
+        prevTracks.map((track) =>
+          track.id === trackId ? { ...track, isPlaying: false } : track,
+        ),
       );
 
       console.log(`[MainScreen] Paused track: ${trackId}`);
     } catch (error) {
-      console.error('[MainScreen] Pause failed:', error);
+      console.error("[MainScreen] Pause failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Playback Error', error.userMessage);
+        Alert.alert("Playback Error", error.userMessage);
       }
     }
   };
@@ -329,13 +395,25 @@ export const MainScreen: React.FC = () => {
       // Unload and delete track
       await audioServiceRef.current.unloadTrack(trackId);
 
-      setTracks((prevTracks) => prevTracks.filter((track) => track.id !== trackId));
+      setTracks((prevTracks) => {
+        const newTracks = prevTracks.filter((track) => track.id !== trackId);
+
+        // Reset base loop duration if all tracks are deleted
+        if (newTracks.length === 0) {
+          setBaseLoopDuration(null);
+          console.log(
+            "[MainScreen] All tracks deleted, base loop duration reset",
+          );
+        }
+
+        return newTracks;
+      });
 
       console.log(`[MainScreen] Deleted track: ${trackId}`);
     } catch (error) {
-      console.error('[MainScreen] Delete failed:', error);
+      console.error("[MainScreen] Delete failed:", error);
       if (error instanceof AudioError) {
-        Alert.alert('Delete Error', error.userMessage);
+        Alert.alert("Delete Error", error.userMessage);
       }
     }
   };
@@ -350,12 +428,16 @@ export const MainScreen: React.FC = () => {
 
       // Update track state
       setTracks((prevTracks) =>
-        prevTracks.map((track) => (track.id === trackId ? { ...track, volume } : track))
+        prevTracks.map((track) =>
+          track.id === trackId ? { ...track, volume } : track,
+        ),
       );
 
-      console.log(`[MainScreen] Volume changed for track ${trackId}: ${volume}`);
+      console.log(
+        `[MainScreen] Volume changed for track ${trackId}: ${volume}`,
+      );
     } catch (error) {
-      console.error('[MainScreen] Volume change failed:', error);
+      console.error("[MainScreen] Volume change failed:", error);
     }
   };
 
@@ -369,17 +451,30 @@ export const MainScreen: React.FC = () => {
 
       // Update track state
       setTracks((prevTracks) =>
-        prevTracks.map((track) => (track.id === trackId ? { ...track, speed } : track))
+        prevTracks.map((track) =>
+          track.id === trackId ? { ...track, speed } : track,
+        ),
       );
 
       console.log(`[MainScreen] Speed changed for track ${trackId}: ${speed}`);
     } catch (error) {
-      console.error('[MainScreen] Speed change failed:', error);
+      console.error("[MainScreen] Speed change failed:", error);
     }
   };
 
+  const handleSelect = (trackId: string) => {
+    setTracks((prevTracks) =>
+      prevTracks.map((track) => ({
+        ...track,
+        selected: track.id === trackId ? !track.selected : track.selected,
+      })),
+    );
+
+    console.log(`[MainScreen] Toggled selection for track ${trackId}`);
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <View style={styles.container}>
         {/* Top Controls */}
         <Surface
@@ -389,11 +484,13 @@ export const MainScreen: React.FC = () => {
           accessibilityLabel="Recording controls"
         >
           <ActionButton
-            label={isRecording ? 'Recording...' : 'Record'}
+            label={isRecording ? "Recording..." : "Record"}
             icon="microphone"
             onPress={handleRecord}
             disabled={isRecording || isLoading}
-            accessibilityLabel={isRecording ? 'Recording in progress' : 'Record audio'}
+            accessibilityLabel={
+              isRecording ? "Recording in progress" : "Record audio"
+            }
             accessibilityHint="Start recording a new audio track"
           />
           <ActionButton
@@ -402,6 +499,14 @@ export const MainScreen: React.FC = () => {
             onPress={handleStop}
             disabled={!isRecording || isLoading}
             accessibilityHint="Stop recording and save track"
+          />
+          <IconButton
+            icon="help-circle"
+            size={32}
+            iconColor="#FFFFFF"
+            onPress={handleHelp}
+            accessibilityLabel="Help"
+            accessibilityHint="Show help information"
           />
         </Surface>
 
@@ -414,6 +519,7 @@ export const MainScreen: React.FC = () => {
             onDelete={handleDelete}
             onVolumeChange={handleVolumeChange}
             onSpeedChange={handleSpeedChange}
+            onSelect={handleSelect}
           />
         </View>
 
@@ -448,27 +554,24 @@ export const MainScreen: React.FC = () => {
           onSave={handleSaveModalSave}
         />
 
-        {/* Mixing Progress Modal */}
-        <MixingProgress
-          visible={isMixing}
-          progress={mixingProgress.ratio}
-          currentTime={mixingProgress.time}
-          totalDuration={mixingProgress.duration}
-          onCancel={handleCancelMixing}
+        {/* Help Modal */}
+        <HelpModal
+          visible={helpModalVisible}
+          onDismiss={handleHelpModalDismiss}
         />
 
         {/* Loading Indicator */}
         {isLoading && (
           <View
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
             }}
             accessibilityLabel="Loading"
             accessibilityLiveRegion="polite"
@@ -476,7 +579,7 @@ export const MainScreen: React.FC = () => {
           >
             <ActivityIndicator
               size="large"
-              color="#BB86FC"
+              color="#3F51B5"
               accessibilityLabel="Loading, please wait"
             />
           </View>

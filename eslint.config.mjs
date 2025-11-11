@@ -17,6 +17,7 @@ export default [
       'coverage/**',
       '*.config.js',
       '.prettierrc.js',
+      'public/**',
     ],
   },
   js.configs.recommended,
@@ -37,6 +38,7 @@ export default [
         ...globals.node,
         ...globals.es2021,
         __DEV__: 'readonly',
+        NodeJS: 'readonly',
       },
     },
     plugins: {
@@ -65,13 +67,51 @@ export default [
   },
   // Test files configuration
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '__tests__/**/*'],
+    files: ['**/*.test.ts', '**/*.test.tsx', '__tests__/**/*', '__mocks__/**/*'],
     languageOptions: {
       globals: {
         ...globals.jest,
         ...globals.node,
         NodeJS: 'readonly',
+        fail: 'readonly',
       },
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  // E2E test files configuration (Detox native)
+  {
+    files: ['e2e/native/**/*.e2e.ts', 'e2e/native/**/*.e2e.tsx'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        ...globals.node,
+        device: 'readonly',
+        element: 'readonly',
+        by: 'readonly',
+        waitFor: 'readonly',
+        expect: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // E2E test files configuration (Playwright web)
+  {
+    files: ['e2e/web/**/*.spec.ts', 'e2e/web/**/*.spec.tsx'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   // Jest config files

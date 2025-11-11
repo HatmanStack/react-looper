@@ -4,7 +4,11 @@
  * Web-specific permission handling using navigator.permissions and getUserMedia.
  */
 
-import { PermissionType, PermissionStatus, PermissionResult } from './permissions';
+import {
+  PermissionType,
+  PermissionStatus,
+  PermissionResult,
+} from "./permissions";
 
 /**
  * Request microphone permission
@@ -24,14 +28,17 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
   } catch (error) {
     const err = error as Error;
 
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+    if (
+      err.name === "NotAllowedError" ||
+      err.name === "PermissionDeniedError"
+    ) {
       return {
         status: PermissionStatus.DENIED,
         canAskAgain: true, // Web always allows asking again
       };
     }
 
-    if (err.name === 'NotFoundError') {
+    if (err.name === "NotFoundError") {
       // No microphone found
       return {
         status: PermissionStatus.DENIED,
@@ -40,7 +47,7 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
     }
 
     // Other errors
-    console.error('[Permissions] Microphone permission error:', error);
+    console.error("[Permissions] Microphone permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: true,
@@ -62,7 +69,9 @@ export async function requestStoragePermission(): Promise<PermissionResult> {
 /**
  * Check current permission status without requesting
  */
-export async function checkPermission(type: PermissionType): Promise<PermissionStatus> {
+export async function checkPermission(
+  type: PermissionType,
+): Promise<PermissionStatus> {
   if (type === PermissionType.STORAGE) {
     // Web doesn't need storage permission
     return PermissionStatus.GRANTED;
@@ -71,27 +80,27 @@ export async function checkPermission(type: PermissionType): Promise<PermissionS
   if (type === PermissionType.MICROPHONE) {
     try {
       // Try permissions API first (not supported in all browsers)
-      if ('permissions' in navigator) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ("permissions" in navigator) {
         const result = await navigator.permissions.query({
-          name: 'microphone' as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          name: "microphone" as any,
         });
 
-        if (result.state === 'granted') {
+        if (result.state === "granted") {
           return PermissionStatus.GRANTED;
         }
 
-        if (result.state === 'denied') {
+        if (result.state === "denied") {
           return PermissionStatus.DENIED;
         }
 
-        if (result.state === 'prompt') {
+        if (result.state === "prompt") {
           return PermissionStatus.PENDING;
         }
       }
     } catch (error) {
       // Permissions API not supported, fall through
-      console.warn('[Permissions] Permissions API not available:', error);
+      console.warn("[Permissions] Permissions API not available:", error);
     }
 
     // If we can't check, return undetermined
@@ -106,5 +115,5 @@ export async function checkPermission(type: PermissionType): Promise<PermissionS
  */
 export async function openSettings(): Promise<void> {
   // Web doesn't have a settings page we can open programmatically
-  console.warn('[Permissions] Opening settings not supported on web');
+  console.warn("[Permissions] Opening settings not supported on web");
 }

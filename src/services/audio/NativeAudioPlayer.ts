@@ -5,10 +5,14 @@
  * Provides multi-track playback with independent speed and volume controls.
  */
 
-import { Audio } from 'expo-av';
-import { BaseAudioPlayer } from './BaseAudioPlayer';
-import { PlaybackOptions, AudioMetadata, AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { Audio } from "expo-av";
+import { BaseAudioPlayer } from "./BaseAudioPlayer";
+import {
+  PlaybackOptions,
+  AudioMetadata,
+  AudioErrorCode,
+} from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export class NativeAudioPlayer extends BaseAudioPlayer {
   private sound: Audio.Sound | null = null;
@@ -41,7 +45,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
           rate: this._speed,
           volume: this._calculateScaledVolume(this._volume),
           shouldCorrectPitch: true, // Preserve pitch when changing speed
-        }
+        },
       );
 
       this.sound = sound;
@@ -49,10 +53,12 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       // Get status to verify loaded
       const status = await sound.getStatusAsync();
       if (!status.isLoaded) {
-        throw new Error('Failed to load audio');
+        throw new Error("Failed to load audio");
       }
 
-      console.log(`[NativeAudioPlayer] Loaded audio: ${status.durationMillis}ms, ${status.uri}`);
+      console.log(
+        `[NativeAudioPlayer] Loaded audio: ${status.durationMillis}ms, ${status.uri}`,
+      );
 
       // Set up playback status update callback
       sound.setOnPlaybackStatusUpdate((status) => {
@@ -76,8 +82,8 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to load audio: ${(error as Error).message}`,
-        'Unable to load audio file',
-        { uri, originalError: error }
+        "Unable to load audio file",
+        { uri, originalError: error },
       );
     }
   }
@@ -89,20 +95,20 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     if (!this.sound) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
-        'Sound not loaded',
-        'Please load an audio file first'
+        "Sound not loaded",
+        "Please load an audio file first",
       );
     }
 
     try {
       await this.sound.playAsync();
-      console.log('[NativeAudioPlayer] Playback started');
+      console.log("[NativeAudioPlayer] Playback started");
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to start playback: ${(error as Error).message}`,
-        'Unable to play audio',
-        { originalError: error }
+        "Unable to play audio",
+        { originalError: error },
       );
     }
   }
@@ -117,9 +123,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.pauseAsync();
-      console.log('[NativeAudioPlayer] Paused');
+      console.log("[NativeAudioPlayer] Paused");
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Pause error:', error);
+      console.warn("[NativeAudioPlayer] Pause error:", error);
     }
   }
 
@@ -134,9 +140,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       await this.sound.stopAsync();
       await this.sound.setPositionAsync(0); // Reset to beginning
-      console.log('[NativeAudioPlayer] Stopped');
+      console.log("[NativeAudioPlayer] Stopped");
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Stop error:', error);
+      console.warn("[NativeAudioPlayer] Stop error:", error);
     }
   }
 
@@ -156,8 +162,8 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set speed: ${(error as Error).message}`,
-        'Unable to change playback speed',
-        { speed, originalError: error }
+        "Unable to change playback speed",
+        { speed, originalError: error },
       );
     }
   }
@@ -173,13 +179,15 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       const scaledVolume = this._calculateScaledVolume(volume);
       await this.sound.setVolumeAsync(scaledVolume);
-      console.log(`[NativeAudioPlayer] Volume set to ${volume} (scaled: ${scaledVolume})`);
+      console.log(
+        `[NativeAudioPlayer] Volume set to ${volume} (scaled: ${scaledVolume})`,
+      );
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set volume: ${(error as Error).message}`,
-        'Unable to change volume',
-        { volume, originalError: error }
+        "Unable to change volume",
+        { volume, originalError: error },
       );
     }
   }
@@ -209,13 +217,15 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.setIsLoopingAsync(loop);
-      console.log(`[NativeAudioPlayer] Looping ${loop ? 'enabled' : 'disabled'}`);
+      console.log(
+        `[NativeAudioPlayer] Looping ${loop ? "enabled" : "disabled"}`,
+      );
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set looping: ${(error as Error).message}`,
-        'Unable to change looping',
-        { loop, originalError: error }
+        "Unable to change looping",
+        { loop, originalError: error },
       );
     }
   }
@@ -235,7 +245,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return 0;
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Get duration error:', error);
+      console.warn("[NativeAudioPlayer] Get duration error:", error);
       return 0;
     }
   }
@@ -255,7 +265,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return 0;
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Get position error:', error);
+      console.warn("[NativeAudioPlayer] Get position error:", error);
       return 0;
     }
   }
@@ -275,8 +285,8 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
         `Failed to set position: ${(error as Error).message}`,
-        'Unable to seek',
-        { position, originalError: error }
+        "Unable to seek",
+        { position, originalError: error },
       );
     }
   }
@@ -298,7 +308,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return null;
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Get metadata error:', error);
+      console.warn("[NativeAudioPlayer] Get metadata error:", error);
       return null;
     }
   }
@@ -314,9 +324,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       await this.sound.unloadAsync();
       this.sound = null;
-      console.log('[NativeAudioPlayer] Unloaded');
+      console.log("[NativeAudioPlayer] Unloaded");
     } catch (error) {
-      console.warn('[NativeAudioPlayer] Unload error:', error);
+      console.warn("[NativeAudioPlayer] Unload error:", error);
       this.sound = null;
     }
   }

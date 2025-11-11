@@ -5,7 +5,7 @@
  * Shared between web and native platforms.
  */
 
-import type { MixTrack } from './types';
+import type { MixTrack } from "./types";
 
 export interface FFmpegCommandOptions {
   inputFiles: string[];
@@ -27,7 +27,7 @@ export class FFmpegCommandBuilder {
 
     // Add input files
     for (const file of inputFiles) {
-      command.push('-i', file);
+      command.push("-i", file);
     }
 
     // Build filter complex for speed and volume adjustments
@@ -42,8 +42,8 @@ export class FFmpegCommandBuilder {
       // Apply speed adjustment using atempo filter
       const atempoFilters = this.buildAtempoFilter(track.speed);
       if (atempoFilters.length > 0) {
-        filterChain += atempoFilters.join(',');
-        filterChain += ',';
+        filterChain += atempoFilters.join(",");
+        filterChain += ",";
       }
 
       // Apply volume adjustment
@@ -59,24 +59,24 @@ export class FFmpegCommandBuilder {
     }
 
     // Add amix filter to combine all processed streams
-    const amixFilter = `${mixInputs.join('')}amix=inputs=${tracks.length}:duration=longest:normalize=0[out]`;
+    const amixFilter = `${mixInputs.join("")}amix=inputs=${tracks.length}:duration=longest:normalize=0[out]`;
     filters.push(amixFilter);
 
     // Join all filters into filter_complex
-    command.push('-filter_complex', filters.join(';'));
+    command.push("-filter_complex", filters.join(";"));
 
     // Map output
-    command.push('-map', '[out]');
+    command.push("-map", "[out]");
 
     // Output encoding settings (MP3 @ 128kbps, 44.1kHz)
     command.push(
-      '-codec:a',
-      'libmp3lame',
-      '-b:a',
-      '128k',
-      '-ar',
-      '44100',
-      '-y' // Overwrite output file
+      "-codec:a",
+      "libmp3lame",
+      "-b:a",
+      "128k",
+      "-ar",
+      "44100",
+      "-y", // Overwrite output file
     );
 
     // Output file (must be last)
@@ -109,11 +109,11 @@ export class FFmpegCommandBuilder {
     while (Math.abs(remainingSpeed - 1.0) > 0.01) {
       if (remainingSpeed > 2.0) {
         // Speed too high, apply 2.0x and continue
-        filters.push('atempo=2.0');
+        filters.push("atempo=2.0");
         remainingSpeed /= 2.0;
       } else if (remainingSpeed < 0.5) {
         // Speed too low, apply 0.5x and continue
-        filters.push('atempo=0.5');
+        filters.push("atempo=0.5");
         remainingSpeed /= 0.5;
       } else {
         // Within range, apply final atempo

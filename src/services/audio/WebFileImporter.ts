@@ -5,8 +5,8 @@
  * Allows users to select audio files from their computer.
  */
 
-import { AudioErrorCode } from '../../types/audio';
-import { AudioError } from './AudioError';
+import { AudioErrorCode } from "../../types/audio";
+import { AudioError } from "./AudioError";
 
 export interface ImportedFile {
   uri: string;
@@ -17,14 +17,14 @@ export interface ImportedFile {
 
 export class WebFileImporter {
   private static SUPPORTED_AUDIO_TYPES = [
-    'audio/mpeg', // MP3
-    'audio/mp4', // M4A
-    'audio/wav',
-    'audio/wave',
-    'audio/webm',
-    'audio/ogg',
-    'audio/aac',
-    'audio/x-m4a',
+    "audio/mpeg", // MP3
+    "audio/mp4", // M4A
+    "audio/wav",
+    "audio/wave",
+    "audio/webm",
+    "audio/ogg",
+    "audio/aac",
+    "audio/x-m4a",
   ];
 
   /**
@@ -33,10 +33,10 @@ export class WebFileImporter {
   public static async pickAudioFile(): Promise<ImportedFile> {
     return new Promise((resolve, reject) => {
       // Create file input element
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'audio/*';
-      input.style.display = 'none';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "audio/*";
+      input.style.display = "none";
 
       // Handle file selection
       input.onchange = async (event: Event) => {
@@ -47,9 +47,9 @@ export class WebFileImporter {
           reject(
             new AudioError(
               AudioErrorCode.FILE_NOT_FOUND,
-              'No file selected',
-              'Please select an audio file.'
-            )
+              "No file selected",
+              "Please select an audio file.",
+            ),
           );
           return;
         }
@@ -71,9 +71,9 @@ export class WebFileImporter {
         reject(
           new AudioError(
             AudioErrorCode.FILE_NOT_FOUND,
-            'File selection cancelled',
-            'File selection was cancelled.'
-          )
+            "File selection cancelled",
+            "File selection was cancelled.",
+          ),
         );
       };
 
@@ -92,7 +92,7 @@ export class WebFileImporter {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
         `Unsupported file type: ${file.type}`,
-        'This file type is not supported. Please select an MP3, WAV, or M4A file.'
+        "This file type is not supported. Please select an MP3, WAV, or M4A file.",
       );
     }
 
@@ -102,7 +102,7 @@ export class WebFileImporter {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
         `File too large: ${file.size} bytes`,
-        'The selected file is too large. Please select a file smaller than 100MB.'
+        "The selected file is too large. Please select a file smaller than 100MB.",
       );
     }
 
@@ -115,12 +115,14 @@ export class WebFileImporter {
       URL.revokeObjectURL(blobUrl);
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
-        'Audio file cannot be played',
-        'This audio file appears to be corrupted or in an unsupported format.'
+        "Audio file cannot be played",
+        "This audio file appears to be corrupted or in an unsupported format.",
       );
     }
 
-    console.log(`[WebFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes`);
+    console.log(
+      `[WebFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes`,
+    );
 
     return {
       uri: blobUrl,
@@ -140,8 +142,8 @@ export class WebFileImporter {
     }
 
     // Check file extension as fallback
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    const validExtensions = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'webm'];
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const validExtensions = ["mp3", "wav", "m4a", "aac", "ogg", "webm"];
 
     return extension ? validExtensions.includes(extension) : false;
   }
@@ -181,7 +183,7 @@ export class WebFileImporter {
    * Revoke a blob URL to free memory
    */
   public static revokeBlobUrl(url: string): void {
-    if (url.startsWith('blob:')) {
+    if (url.startsWith("blob:")) {
       URL.revokeObjectURL(url);
     }
   }

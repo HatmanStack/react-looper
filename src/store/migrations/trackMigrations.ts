@@ -4,8 +4,8 @@
  * Defines schema migrations for the track store.
  */
 
-import type { Track } from '../../types';
-import type { MigrationConfig } from './types';
+import type { Track } from "../../types";
+import type { MigrationConfig } from "./types";
 
 /**
  * Current schema version for tracks
@@ -23,7 +23,7 @@ interface TrackStoreState {
  * Validate track store state
  */
 function validateTrackState(state: any): boolean {
-  if (!state || typeof state !== 'object') {
+  if (!state || typeof state !== "object") {
     return false;
   }
 
@@ -35,14 +35,14 @@ function validateTrackState(state: any): boolean {
   return state.tracks.every(
     (track: any) =>
       track &&
-      typeof track.id === 'string' &&
-      typeof track.name === 'string' &&
-      typeof track.uri === 'string' &&
-      typeof track.duration === 'number' &&
-      typeof track.speed === 'number' &&
-      typeof track.volume === 'number' &&
-      typeof track.isPlaying === 'boolean' &&
-      typeof track.createdAt === 'number'
+      typeof track.id === "string" &&
+      typeof track.name === "string" &&
+      typeof track.uri === "string" &&
+      typeof track.duration === "number" &&
+      typeof track.speed === "number" &&
+      typeof track.volume === "number" &&
+      typeof track.isPlaying === "boolean" &&
+      typeof track.createdAt === "number",
   );
 }
 
@@ -66,8 +66,8 @@ export const trackMigrationConfig: MigrationConfig<TrackStoreState> = {
           track &&
           track.id &&
           track.uri &&
-          typeof track.speed === 'number' &&
-          typeof track.volume === 'number'
+          typeof track.speed === "number" &&
+          typeof track.volume === "number"
         );
       });
 

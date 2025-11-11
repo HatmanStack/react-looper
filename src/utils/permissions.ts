@@ -6,15 +6,15 @@
  */
 
 export enum PermissionType {
-  MICROPHONE = 'microphone',
-  STORAGE = 'storage',
+  MICROPHONE = "microphone",
+  STORAGE = "storage",
 }
 
 export enum PermissionStatus {
-  GRANTED = 'granted',
-  DENIED = 'denied',
-  PENDING = 'pending',
-  UNDETERMINED = 'undetermined',
+  GRANTED = "granted",
+  DENIED = "denied",
+  PENDING = "pending",
+  UNDETERMINED = "undetermined",
 }
 
 export interface PermissionResult {
@@ -26,26 +26,28 @@ export interface PermissionResult {
  * Request microphone permission
  */
 export async function requestMicrophonePermission(): Promise<PermissionResult> {
-  throw new Error('Not implemented. Use platform-specific file.');
+  throw new Error("Not implemented. Use platform-specific file.");
 }
 
 /**
  * Request storage permission (native only)
  */
 export async function requestStoragePermission(): Promise<PermissionResult> {
-  throw new Error('Not implemented. Use platform-specific file.');
+  throw new Error("Not implemented. Use platform-specific file.");
 }
 
 /**
  * Check current permission status without requesting
  */
-export async function checkPermission(type: PermissionType): Promise<PermissionStatus> {
-  throw new Error('Not implemented. Use platform-specific file.');
+export async function checkPermission(
+  _type: PermissionType,
+): Promise<PermissionStatus> {
+  throw new Error("Not implemented. Use platform-specific file.");
 }
 
 /**
  * Open device settings for permission management (native only)
  */
 export async function openSettings(): Promise<void> {
-  throw new Error('Not implemented. Use platform-specific file.');
+  throw new Error("Not implemented. Use platform-specific file.");
 }

@@ -4,10 +4,10 @@
  * Export all mock implementations for development and testing.
  */
 
-export { MockAudioRecorder } from './MockAudioRecorder';
-export { MockAudioPlayer } from './MockAudioPlayer';
-export { MockAudioMixer } from './MockAudioMixer';
-export { MockFileManager } from './MockFileManager';
+export { MockAudioRecorder } from "./MockAudioRecorder";
+export { MockAudioPlayer } from "./MockAudioPlayer";
+export { MockAudioMixer } from "./MockAudioMixer";
+export { MockFileManager } from "./MockFileManager";
 
 /**
  * Register mock services with the factory
@@ -25,12 +25,12 @@ export { MockFileManager } from './MockFileManager';
  * ```
  */
 export function registerMockServices(): void {
-  const { registerAudioServices } = require('../AudioServiceFactory');
-  const MockAudioRecorder = require('./MockAudioRecorder').MockAudioRecorder;
-  const MockAudioPlayer = require('./MockAudioPlayer').MockAudioPlayer;
-  const MockAudioMixer = require('./MockAudioMixer').MockAudioMixer;
-  const MockFileManager = require('./MockFileManager').MockFileManager;
-  const { Platform } = require('react-native');
+  const { registerAudioServices } = require("../AudioServiceFactory");
+  const MockAudioRecorder = require("./MockAudioRecorder").MockAudioRecorder;
+  const MockAudioPlayer = require("./MockAudioPlayer").MockAudioPlayer;
+  const MockAudioMixer = require("./MockAudioMixer").MockAudioMixer;
+  const MockFileManager = require("./MockFileManager").MockFileManager;
+  const { Platform } = require("react-native");
 
   const mockServices = {
     recorder: MockAudioRecorder,
@@ -40,7 +40,7 @@ export function registerMockServices(): void {
   };
 
   // Register for current platform
-  const platform = Platform.OS === 'web' ? 'web' : 'native';
+  const platform = Platform.OS === "web" ? "web" : "native";
   registerAudioServices(platform, mockServices);
 
   console.log(`[MockServices] Mock audio services registered for ${platform}`);

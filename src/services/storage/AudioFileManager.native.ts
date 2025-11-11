@@ -4,12 +4,16 @@
  * Uses expo-file-system for file storage on iOS and Android.
  */
 
-import { Paths, Directory, File } from 'expo-file-system';
-import { AudioFileManager, AudioFileInfo, StorageInfo } from './AudioFileManager';
+import { Paths, Directory, File } from "expo-file-system";
+import {
+  AudioFileManager,
+  AudioFileInfo,
+  StorageInfo,
+} from "./AudioFileManager";
 
-const TEMP_DIR_NAME = 'temp';
-const PERMANENT_DIR_NAME = 'audio';
-const METADATA_FILE_NAME = 'file_metadata.json';
+const TEMP_DIR_NAME = "temp";
+const PERMANENT_DIR_NAME = "audio";
+const METADATA_FILE_NAME = "file_metadata.json";
 
 interface FileMetadata {
   [uri: string]: {
@@ -45,12 +49,12 @@ export class NativeAudioFileManager extends AudioFileManager {
     // Create directories if they don't exist
     if (!this.tempDir.exists) {
       this.tempDir.create();
-      console.log('[NativeAudioFileManager] Created temp directory');
+      console.log("[NativeAudioFileManager] Created temp directory");
     }
 
     if (!this.permanentDir.exists) {
       this.permanentDir.create();
-      console.log('[NativeAudioFileManager] Created permanent directory');
+      console.log("[NativeAudioFileManager] Created permanent directory");
     }
 
     // Load metadata
@@ -68,13 +72,13 @@ export class NativeAudioFileManager extends AudioFileManager {
         const content = await this.metadataFile.text();
         this.metadata = JSON.parse(content);
         console.log(
-          `[NativeAudioFileManager] Loaded metadata for ${Object.keys(this.metadata).length} files`
+          `[NativeAudioFileManager] Loaded metadata for ${Object.keys(this.metadata).length} files`,
         );
       } else {
         this.metadata = {};
       }
     } catch (error) {
-      console.error('[NativeAudioFileManager] Failed to load metadata:', error);
+      console.error("[NativeAudioFileManager] Failed to load metadata:", error);
       this.metadata = {};
     }
   }
@@ -87,26 +91,32 @@ export class NativeAudioFileManager extends AudioFileManager {
       const content = JSON.stringify(this.metadata, null, 2);
       await this.metadataFile.write(content);
     } catch (error) {
-      console.error('[NativeAudioFileManager] Failed to save metadata:', error);
-      throw new Error('Failed to save file metadata');
+      console.error("[NativeAudioFileManager] Failed to save metadata:", error);
+      throw new Error("Failed to save file metadata");
     }
   }
 
   /**
    * Save file to storage
    */
-  async saveFile(uriOrBlob: string | Blob, name: string, isTemporary = true): Promise<string> {
+  async saveFile(
+    uriOrBlob: string | Blob,
+    name: string,
+    isTemporary = true,
+  ): Promise<string> {
     await this.init();
 
     if (uriOrBlob instanceof Blob) {
-      throw new Error('Blob not supported on native platform, use file URI instead');
+      throw new Error(
+        "Blob not supported on native platform, use file URI instead",
+      );
     }
 
     const sourceUri = uriOrBlob;
     const sanitizedName = this.sanitizeFilename(name);
     const uniqueName = this.generateUniqueFilename(
-      sanitizedName.replace(/\.[^/.]+$/, ''), // Remove extension
-      sanitizedName.substring(sanitizedName.lastIndexOf('.') + 1) || 'm4a'
+      sanitizedName.replace(/\.[^/.]+$/, ""), // Remove extension
+      sanitizedName.substring(sanitizedName.lastIndexOf(".") + 1) || "m4a",
     );
 
     // Determine destination directory
@@ -124,7 +134,7 @@ export class NativeAudioFileManager extends AudioFileManager {
     this.metadata[destFile.uri] = {
       name: uniqueName,
       size: info.size || 0,
-      type: 'audio/mpeg',
+      type: "audio/mpeg",
       createdAt: Date.now(),
       isTemporary,
     };
@@ -132,7 +142,7 @@ export class NativeAudioFileManager extends AudioFileManager {
     await this.saveMetadata();
 
     console.log(
-      `[NativeAudioFileManager] Saved file: ${uniqueName} (${info.size} bytes) to ${isTemporary ? 'temp' : 'permanent'}`
+      `[NativeAudioFileManager] Saved file: ${uniqueName} (${info.size} bytes) to ${isTemporary ? "temp" : "permanent"}`,
     );
 
     return destFile.uri;
@@ -178,7 +188,10 @@ export class NativeAudioFileManager extends AudioFileManager {
 
       console.log(`[NativeAudioFileManager] Deleted file: ${uri}`);
     } catch (error) {
-      console.error(`[NativeAudioFileManager] Failed to delete file: ${uri}`, error);
+      console.error(
+        `[NativeAudioFileManager] Failed to delete file: ${uri}`,
+        error,
+      );
       throw new Error(`Failed to delete file: ${uri}`);
     }
   }
@@ -226,8 +239,8 @@ export class NativeAudioFileManager extends AudioFileManager {
 
     const sanitizedName = this.sanitizeFilename(permanentName);
     const uniqueName = this.generateUniqueFilename(
-      sanitizedName.replace(/\.[^/.]+$/, ''),
-      sanitizedName.substring(sanitizedName.lastIndexOf('.') + 1) || 'm4a'
+      sanitizedName.replace(/\.[^/.]+$/, ""),
+      sanitizedName.substring(sanitizedName.lastIndexOf(".") + 1) || "m4a",
     );
 
     // Move file
@@ -247,7 +260,9 @@ export class NativeAudioFileManager extends AudioFileManager {
 
     await this.saveMetadata();
 
-    console.log(`[NativeAudioFileManager] Made permanent: ${tempUri} -> ${newUri}`);
+    console.log(
+      `[NativeAudioFileManager] Made permanent: ${tempUri} -> ${newUri}`,
+    );
 
     return newUri;
   }
@@ -274,11 +289,16 @@ export class NativeAudioFileManager extends AudioFileManager {
         await this.deleteFile(uri);
         deletedCount++;
       } catch (error) {
-        console.error(`[NativeAudioFileManager] Failed to delete temp file: ${uri}`, error);
+        console.error(
+          `[NativeAudioFileManager] Failed to delete temp file: ${uri}`,
+          error,
+        );
       }
     }
 
-    console.log(`[NativeAudioFileManager] Cleaned up ${deletedCount} temporary files`);
+    console.log(
+      `[NativeAudioFileManager] Cleaned up ${deletedCount} temporary files`,
+    );
 
     return deletedCount;
   }
@@ -300,7 +320,7 @@ export class NativeAudioFileManager extends AudioFileManager {
       totalSpace = Paths.totalDiskSpace;
       availableSpace = Paths.availableDiskSpace;
     } catch (error) {
-      console.warn('[NativeAudioFileManager] Could not get disk space info');
+      console.warn("[NativeAudioFileManager] Could not get disk space info");
     }
 
     return {

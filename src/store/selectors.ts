@@ -5,11 +5,11 @@
  * Use these with useStore hooks to select only needed state slices.
  */
 
-import { useTrackStore } from './useTrackStore';
-import { usePlaybackStore } from './usePlaybackStore';
-import { useUIStore } from './useUIStore';
-import type { Track } from '../types';
-import type { TrackState } from './usePlaybackStore';
+import { useTrackStore } from "./useTrackStore";
+import { usePlaybackStore } from "./usePlaybackStore";
+import { useUIStore } from "./useUIStore";
+import type { Track } from "../types";
+import type { TrackState } from "./usePlaybackStore";
 
 // ============================================================================
 // Track Store Selectors
@@ -18,37 +18,44 @@ import type { TrackState } from './usePlaybackStore';
 /**
  * Select all tracks
  */
-export const selectTracks = (state: ReturnType<typeof useTrackStore.getState>) => state.tracks;
+export const selectTracks = (
+  state: ReturnType<typeof useTrackStore.getState>,
+) => state.tracks;
 
 /**
  * Select track count
  */
-export const selectTrackCount = (state: ReturnType<typeof useTrackStore.getState>) =>
-  state.tracks.length;
+export const selectTrackCount = (
+  state: ReturnType<typeof useTrackStore.getState>,
+) => state.tracks.length;
 
 /**
  * Select specific track by ID
  */
-export const selectTrackById = (id: string) => (state: ReturnType<typeof useTrackStore.getState>) =>
-  state.tracks.find((track) => track.id === id);
+export const selectTrackById =
+  (id: string) => (state: ReturnType<typeof useTrackStore.getState>) =>
+    state.tracks.find((track) => track.id === id);
 
 /**
  * Select track IDs only (useful for lists to prevent re-renders)
  */
-export const selectTrackIds = (state: ReturnType<typeof useTrackStore.getState>) =>
-  state.tracks.map((track) => track.id);
+export const selectTrackIds = (
+  state: ReturnType<typeof useTrackStore.getState>,
+) => state.tracks.map((track) => track.id);
 
 /**
  * Select playing tracks
  */
-export const selectPlayingTracks = (state: ReturnType<typeof useTrackStore.getState>) =>
-  state.tracks.filter((track) => track.isPlaying);
+export const selectPlayingTracks = (
+  state: ReturnType<typeof useTrackStore.getState>,
+) => state.tracks.filter((track) => track.isPlaying);
 
 /**
  * Check if has any tracks
  */
-export const selectHasTracksBoolean = (state: ReturnType<typeof useTrackStore.getState>) =>
-  state.tracks.length > 0;
+export const selectHasTracksBoolean = (
+  state: ReturnType<typeof useTrackStore.getState>,
+) => state.tracks.length > 0;
 
 // ============================================================================
 // Playback Store Selectors
@@ -85,14 +92,16 @@ export const selectTrackVolume =
 /**
  * Select if any track is playing
  */
-export const selectIsAnyPlaying = (state: ReturnType<typeof usePlaybackStore.getState>) =>
-  state.isAnyPlaying;
+export const selectIsAnyPlaying = (
+  state: ReturnType<typeof usePlaybackStore.getState>,
+) => state.isAnyPlaying;
 
 /**
  * Select count of playing tracks
  */
-export const selectPlayingTrackCount = (state: ReturnType<typeof usePlaybackStore.getState>) =>
-  state.playingTracks.size;
+export const selectPlayingTrackCount = (
+  state: ReturnType<typeof usePlaybackStore.getState>,
+) => state.playingTracks.size;
 
 // ============================================================================
 // UI Store Selectors
@@ -101,43 +110,50 @@ export const selectPlayingTrackCount = (state: ReturnType<typeof usePlaybackStor
 /**
  * Select save modal visibility
  */
-export const selectSaveModalVisible = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.saveModalVisible;
+export const selectSaveModalVisible = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.saveModalVisible;
 
 /**
  * Select mixing modal visibility
  */
-export const selectMixingModalVisible = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.mixingModalVisible;
+export const selectMixingModalVisible = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.mixingModalVisible;
 
 /**
  * Select if recording
  */
-export const selectIsRecording = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.isRecording;
+export const selectIsRecording = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.isRecording;
 
 /**
  * Select if mixing
  */
-export const selectIsMixing = (state: ReturnType<typeof useUIStore.getState>) => state.isMixing;
+export const selectIsMixing = (state: ReturnType<typeof useUIStore.getState>) =>
+  state.isMixing;
 
 /**
  * Select mixing progress
  */
-export const selectMixingProgress = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.mixingProgress;
+export const selectMixingProgress = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.mixingProgress;
 
 /**
  * Select if any loading operation is active
  */
-export const selectIsAnyLoading = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.isLoading || state.isRecording || state.isMixing;
+export const selectIsAnyLoading = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.isLoading || state.isRecording || state.isMixing;
 
 /**
  * Select error message
  */
-export const selectErrorMessage = (state: ReturnType<typeof useUIStore.getState>) =>
-  state.errorMessage;
+export const selectErrorMessage = (
+  state: ReturnType<typeof useUIStore.getState>,
+) => state.errorMessage;
 
 // ============================================================================
 // Compound Selectors (combine multiple stores)

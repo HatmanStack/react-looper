@@ -1,48 +1,48 @@
-import { MD3DarkTheme } from 'react-native-paper';
+import { MD3DarkTheme } from "react-native-paper";
 
 /**
- * Custom dark theme for React Native Paper matching Android app aesthetic
+ * Custom dark theme for React Native Paper matching Android Looper app
  *
- * Color choices:
- * - Primary (#BB86FC): Material Design dark theme purple - used for primary actions and emphasis
- * - Background (#121212): Deep dark background for OLED-friendly dark mode
- * - Surface (#1E1E1E): Elevated surfaces like cards and modals
- * - Error (#CF6679): Material Design dark error color
+ * Color choices (from android-looper/app/src/main/res/values/colors.xml):
+ * - Primary (#3F51B5): Indigo blue - used for primary actions and emphasis
+ * - Accent (#FA2818): Red - used for record button and important actions
+ * - Background (#423939): Dark brown/gray - main app background
+ * - Primary Background (#EF5555): Coral red - used for highlighted surfaces
  *
  * Based on Material Design 3 Dark Theme with customizations
- * to match the original Looper Android app visual design
+ * to match the original Android Looper app visual design
  */
 export const looperTheme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    // Primary brand color - purple accent
-    primary: '#BB86FC',
-    primaryContainer: '#3700B3',
-    onPrimary: '#000000',
-    onPrimaryContainer: '#FFFFFF',
+    // Primary brand color - indigo blue from Android app
+    primary: "#3F51B5",
+    primaryContainer: "#3F51B5",
+    onPrimary: "#FFFFFF",
+    onPrimaryContainer: "#FFFFFF",
 
-    // Background and surfaces
-    background: '#121212',
-    onBackground: '#E1E1E1',
-    surface: '#1E1E1E',
-    onSurface: '#E1E1E1',
-    surfaceVariant: '#2C2C2C',
-    onSurfaceVariant: '#CACACA',
+    // Background and surfaces - dark brown/gray from Android app
+    background: "#423939",
+    onBackground: "#FFFFFF",
+    surface: "#423939",
+    onSurface: "#FFFFFF",
+    surfaceVariant: "#524949",
+    onSurfaceVariant: "#E1E1E1",
 
-    // Error states
-    error: '#CF6679',
-    onError: '#000000',
-    errorContainer: '#93000A',
-    onErrorContainer: '#FFDAD6',
+    // Error/Accent states - red from Android app
+    error: "#FA2818",
+    onError: "#FFFFFF",
+    errorContainer: "#EF5555",
+    onErrorContainer: "#FFFFFF",
 
     // Outline and borders
-    outline: '#938F99',
-    outlineVariant: '#49454F',
+    outline: "#938F99",
+    outlineVariant: "#6A5F5F",
 
-    // Other accents
-    secondary: '#03DAC6',
-    tertiary: '#03DAC6',
+    // Other accents - using teal from Android app
+    secondary: "#03DAC5",
+    tertiary: "#03DAC5",
   },
   // Round corners for modern Material Design
   roundness: 8,

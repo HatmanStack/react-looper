@@ -5,7 +5,7 @@
  * Platform-specific implementations (web and native) must implement this interface.
  */
 
-import { RecordingOptions } from '../../../types/audio';
+import { RecordingOptions } from "../../../types/audio";
 
 export interface IAudioRecorder {
   /**

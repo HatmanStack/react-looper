@@ -2,40 +2,54 @@
  * MainScreen Styles
  *
  * StyleSheet for MainScreen component matching Android layout:
- * - Dark background
+ * - Dark brown/gray background (#423939) from Android app
  * - Flexbox layout with three sections
- * - Responsive button sizing
+ * - Responsive layout for large screens
  */
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import {
+  getMaxContentWidth,
+  isDesktop,
+  getSpacing,
+} from "../../utils/responsive";
+
+const maxWidth = getMaxContentWidth();
+const isLargeScreen = isDesktop();
 
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212', // Match theme background
+    backgroundColor: "#423939", // Match Android app background
   },
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: "#423939",
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: isLargeScreen ? maxWidth : "100%",
   },
   topControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 16,
-    backgroundColor: 'transparent',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("sm"),
+    paddingVertical: getSpacing("md"),
+    backgroundColor: "transparent",
+    gap: isLargeScreen ? 16 : 8,
   },
   bottomControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 16,
-    backgroundColor: 'transparent',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("sm"),
+    paddingVertical: getSpacing("md"),
+    backgroundColor: "transparent",
+    gap: isLargeScreen ? 16 : 8,
   },
   trackListContainer: {
     flex: 1,
-    backgroundColor: '#1E1E1E', // Surface color from theme
+    backgroundColor: "#423939", // Match Android app background
+    paddingHorizontal: isLargeScreen ? getSpacing("md") : 0,
   },
 });

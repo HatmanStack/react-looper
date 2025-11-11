@@ -5,10 +5,10 @@
  * Uses React Native Paper Portal and Modal for overlay
  */
 
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import { Portal, Modal, TextInput, Button, Text } from 'react-native-paper';
-import { styles } from './SaveModal.styles';
+import React, { useState } from "react";
+import { View } from "react-native";
+import { Portal, Modal, TextInput, Button, Text } from "react-native-paper";
+import { styles } from "./SaveModal.styles";
 
 export interface SaveModalProps {
   visible: boolean;
@@ -25,21 +25,21 @@ export const SaveModal: React.FC<SaveModalProps> = ({
   onDismiss,
   onSave,
 }) => {
-  const [filename, setFilename] = useState('');
-  const [error, setError] = useState('');
+  const [filename, setFilename] = useState("");
+  const [error, setError] = useState("");
 
   const sanitizeFilename = (input: string): string => {
     // Remove invalid characters for filenames
-    return input.replace(/[<>:"/\\|?*]/g, '').trim();
+    return input.replace(/[<>:"/\\|?*]/g, "").trim();
   };
 
   const validateFilename = (input: string): boolean => {
     const sanitized = sanitizeFilename(input);
     if (!sanitized) {
-      setError('Filename cannot be empty');
+      setError("Filename cannot be empty");
       return false;
     }
-    setError('');
+    setError("");
     return true;
   };
 
@@ -48,22 +48,26 @@ export const SaveModal: React.FC<SaveModalProps> = ({
       const sanitized = sanitizeFilename(filename);
       onSave(sanitized);
       // Reset state on successful save
-      setFilename('');
-      setError('');
+      setFilename("");
+      setError("");
       onDismiss();
     }
   };
 
   const handleCancel = () => {
     // Reset state on cancel
-    setFilename('');
-    setError('');
+    setFilename("");
+    setError("");
     onDismiss();
   };
 
   return (
     <Portal>
-      <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modalContainer}>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={styles.modalContainer}
+      >
         <View style={styles.content}>
           {/* Track Label */}
           {trackNumber !== undefined && (

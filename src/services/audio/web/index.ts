@@ -4,23 +4,25 @@
  * Registers web-specific audio service implementations.
  */
 
-import { registerAudioServices } from '../AudioServiceFactory';
-import { WebAudioRecorder } from '../WebAudioRecorder';
-import { MockAudioPlayer } from '../mock/MockAudioPlayer';
-import { MockAudioMixer } from '../mock/MockAudioMixer';
-import { MockFileManager } from '../mock/MockFileManager';
+import { registerAudioServices } from "../AudioServiceFactory";
+import { WebAudioRecorder } from "../WebAudioRecorder";
+import { WebAudioPlayer } from "../WebAudioPlayer";
+import { WebAudioMixer } from "../WebAudioMixer";
+import { MockFileManager } from "../mock/MockFileManager";
 
 /**
  * Register web audio services
- * Note: Player and Mixer use mocks for now (will be implemented in Phase 5 & 6)
+ * All services now use Web Audio API implementations
  */
 export function initializeWebAudioServices(): void {
-  registerAudioServices('web', {
+  registerAudioServices("web", {
     recorder: WebAudioRecorder,
-    player: MockAudioPlayer,
-    mixer: MockAudioMixer,
+    player: WebAudioPlayer,
+    mixer: WebAudioMixer,
     fileManager: MockFileManager,
   });
 
-  console.log('[WebAudioServices] Initialized web audio services');
+  console.log(
+    "[WebAudioServices] Initialized web audio services with Web Audio API",
+  );
 }

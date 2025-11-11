@@ -8,7 +8,11 @@
  * This is a new feature not present in the Android app.
  */
 
-import { MixerTrackInput, ProgressCallback, MixingOptions } from '../../../types/audio';
+import {
+  MixerTrackInput,
+  ProgressCallback,
+  MixingOptions,
+} from "../../../types/audio";
 
 export interface IAudioMixer {
   /**
@@ -34,7 +38,7 @@ export interface IAudioMixer {
   mixTracks(
     tracks: MixerTrackInput[],
     outputPath: string,
-    options?: MixingOptions
+    options?: MixingOptions,
   ): Promise<string>;
 
   /**

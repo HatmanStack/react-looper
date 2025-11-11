@@ -5,7 +5,7 @@
  * Handles modals, dialogs, loading states, and error messages.
  */
 
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface UIStore {
   // Modal state
@@ -66,7 +66,8 @@ export const useUIStore = create<UIStore>((set) => ({
   hideSaveModal: () => set({ saveModalVisible: false }),
   showMixingModal: () => set({ mixingModalVisible: true }),
   hideMixingModal: () => set({ mixingModalVisible: false }),
-  setSelectedTrack: (trackId: string | null) => set({ selectedTrackId: trackId }),
+  setSelectedTrack: (trackId: string | null) =>
+    set({ selectedTrackId: trackId }),
 
   // Loading state actions
   setRecording: (isRecording: boolean) => set({ isRecording }),

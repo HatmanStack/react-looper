@@ -5,16 +5,16 @@
  * Supports primary and secondary button styles with disabled states
  */
 
-import React from 'react';
-import { Button } from 'react-native-paper';
-import { styles } from './ActionButton.styles';
+import React from "react";
+import { Button } from "react-native-paper";
+import { styles } from "./ActionButton.styles";
 
 export interface ActionButtonProps {
   label: string;
   icon?: string;
   onPress: () => void;
   disabled?: boolean;
-  mode?: 'contained' | 'outlined' | 'text';
+  mode?: "contained" | "outlined" | "text";
   style?: object;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -25,7 +25,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
   onPress,
   disabled = false,
-  mode = 'contained',
+  mode = "contained",
   style,
   accessibilityLabel,
   accessibilityHint,

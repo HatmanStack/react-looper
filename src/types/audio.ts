@@ -9,19 +9,19 @@
  * Supported audio formats
  */
 export enum AudioFormat {
-  MP3 = 'mp3',
-  WAV = 'wav',
-  M4A = 'm4a',
-  THREE_GPP = '3gpp',
+  MP3 = "mp3",
+  WAV = "wav",
+  M4A = "m4a",
+  THREE_GPP = "3gpp",
 }
 
 /**
  * Audio quality presets
  */
 export enum AudioQuality {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
 }
 
 /**
@@ -195,12 +195,12 @@ export interface MixingOptions {
  * Audio error codes
  */
 export enum AudioErrorCode {
-  PERMISSION_DENIED = 'PERMISSION_DENIED',
-  RECORDING_FAILED = 'RECORDING_FAILED',
-  PLAYBACK_FAILED = 'PLAYBACK_FAILED',
-  MIXING_FAILED = 'MIXING_FAILED',
-  FILE_NOT_FOUND = 'FILE_NOT_FOUND',
-  INVALID_FORMAT = 'INVALID_FORMAT',
-  RESOURCE_UNAVAILABLE = 'RESOURCE_UNAVAILABLE',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  PERMISSION_DENIED = "PERMISSION_DENIED",
+  RECORDING_FAILED = "RECORDING_FAILED",
+  PLAYBACK_FAILED = "PLAYBACK_FAILED",
+  MIXING_FAILED = "MIXING_FAILED",
+  FILE_NOT_FOUND = "FILE_NOT_FOUND",
+  INVALID_FORMAT = "INVALID_FORMAT",
+  RESOURCE_UNAVAILABLE = "RESOURCE_UNAVAILABLE",
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }

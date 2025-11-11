@@ -2,16 +2,16 @@
  * UI Store Tests
  */
 
-import { useUIStore } from '../../../src/store/useUIStore';
+import { useUIStore } from "../../../src/store/useUIStore";
 
-describe('useUIStore', () => {
+describe("useUIStore", () => {
   beforeEach(() => {
     // Reset store before each test
     useUIStore.getState().reset();
   });
 
-  describe('modal state', () => {
-    it('should show save modal', () => {
+  describe("modal state", () => {
+    it("should show save modal", () => {
       const store = useUIStore.getState();
 
       expect(store.saveModalVisible).toBe(false);
@@ -21,7 +21,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().saveModalVisible).toBe(true);
     });
 
-    it('should hide save modal', () => {
+    it("should hide save modal", () => {
       const store = useUIStore.getState();
 
       store.showSaveModal();
@@ -32,7 +32,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().saveModalVisible).toBe(false);
     });
 
-    it('should show mixing modal', () => {
+    it("should show mixing modal", () => {
       const store = useUIStore.getState();
 
       expect(store.mixingModalVisible).toBe(false);
@@ -42,7 +42,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingModalVisible).toBe(true);
     });
 
-    it('should hide mixing modal', () => {
+    it("should hide mixing modal", () => {
       const store = useUIStore.getState();
 
       store.showMixingModal();
@@ -53,7 +53,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingModalVisible).toBe(false);
     });
 
-    it('should handle multiple modals independently', () => {
+    it("should handle multiple modals independently", () => {
       const store = useUIStore.getState();
 
       store.showSaveModal();
@@ -71,40 +71,40 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('selected track', () => {
-    it('should set selected track', () => {
+  describe("selected track", () => {
+    it("should set selected track", () => {
       const store = useUIStore.getState();
 
-      store.setSelectedTrack('track-123');
+      store.setSelectedTrack("track-123");
 
-      expect(useUIStore.getState().selectedTrackId).toBe('track-123');
+      expect(useUIStore.getState().selectedTrackId).toBe("track-123");
     });
 
-    it('should clear selected track', () => {
+    it("should clear selected track", () => {
       const store = useUIStore.getState();
 
-      store.setSelectedTrack('track-123');
-      expect(useUIStore.getState().selectedTrackId).toBe('track-123');
+      store.setSelectedTrack("track-123");
+      expect(useUIStore.getState().selectedTrackId).toBe("track-123");
 
       store.setSelectedTrack(null);
 
       expect(useUIStore.getState().selectedTrackId).toBeNull();
     });
 
-    it('should update selected track', () => {
+    it("should update selected track", () => {
       const store = useUIStore.getState();
 
-      store.setSelectedTrack('track-1');
-      expect(useUIStore.getState().selectedTrackId).toBe('track-1');
+      store.setSelectedTrack("track-1");
+      expect(useUIStore.getState().selectedTrackId).toBe("track-1");
 
-      store.setSelectedTrack('track-2');
+      store.setSelectedTrack("track-2");
 
-      expect(useUIStore.getState().selectedTrackId).toBe('track-2');
+      expect(useUIStore.getState().selectedTrackId).toBe("track-2");
     });
   });
 
-  describe('loading states', () => {
-    it('should set recording state', () => {
+  describe("loading states", () => {
+    it("should set recording state", () => {
       const store = useUIStore.getState();
 
       expect(store.isRecording).toBe(false);
@@ -116,7 +116,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().isRecording).toBe(false);
     });
 
-    it('should set mixing state', () => {
+    it("should set mixing state", () => {
       const store = useUIStore.getState();
 
       expect(store.isMixing).toBe(false);
@@ -128,7 +128,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().isMixing).toBe(false);
     });
 
-    it('should set loading state', () => {
+    it("should set loading state", () => {
       const store = useUIStore.getState();
 
       expect(store.isLoading).toBe(false);
@@ -140,7 +140,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().isLoading).toBe(false);
     });
 
-    it('should handle multiple loading states independently', () => {
+    it("should handle multiple loading states independently", () => {
       const store = useUIStore.getState();
 
       store.setRecording(true);
@@ -161,8 +161,8 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('mixing progress', () => {
-    it('should set mixing progress', () => {
+  describe("mixing progress", () => {
+    it("should set mixing progress", () => {
       const store = useUIStore.getState();
 
       expect(store.mixingProgress).toBe(0);
@@ -172,7 +172,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingProgress).toBe(0.5);
     });
 
-    it('should clamp progress to 0-1 range', () => {
+    it("should clamp progress to 0-1 range", () => {
       const store = useUIStore.getState();
 
       // Test negative values
@@ -188,7 +188,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingProgress).toBe(0.75);
     });
 
-    it('should handle edge cases', () => {
+    it("should handle edge cases", () => {
       const store = useUIStore.getState();
 
       store.setMixingProgress(0);
@@ -198,7 +198,7 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingProgress).toBe(1);
     });
 
-    it('should update progress incrementally', () => {
+    it("should update progress incrementally", () => {
       const store = useUIStore.getState();
 
       for (let i = 0; i <= 10; i++) {
@@ -208,44 +208,44 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should set error message', () => {
+  describe("error handling", () => {
+    it("should set error message", () => {
       const store = useUIStore.getState();
 
       expect(store.errorMessage).toBeNull();
 
-      store.setError('Something went wrong');
+      store.setError("Something went wrong");
 
-      expect(useUIStore.getState().errorMessage).toBe('Something went wrong');
+      expect(useUIStore.getState().errorMessage).toBe("Something went wrong");
     });
 
-    it('should clear error message', () => {
+    it("should clear error message", () => {
       const store = useUIStore.getState();
 
-      store.setError('Error message');
-      expect(useUIStore.getState().errorMessage).toBe('Error message');
+      store.setError("Error message");
+      expect(useUIStore.getState().errorMessage).toBe("Error message");
 
       store.clearError();
 
       expect(useUIStore.getState().errorMessage).toBeNull();
     });
 
-    it('should update error message', () => {
+    it("should update error message", () => {
       const store = useUIStore.getState();
 
-      store.setError('First error');
-      expect(useUIStore.getState().errorMessage).toBe('First error');
+      store.setError("First error");
+      expect(useUIStore.getState().errorMessage).toBe("First error");
 
-      store.setError('Second error');
+      store.setError("Second error");
 
-      expect(useUIStore.getState().errorMessage).toBe('Second error');
+      expect(useUIStore.getState().errorMessage).toBe("Second error");
     });
 
-    it('should allow setting error to null', () => {
+    it("should allow setting error to null", () => {
       const store = useUIStore.getState();
 
-      store.setError('Error');
-      expect(useUIStore.getState().errorMessage).toBe('Error');
+      store.setError("Error");
+      expect(useUIStore.getState().errorMessage).toBe("Error");
 
       store.setError(null);
 
@@ -253,30 +253,30 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('store reset', () => {
-    it('should reset all state to initial values', () => {
+  describe("store reset", () => {
+    it("should reset all state to initial values", () => {
       const store = useUIStore.getState();
 
       // Set all values to non-default
       store.showSaveModal();
       store.showMixingModal();
-      store.setSelectedTrack('track-123');
+      store.setSelectedTrack("track-123");
       store.setRecording(true);
       store.setMixing(true);
       store.setLoading(true);
       store.setMixingProgress(0.75);
-      store.setError('Test error');
+      store.setError("Test error");
 
       // Verify state changed
       let state = useUIStore.getState();
       expect(state.saveModalVisible).toBe(true);
       expect(state.mixingModalVisible).toBe(true);
-      expect(state.selectedTrackId).toBe('track-123');
+      expect(state.selectedTrackId).toBe("track-123");
       expect(state.isRecording).toBe(true);
       expect(state.isMixing).toBe(true);
       expect(state.isLoading).toBe(true);
       expect(state.mixingProgress).toBe(0.75);
-      expect(state.errorMessage).toBe('Test error');
+      expect(state.errorMessage).toBe("Test error");
 
       // Reset
       store.reset();
@@ -293,7 +293,7 @@ describe('useUIStore', () => {
       expect(state.errorMessage).toBeNull();
     });
 
-    it('should allow normal operations after reset', () => {
+    it("should allow normal operations after reset", () => {
       const store = useUIStore.getState();
 
       store.showSaveModal();
@@ -312,8 +312,8 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle rapid state changes', () => {
+  describe("edge cases", () => {
+    it("should handle rapid state changes", () => {
       const store = useUIStore.getState();
 
       for (let i = 0; i < 100; i++) {
@@ -330,7 +330,7 @@ describe('useUIStore', () => {
       expect(state.mixingProgress).toBe(0.99);
     });
 
-    it('should handle concurrent modal operations', () => {
+    it("should handle concurrent modal operations", () => {
       const store = useUIStore.getState();
 
       // Open both modals
@@ -348,17 +348,17 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().mixingModalVisible).toBe(false);
     });
 
-    it('should handle empty string as error message', () => {
+    it("should handle empty string as error message", () => {
       const store = useUIStore.getState();
 
-      store.setError('');
+      store.setError("");
 
-      expect(useUIStore.getState().errorMessage).toBe('');
+      expect(useUIStore.getState().errorMessage).toBe("");
     });
   });
 
-  describe('typical user flows', () => {
-    it('should handle recording flow', () => {
+  describe("typical user flows", () => {
+    it("should handle recording flow", () => {
       const store = useUIStore.getState();
 
       // Start recording
@@ -382,7 +382,7 @@ describe('useUIStore', () => {
       expect(state.isLoading).toBe(false);
     });
 
-    it('should handle mixing flow', () => {
+    it("should handle mixing flow", () => {
       const store = useUIStore.getState();
 
       // Start mixing
@@ -414,12 +414,12 @@ describe('useUIStore', () => {
       expect(state.mixingProgress).toBe(1);
     });
 
-    it('should handle error flow', () => {
+    it("should handle error flow", () => {
       const store = useUIStore.getState();
 
       // Set error
-      store.setError('Recording failed');
-      expect(useUIStore.getState().errorMessage).toBe('Recording failed');
+      store.setError("Recording failed");
+      expect(useUIStore.getState().errorMessage).toBe("Recording failed");
 
       // User dismisses error
       store.clearError();

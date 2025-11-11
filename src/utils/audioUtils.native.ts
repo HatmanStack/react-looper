@@ -4,11 +4,11 @@
  * Native-specific audio utility functions using expo-av.
  */
 
-import { Audio } from 'expo-av';
-import { AudioError } from '../services/audio/AudioError';
-import { AudioErrorCode } from '../types/audio';
+import { Audio } from "expo-av";
+import { AudioError } from "../services/audio/AudioError";
+import { AudioErrorCode } from "../types/audio";
 
-export * from './audioUtils';
+export * from "./audioUtils";
 
 export interface AudioMetadata {
   duration: number; // in milliseconds
@@ -30,7 +30,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
       { uri },
       { shouldPlay: false },
       undefined,
-      false
+      false,
     );
 
     sound = loadedSound;
@@ -41,8 +41,8 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
     if (!status.isLoaded) {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
-        'Failed to load audio',
-        'Could not read audio file information.'
+        "Failed to load audio",
+        "Could not read audio file information.",
       );
     }
 
@@ -59,7 +59,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
     if (sound) {
       try {
         await sound.unloadAsync();
-      } catch (unloadError) {
+      } catch (_unloadError) {
         // Ignore unload errors
       }
     }
@@ -71,7 +71,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
     throw new AudioError(
       AudioErrorCode.INVALID_FORMAT,
       `Failed to get audio metadata: ${(error as Error).message}`,
-      'Could not read audio file information.'
+      "Could not read audio file information.",
     );
   }
 }
@@ -83,7 +83,7 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
   try {
     await getAudioMetadata(uri);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

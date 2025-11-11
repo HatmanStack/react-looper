@@ -5,13 +5,13 @@
  * No actual file I/O occurs - uses in-memory storage simulation.
  */
 
-import { IFileManager, FileInfo } from '../interfaces/IFileManager';
-import { AudioFormat } from '../../../types/audio';
+import { IFileManager, FileInfo } from "../interfaces/IFileManager";
+import { AudioFormat } from "../../../types/audio";
 import {
   generateMockUri,
   getMockFileSize,
   MOCK_AUDIO_URIS,
-} from '../../../../__tests__/__fixtures__/mockAudioData';
+} from "../../../mocks/mockAudioData";
 
 export class MockFileManager implements IFileManager {
   // In-memory "file system"
@@ -36,14 +36,20 @@ export class MockFileManager implements IFileManager {
       });
     });
 
-    console.log(`[MockFileManager] Initialized with ${this.files.size} mock files`);
+    console.log(
+      `[MockFileManager] Initialized with ${this.files.size} mock files`,
+    );
   }
 
   /**
    * Save audio file (mock implementation)
    */
-  async saveAudioFile(data: any, filename: string, format: AudioFormat): Promise<string> {
-    console.log('[MockFileManager] Saving audio file:', filename, format);
+  async saveAudioFile(
+    data: any,
+    filename: string,
+    format: AudioFormat,
+  ): Promise<string> {
+    console.log("[MockFileManager] Saving audio file:", filename, format);
 
     await this.delay(100);
 
@@ -68,14 +74,17 @@ export class MockFileManager implements IFileManager {
    * Delete audio file
    */
   async deleteAudioFile(uri: string): Promise<boolean> {
-    console.log('[MockFileManager] Deleting file:', uri);
+    console.log("[MockFileManager] Deleting file:", uri);
 
     await this.delay(50);
 
     const existed = this.files.has(uri);
     this.files.delete(uri);
 
-    console.log(`[MockFileManager] File ${existed ? 'deleted' : 'not found'}:`, uri);
+    console.log(
+      `[MockFileManager] File ${existed ? "deleted" : "not found"}:`,
+      uri,
+    );
     return existed;
   }
 
@@ -83,11 +92,16 @@ export class MockFileManager implements IFileManager {
    * Copy to app storage
    */
   async copyToAppStorage(sourceUri: string, filename: string): Promise<string> {
-    console.log('[MockFileManager] Copying to app storage:', sourceUri, '->', filename);
+    console.log(
+      "[MockFileManager] Copying to app storage:",
+      sourceUri,
+      "->",
+      filename,
+    );
 
     await this.delay(150);
 
-    const format = sourceUri.split('.').pop() || 'mp3';
+    const format = sourceUri.split(".").pop() || "mp3";
     const destUri = `mock://audio/${filename}.${format}`;
 
     // Copy file data if source exists
@@ -117,12 +131,20 @@ export class MockFileManager implements IFileManager {
   /**
    * Export to external storage
    */
-  async exportToExternalStorage(uri: string, filename: string): Promise<string> {
-    console.log('[MockFileManager] Exporting to external storage:', uri, '->', filename);
+  async exportToExternalStorage(
+    uri: string,
+    filename: string,
+  ): Promise<string> {
+    console.log(
+      "[MockFileManager] Exporting to external storage:",
+      uri,
+      "->",
+      filename,
+    );
 
     await this.delay(200);
 
-    const format = uri.split('.').pop() || 'mp3';
+    const format = uri.split(".").pop() || "mp3";
     const exportUri = `mock://external/${filename}.${format}`;
 
     console.log(`[MockFileManager] File exported: ${exportUri}`);
@@ -162,7 +184,7 @@ export class MockFileManager implements IFileManager {
       throw new Error(`File not found: ${uri}`);
     }
 
-    const extension = uri.split('.').pop() || '';
+    const extension = uri.split(".").pop() || "";
 
     return {
       uri: file.uri,
@@ -179,12 +201,12 @@ export class MockFileManager implements IFileManager {
    * List all audio files
    */
   async listAudioFiles(): Promise<string[]> {
-    console.log('[MockFileManager] Listing audio files');
+    console.log("[MockFileManager] Listing audio files");
 
     await this.delay(50);
 
     const uris = Array.from(this.files.keys()).filter(
-      (uri) => uri.startsWith('mock://audio/') && !uri.includes('/temp-')
+      (uri) => uri.startsWith("mock://audio/") && !uri.includes("/temp-"),
     );
 
     console.log(`[MockFileManager] Found ${uris.length} audio files`);
@@ -205,25 +227,29 @@ export class MockFileManager implements IFileManager {
    * Clean up temporary files
    */
   async cleanupTempFiles(): Promise<void> {
-    console.log('[MockFileManager] Cleaning up temporary files');
+    console.log("[MockFileManager] Cleaning up temporary files");
 
     await this.delay(100);
 
     // Remove files with "temp" in the URI
-    const tempFiles = Array.from(this.files.keys()).filter((uri) => uri.includes('/temp-'));
+    const tempFiles = Array.from(this.files.keys()).filter((uri) =>
+      uri.includes("/temp-"),
+    );
 
     tempFiles.forEach((uri) => {
       this.files.delete(uri);
     });
 
-    console.log(`[MockFileManager] Cleaned up ${tempFiles.length} temporary files`);
+    console.log(
+      `[MockFileManager] Cleaned up ${tempFiles.length} temporary files`,
+    );
   }
 
   /**
    * Generate unique filename
    */
   generateUniqueFilename(prefix?: string, format?: AudioFormat): string {
-    const finalPrefix = prefix || 'audio';
+    const finalPrefix = prefix || "audio";
     const finalFormat = format || AudioFormat.MP3;
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 1000);

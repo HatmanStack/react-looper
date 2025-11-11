@@ -2,13 +2,13 @@
  * MultiTrackManager Tests
  */
 
-import { MultiTrackManager } from '../../../src/services/audio/MultiTrackManager';
-import { WebAudioPlayer } from '../../../src/services/audio/WebAudioPlayer';
+import { MultiTrackManager } from "../../../src/services/audio/MultiTrackManager";
+import { WebAudioPlayer } from "../../../src/services/audio/WebAudioPlayer";
 
 // Mock the audio players
-jest.mock('../../../src/services/audio/WebAudioPlayer');
+jest.mock("../../../src/services/audio/WebAudioPlayer");
 
-describe('MultiTrackManager', () => {
+describe("MultiTrackManager", () => {
   let manager: MultiTrackManager;
   let mockPlayer1: jest.Mocked<WebAudioPlayer>;
   let mockPlayer2: jest.Mocked<WebAudioPlayer>;
@@ -48,15 +48,15 @@ describe('MultiTrackManager', () => {
     mockPlayer3.setPosition = jest.fn().mockResolvedValue(undefined);
   });
 
-  describe('track management', () => {
-    it('should add track to manager', () => {
+  describe("track management", () => {
+    it("should add track to manager", () => {
       const trackId = manager.addTrack(mockPlayer1);
 
       expect(trackId).toBeDefined();
       expect(manager.getTrackCount()).toBe(1);
     });
 
-    it('should add multiple tracks', () => {
+    it("should add multiple tracks", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
       manager.addTrack(mockPlayer3);
@@ -64,7 +64,7 @@ describe('MultiTrackManager', () => {
       expect(manager.getTrackCount()).toBe(3);
     });
 
-    it('should remove track by ID', () => {
+    it("should remove track by ID", () => {
       const trackId = manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -73,7 +73,7 @@ describe('MultiTrackManager', () => {
       expect(manager.getTrackCount()).toBe(1);
     });
 
-    it('should get player by track ID', () => {
+    it("should get player by track ID", () => {
       const trackId = manager.addTrack(mockPlayer1);
 
       const player = manager.getPlayer(trackId);
@@ -81,13 +81,13 @@ describe('MultiTrackManager', () => {
       expect(player).toBe(mockPlayer1);
     });
 
-    it('should return null for invalid track ID', () => {
-      const player = manager.getPlayer('invalid-id');
+    it("should return null for invalid track ID", () => {
+      const player = manager.getPlayer("invalid-id");
 
       expect(player).toBeNull();
     });
 
-    it('should clear all tracks', () => {
+    it("should clear all tracks", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
       manager.addTrack(mockPlayer3);
@@ -98,8 +98,8 @@ describe('MultiTrackManager', () => {
     });
   });
 
-  describe('synchronized playback', () => {
-    it('should play all tracks simultaneously', async () => {
+  describe("synchronized playback", () => {
+    it("should play all tracks simultaneously", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -109,7 +109,7 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.play).toHaveBeenCalled();
     });
 
-    it('should pause all tracks simultaneously', async () => {
+    it("should pause all tracks simultaneously", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -122,7 +122,7 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.pause).toHaveBeenCalled();
     });
 
-    it('should stop all tracks simultaneously', async () => {
+    it("should stop all tracks simultaneously", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -132,7 +132,7 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.stop).toHaveBeenCalled();
     });
 
-    it('should return true when any track is playing', () => {
+    it("should return true when any track is playing", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -142,7 +142,7 @@ describe('MultiTrackManager', () => {
       expect(manager.isPlaying()).toBe(true);
     });
 
-    it('should return false when no tracks are playing', () => {
+    it("should return false when no tracks are playing", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -153,8 +153,8 @@ describe('MultiTrackManager', () => {
     });
   });
 
-  describe('playback position', () => {
-    it('should get average position across all tracks', async () => {
+  describe("playback position", () => {
+    it("should get average position across all tracks", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -166,7 +166,7 @@ describe('MultiTrackManager', () => {
       expect(position).toBe(1100); // Average: (1000 + 1200) / 2
     });
 
-    it('should set position on all tracks', async () => {
+    it("should set position on all tracks", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -176,15 +176,15 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.setPosition).toHaveBeenCalledWith(5000);
     });
 
-    it('should return 0 when no tracks exist', async () => {
+    it("should return 0 when no tracks exist", async () => {
       const position = await manager.getPosition();
 
       expect(position).toBe(0);
     });
   });
 
-  describe('adding tracks during playback', () => {
-    it('should sync new track to current position when added during playback', async () => {
+  describe("adding tracks during playback", () => {
+    it("should sync new track to current position when added during playback", async () => {
       // Add first track and start playback
       manager.addTrack(mockPlayer1);
       mockPlayer1.isPlaying.mockReturnValue(true);
@@ -198,7 +198,7 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.play).toHaveBeenCalled();
     });
 
-    it('should not auto-play new track if manager is not playing', async () => {
+    it("should not auto-play new track if manager is not playing", async () => {
       manager.addTrack(mockPlayer1);
       mockPlayer1.isPlaying.mockReturnValue(false);
 
@@ -208,8 +208,8 @@ describe('MultiTrackManager', () => {
     });
   });
 
-  describe('synchronization drift', () => {
-    it('should detect when tracks are out of sync', async () => {
+  describe("synchronization drift", () => {
+    it("should detect when tracks are out of sync", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -222,7 +222,7 @@ describe('MultiTrackManager', () => {
       expect(drift).toBe(1000); // Max drift between tracks
     });
 
-    it('should return 0 drift when tracks are in sync', async () => {
+    it("should return 0 drift when tracks are in sync", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -234,7 +234,7 @@ describe('MultiTrackManager', () => {
       expect(drift).toBe(10);
     });
 
-    it('should resync tracks when drift is detected', async () => {
+    it("should resync tracks when drift is detected", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -250,12 +250,12 @@ describe('MultiTrackManager', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should continue if one track fails to play', async () => {
+  describe("error handling", () => {
+    it("should continue if one track fails to play", async () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
-      mockPlayer1.play.mockRejectedValue(new Error('Playback failed'));
+      mockPlayer1.play.mockRejectedValue(new Error("Playback failed"));
 
       await manager.playAll();
 
@@ -263,13 +263,13 @@ describe('MultiTrackManager', () => {
       expect(mockPlayer2.play).toHaveBeenCalled();
     });
 
-    it('should handle missing players gracefully', () => {
-      expect(() => manager.removeTrack('invalid-id')).not.toThrow();
+    it("should handle missing players gracefully", () => {
+      expect(() => manager.removeTrack("invalid-id")).not.toThrow();
     });
   });
 
-  describe('track state', () => {
-    it('should report all tracks loaded when all are ready', () => {
+  describe("track state", () => {
+    it("should report all tracks loaded when all are ready", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -279,7 +279,7 @@ describe('MultiTrackManager', () => {
       expect(manager.allTracksLoaded()).toBe(true);
     });
 
-    it('should report not all loaded when any track is not ready', () => {
+    it("should report not all loaded when any track is not ready", () => {
       manager.addTrack(mockPlayer1);
       manager.addTrack(mockPlayer2);
 
@@ -289,7 +289,7 @@ describe('MultiTrackManager', () => {
       expect(manager.allTracksLoaded()).toBe(false);
     });
 
-    it('should return true for empty manager', () => {
+    it("should return true for empty manager", () => {
       expect(manager.allTracksLoaded()).toBe(true);
     });
   });

@@ -4,19 +4,19 @@
  * Tests for platform detection and service factory
  */
 
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 import {
   AudioServiceFactory,
   registerAudioServices,
   getAudioService,
   isAudioServiceAvailable,
-} from '../../../src/services/audio/AudioServiceFactory';
-import { MockAudioRecorder } from '../../../src/services/audio/mock/MockAudioRecorder';
-import { MockAudioPlayer } from '../../../src/services/audio/mock/MockAudioPlayer';
-import { MockAudioMixer } from '../../../src/services/audio/mock/MockAudioMixer';
-import { MockFileManager } from '../../../src/services/audio/mock/MockFileManager';
+} from "../../../src/services/audio/AudioServiceFactory";
+import { MockAudioRecorder } from "../../../src/services/audio/mock/MockAudioRecorder";
+import { MockAudioPlayer } from "../../../src/services/audio/mock/MockAudioPlayer";
+import { MockAudioMixer } from "../../../src/services/audio/mock/MockAudioMixer";
+import { MockFileManager } from "../../../src/services/audio/mock/MockFileManager";
 
-describe('AudioServiceFactory', () => {
+describe("AudioServiceFactory", () => {
   beforeEach(() => {
     // Reset factory before each test
     AudioServiceFactory.reset();
@@ -27,8 +27,8 @@ describe('AudioServiceFactory', () => {
     await AudioServiceFactory.cleanup();
   });
 
-  describe('Service Registration', () => {
-    it('registers services for platform', () => {
+  describe("Service Registration", () => {
+    it("registers services for platform", () => {
       const mockServices = {
         recorder: MockAudioRecorder,
         player: MockAudioPlayer,
@@ -36,16 +36,16 @@ describe('AudioServiceFactory', () => {
         fileManager: MockFileManager,
       };
 
-      registerAudioServices('native', mockServices);
+      registerAudioServices("native", mockServices);
 
       expect(AudioServiceFactory.hasServicesRegistered()).toBe(true);
     });
 
-    it('detects when no services are registered', () => {
+    it("detects when no services are registered", () => {
       expect(AudioServiceFactory.hasServicesRegistered()).toBe(false);
     });
 
-    it('allows re-registration of services', () => {
+    it("allows re-registration of services", () => {
       const mockServices = {
         recorder: MockAudioRecorder,
         player: MockAudioPlayer,
@@ -53,16 +53,16 @@ describe('AudioServiceFactory', () => {
         fileManager: MockFileManager,
       };
 
-      registerAudioServices('native', mockServices);
+      registerAudioServices("native", mockServices);
       expect(AudioServiceFactory.hasServicesRegistered()).toBe(true);
 
       // Re-register
-      registerAudioServices('native', mockServices);
+      registerAudioServices("native", mockServices);
       expect(AudioServiceFactory.hasServicesRegistered()).toBe(true);
     });
   });
 
-  describe('AudioService Creation', () => {
+  describe("AudioService Creation", () => {
     beforeEach(() => {
       // Register mock services for tests
       const mockServices = {
@@ -72,24 +72,24 @@ describe('AudioServiceFactory', () => {
         fileManager: MockFileManager,
       };
 
-      const platform = Platform.OS === 'web' ? 'web' : 'native';
+      const platform = Platform.OS === "web" ? "web" : "native";
       registerAudioServices(platform, mockServices);
     });
 
-    it('creates AudioService instance', () => {
+    it("creates AudioService instance", () => {
       const audioService = AudioServiceFactory.createAudioService();
       expect(audioService).toBeDefined();
       expect(audioService).toBeTruthy();
     });
 
-    it('returns singleton instance', () => {
+    it("returns singleton instance", () => {
       const audioService1 = getAudioService();
       const audioService2 = getAudioService();
 
       expect(audioService1).toBe(audioService2);
     });
 
-    it('throws error when services not registered', () => {
+    it("throws error when services not registered", () => {
       AudioServiceFactory.reset();
 
       expect(() => {
@@ -97,7 +97,7 @@ describe('AudioServiceFactory', () => {
       }).toThrow();
     });
 
-    it('creates new instance after cleanup', async () => {
+    it("creates new instance after cleanup", async () => {
       const audioService1 = getAudioService();
 
       await AudioServiceFactory.cleanup();
@@ -109,8 +109,8 @@ describe('AudioServiceFactory', () => {
     });
   });
 
-  describe('Service Availability', () => {
-    it('returns true when services are available', () => {
+  describe("Service Availability", () => {
+    it("returns true when services are available", () => {
       const mockServices = {
         recorder: MockAudioRecorder,
         player: MockAudioPlayer,
@@ -118,18 +118,18 @@ describe('AudioServiceFactory', () => {
         fileManager: MockFileManager,
       };
 
-      const platform = Platform.OS === 'web' ? 'web' : 'native';
+      const platform = Platform.OS === "web" ? "web" : "native";
       registerAudioServices(platform, mockServices);
 
       expect(isAudioServiceAvailable()).toBe(true);
     });
 
-    it('returns false when services are not available', () => {
+    it("returns false when services are not available", () => {
       expect(isAudioServiceAvailable()).toBe(false);
     });
   });
 
-  describe('Lifecycle Management', () => {
+  describe("Lifecycle Management", () => {
     beforeEach(() => {
       const mockServices = {
         recorder: MockAudioRecorder,
@@ -138,11 +138,11 @@ describe('AudioServiceFactory', () => {
         fileManager: MockFileManager,
       };
 
-      const platform = Platform.OS === 'web' ? 'web' : 'native';
+      const platform = Platform.OS === "web" ? "web" : "native";
       registerAudioServices(platform, mockServices);
     });
 
-    it('initializes service on first access', () => {
+    it("initializes service on first access", () => {
       expect(AudioServiceFactory.isServiceInitialized()).toBe(false);
 
       getAudioService();
@@ -150,7 +150,7 @@ describe('AudioServiceFactory', () => {
       expect(AudioServiceFactory.isServiceInitialized()).toBe(true);
     });
 
-    it('cleans up service instance', async () => {
+    it("cleans up service instance", async () => {
       getAudioService();
       expect(AudioServiceFactory.isServiceInitialized()).toBe(true);
 
@@ -159,7 +159,7 @@ describe('AudioServiceFactory', () => {
       expect(AudioServiceFactory.isServiceInitialized()).toBe(false);
     });
 
-    it('resets factory state', () => {
+    it("resets factory state", () => {
       getAudioService();
       expect(AudioServiceFactory.isServiceInitialized()).toBe(true);
       expect(AudioServiceFactory.hasServicesRegistered()).toBe(true);

@@ -5,12 +5,13 @@
  * Integrates with Zustand stores to pause playback and save state.
  */
 
-import { AppState, AppStateStatus } from 'react-native';
-import { usePlaybackStore } from '../../store/usePlaybackStore';
+import { AppState, AppStateStatus } from "react-native";
+import { usePlaybackStore } from "../../store/usePlaybackStore";
 
 export class LifecycleManager {
   private static instance: LifecycleManager | null = null;
-  private subscription: ReturnType<typeof AppState.addEventListener> | null = null;
+  private subscription: ReturnType<typeof AppState.addEventListener> | null =
+    null;
   private audioCleanupCallback: (() => void) | null = null;
 
   private constructor() {
@@ -32,27 +33,30 @@ export class LifecycleManager {
    */
   initialize(options?: { onAudioCleanup?: () => void }) {
     if (this.subscription) {
-      console.warn('[LifecycleManager] Already initialized');
+      console.warn("[LifecycleManager] Already initialized");
       return;
     }
 
     this.audioCleanupCallback = options?.onAudioCleanup || null;
 
     // Listen to app state changes
-    this.subscription = AppState.addEventListener('change', this.handleStateChange);
+    this.subscription = AppState.addEventListener(
+      "change",
+      this.handleStateChange,
+    );
 
-    console.log('[LifecycleManager] Initialized');
+    console.log("[LifecycleManager] Initialized");
   }
 
   /**
    * Handle app state changes
    */
   private handleStateChange = (nextAppState: AppStateStatus) => {
-    console.log('[LifecycleManager] App state changed to:', nextAppState);
+    console.log("[LifecycleManager] App state changed to:", nextAppState);
 
-    if (nextAppState === 'background' || nextAppState === 'inactive') {
+    if (nextAppState === "background" || nextAppState === "inactive") {
       this.handleBackground();
-    } else if (nextAppState === 'active') {
+    } else if (nextAppState === "active") {
       this.handleForeground();
     }
   };
@@ -61,7 +65,7 @@ export class LifecycleManager {
    * Handle app going to background
    */
   private handleBackground() {
-    console.log('[LifecycleManager] App going to background');
+    console.log("[LifecycleManager] App going to background");
 
     try {
       // Pause all playing tracks
@@ -74,9 +78,9 @@ export class LifecycleManager {
       }
 
       // State persistence happens automatically via Zustand middleware
-      console.log('[LifecycleManager] Background handling complete');
+      console.log("[LifecycleManager] Background handling complete");
     } catch (error) {
-      console.error('[LifecycleManager] Error handling background:', error);
+      console.error("[LifecycleManager] Error handling background:", error);
     }
   }
 
@@ -84,7 +88,7 @@ export class LifecycleManager {
    * Handle app coming to foreground
    */
   private handleForeground() {
-    console.log('[LifecycleManager] App coming to foreground');
+    console.log("[LifecycleManager] App coming to foreground");
 
     // State is automatically restored via Zustand persistence
     // Audio can be manually resumed by user if desired
@@ -101,7 +105,7 @@ export class LifecycleManager {
 
     this.audioCleanupCallback = null;
 
-    console.log('[LifecycleManager] Cleaned up');
+    console.log("[LifecycleManager] Cleaned up");
   }
 
   /**

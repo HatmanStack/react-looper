@@ -5,7 +5,7 @@
  * In production, this could integrate with crash reporting services
  */
 
-import { ILogger } from './logger';
+import { ILogger } from "./logger";
 
 export class NativeLogger implements ILogger {
   log(message: string, ...args: unknown[]): void {

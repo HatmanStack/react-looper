@@ -5,9 +5,13 @@
  * No actual mixing occurs - simulates progress and returns mock URI.
  */
 
-import { BaseAudioMixer } from '../BaseAudioMixer';
-import { MixerTrackInput, MixingOptions, AudioFormat } from '../../../types/audio';
-import { generateMockUri } from '../../../../__tests__/__fixtures__/mockAudioData';
+import { BaseAudioMixer } from "../BaseAudioMixer";
+import {
+  MixerTrackInput,
+  MixingOptions,
+  AudioFormat,
+} from "../../../types/audio";
+import { generateMockUri } from "../../../mocks/mockAudioData";
 
 export class MockAudioMixer extends BaseAudioMixer {
   private mixingTimer: NodeJS.Timeout | null = null;
@@ -19,11 +23,11 @@ export class MockAudioMixer extends BaseAudioMixer {
   protected async _mixTracks(
     tracks: MixerTrackInput[],
     outputPath: string,
-    options?: MixingOptions
+    options?: MixingOptions,
   ): Promise<string> {
-    console.log('[MockAudioMixer] Starting to mix', tracks.length, 'tracks');
-    console.log('[MockAudioMixer] Output path:', outputPath);
-    console.log('[MockAudioMixer] Options:', options);
+    console.log("[MockAudioMixer] Starting to mix", tracks.length, "tracks");
+    console.log("[MockAudioMixer] Output path:", outputPath);
+    console.log("[MockAudioMixer] Options:", options);
 
     // Reset progress
     this.simulatedProgress = 0;
@@ -45,7 +49,7 @@ export class MockAudioMixer extends BaseAudioMixer {
             clearInterval(this.mixingTimer);
             this.mixingTimer = null;
           }
-          reject(new Error('Mixing cancelled'));
+          reject(new Error("Mixing cancelled"));
           return;
         }
 
@@ -63,7 +67,7 @@ export class MockAudioMixer extends BaseAudioMixer {
 
           // Generate mock output URI
           const format = options?.format || AudioFormat.MP3;
-          const uri = generateMockUri('mixed', format);
+          const uri = generateMockUri("mixed", format);
 
           console.log(`[MockAudioMixer] Mixing complete: ${uri}`);
           resolve(uri);
@@ -79,7 +83,7 @@ export class MockAudioMixer extends BaseAudioMixer {
    * Simulate cancellation
    */
   protected async _cancel(): Promise<void> {
-    console.log('[MockAudioMixer] Cancelling mixing operation');
+    console.log("[MockAudioMixer] Cancelling mixing operation");
 
     if (this.mixingTimer) {
       clearInterval(this.mixingTimer);

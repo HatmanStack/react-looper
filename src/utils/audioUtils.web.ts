@@ -4,10 +4,19 @@
  * Web-specific audio utility functions using HTML5 Audio API.
  */
 
-import { AudioError } from '../services/audio/AudioError';
-import { AudioErrorCode } from '../types/audio';
+import { AudioError } from "../services/audio/AudioError";
+import { AudioErrorCode } from "../types/audio";
 
-export * from './audioUtils';
+// Re-export utility functions from base file (avoiding circular dependency)
+export {
+  getFileExtension,
+  generateUniqueFilename,
+  sanitizeFilename,
+  formatDuration,
+  formatFileSize,
+  isBlobUrl,
+  isFileUri,
+} from "./audioUtils.ts";
 
 export interface AudioMetadata {
   duration: number; // in milliseconds
@@ -42,9 +51,9 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
       reject(
         new AudioError(
           AudioErrorCode.INVALID_FORMAT,
-          'Failed to load audio metadata',
-          'Could not read audio file information.'
-        )
+          "Failed to load audio metadata",
+          "Could not read audio file information.",
+        ),
       );
     };
 
@@ -54,9 +63,9 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
       reject(
         new AudioError(
           AudioErrorCode.INVALID_FORMAT,
-          'Metadata loading timeout',
-          'Audio file took too long to load.'
-        )
+          "Metadata loading timeout",
+          "Audio file took too long to load.",
+        ),
       );
     }, 10000);
 
@@ -71,7 +80,7 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
   try {
     await getAudioMetadata(uri);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

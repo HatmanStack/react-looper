@@ -5,11 +5,16 @@
  * Provides audio mixing, conversion, and processing capabilities.
  */
 
-import { FFmpegKit, FFmpegKitConfig, ReturnCode, Statistics } from 'ffmpeg-kit-react-native';
-import * as FileSystem from 'expo-file-system';
-import { AudioError, AudioErrorCode } from '../audio/AudioError';
-import type { MixOptions, MixingProgress, IFFmpegService } from './types';
-import { FFmpegCommandBuilder } from './FFmpegCommandBuilder';
+import {
+  FFmpegKit,
+  FFmpegKitConfig,
+  ReturnCode,
+  Statistics,
+} from "ffmpeg-kit-react-native";
+import * as FileSystem from "expo-file-system";
+import { AudioError, AudioErrorCode } from "../audio/AudioError";
+import type { MixOptions, MixingProgress, IFFmpegService } from "./types";
+import { FFmpegCommandBuilder } from "./FFmpegCommandBuilder";
 
 /**
  * Native FFmpeg Service using ffmpeg-kit-react-native
@@ -19,14 +24,14 @@ export class FFmpegService implements IFFmpegService {
   private totalDuration: number = 0;
 
   constructor() {
-    this.log('FFmpegService created for native platform');
+    this.log("FFmpegService created for native platform");
   }
 
   /**
    * Load FFmpeg (no-op for native, FFmpeg is included in the binary)
    */
   public async load(onProgress?: (ratio: number) => void): Promise<void> {
-    this.log('FFmpeg ready (native binary)');
+    this.log("FFmpeg ready (native binary)");
     onProgress?.(1);
   }
 
@@ -46,8 +51,8 @@ export class FFmpegService implements IFFmpegService {
     if (!tracks || tracks.length === 0) {
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        'No tracks provided for mixing',
-        'Please select at least one track to mix'
+        "No tracks provided for mixing",
+        "Please select at least one track to mix",
       );
     }
 
@@ -63,7 +68,7 @@ export class FFmpegService implements IFFmpegService {
           const path = this.uriToPath(track.uri);
           this.log(`Input ${i}: ${path}`);
           return path;
-        })
+        }),
       );
 
       // Build FFmpeg command using shared builder
@@ -72,7 +77,7 @@ export class FFmpegService implements IFFmpegService {
         inputFiles: inputPaths,
         outputFile: this.uriToPath(outputPath),
       });
-      const command = commandArgs.join(' ');
+      const command = commandArgs.join(" ");
       this.log(`Executing FFmpeg command: ${command}`);
 
       // Set up progress callback
@@ -89,7 +94,8 @@ export class FFmpegService implements IFFmpegService {
             this.totalDuration = time * 2; // Rough estimate
           }
 
-          const ratio = this.totalDuration > 0 ? Math.min(time / this.totalDuration, 1) : 0;
+          const ratio =
+            this.totalDuration > 0 ? Math.min(time / this.totalDuration, 1) : 0;
 
           onProgress({
             ratio,
@@ -111,15 +117,15 @@ export class FFmpegService implements IFFmpegService {
         const failStackTrace = await session.getFailStackTrace();
 
         this.error(
-          'FFmpeg execution failed',
-          new Error(failStackTrace || output || 'Unknown error')
+          "FFmpeg execution failed",
+          new Error(failStackTrace || output || "Unknown error"),
         );
 
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
-          'FFmpeg execution failed',
-          'Audio mixing encountered an error',
-          { returnCode: returnCode?.getValue(), output, failStackTrace }
+          "FFmpeg execution failed",
+          "Audio mixing encountered an error",
+          { returnCode: returnCode?.getValue(), output, failStackTrace },
         );
       }
 
@@ -128,8 +134,8 @@ export class FFmpegService implements IFFmpegService {
       if (!fileInfo.exists) {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
-          'Output file was not created',
-          'Mixed audio file not found'
+          "Output file was not created",
+          "Mixed audio file not found",
         );
       }
 
@@ -140,12 +146,12 @@ export class FFmpegService implements IFFmpegService {
         throw error;
       }
 
-      this.error('Mixing failed', error as Error);
+      this.error("Mixing failed", error as Error);
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix audio: ${(error as Error).message}`,
-        'Audio mixing encountered an error',
-        { tracks: tracks.length, originalError: error }
+        "Audio mixing encountered an error",
+        { tracks: tracks.length, originalError: error },
       );
     } finally {
       // Clean up statistics callback
@@ -169,7 +175,7 @@ export class FFmpegService implements IFFmpegService {
    */
   private uriToPath(uri: string): string {
     // Remove file:// prefix if present
-    if (uri.startsWith('file://')) {
+    if (uri.startsWith("file://")) {
       return uri.substring(7);
     }
     return uri;
@@ -180,7 +186,7 @@ export class FFmpegService implements IFFmpegService {
    */
   private log(message: string, ...args: unknown[]): void {
     if (__DEV__) {
-      console.log('[FFmpegService.native]', message, ...args);
+      console.log("[FFmpegService.native]", message, ...args);
     }
   }
 
@@ -188,7 +194,7 @@ export class FFmpegService implements IFFmpegService {
    * Log error
    */
   private error(message: string, error: Error): void {
-    console.error('[FFmpegService.native]', message, error);
+    console.error("[FFmpegService.native]", message, error);
   }
 }
 
