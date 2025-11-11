@@ -1,28 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1762897968105" clover="3.2.0">
-  <project timestamp="1762897968105" name="All files">
-    <metrics statements="19" coveredstatements="16" conditionals="6" coveredconditionals="5" methods="20" coveredmethods="16" elements="45" coveredelements="37" complexity="0" loc="19" ncloc="19" packages="1" files="1" classes="1"/>
-    <file name="useTrackStore.ts" path="/home/christophergalliart/claude-exp/react-looper/src/store/useTrackStore.ts">
-      <metrics statements="19" coveredstatements="16" conditionals="6" coveredconditionals="5" methods="20" coveredmethods="16"/>
-      <line num="45" count="1" type="stmt"/>
-      <line num="51" count="29" type="stmt"/>
-      <line num="58" count="4" type="stmt"/>
-      <line num="59" count="4" type="cond" truecount="2" falsecount="0"/>
-      <line num="62" count="4" type="cond" truecount="2" falsecount="0"/>
-      <line num="63" count="2" type="stmt"/>
-      <line num="67" count="2" type="stmt"/>
-      <line num="68" count="6" type="stmt"/>
-      <line num="74" count="2" type="stmt"/>
-      <line num="76" count="2" type="cond" truecount="1" falsecount="1"/>
-      <line num="82" count="1" type="stmt"/>
-      <line num="87" count="22" type="stmt"/>
-      <line num="93" count="0" type="stmt"/>
-      <line num="98" count="0" type="stmt"/>
-      <line num="103" count="0" type="stmt"/>
-      <line num="108" count="3" type="stmt"/>
-      <line num="113" count="4" type="stmt"/>
-      <line num="118" count="2" type="stmt"/>
-      <line num="123" count="5" type="stmt"/>
+<coverage generated="1762898853687" clover="3.2.0">
+  <project timestamp="1762898853687" name="All files">
+    <metrics statements="28" coveredstatements="28" conditionals="10" coveredconditionals="10" methods="5" coveredmethods="5" elements="43" coveredelements="43" complexity="0" loc="28" ncloc="28" packages="1" files="1" classes="1"/>
+    <file name="LoopEngine.ts" path="/home/christophergalliart/claude-exp/react-looper/src/services/loop/LoopEngine.ts">
+      <metrics statements="28" coveredstatements="28" conditionals="10" coveredconditionals="10" methods="5" coveredmethods="5"/>
+      <line num="66" count="3" type="stmt"/>
+      <line num="67" count="3" type="stmt"/>
+      <line num="68" count="3" type="stmt"/>
+      <line num="70" count="3" type="stmt"/>
+      <line num="87" count="4" type="stmt"/>
+      <line num="88" count="4" type="stmt"/>
+      <line num="89" count="4" type="stmt"/>
+      <line num="92" count="4" type="cond" truecount="2" falsecount="0"/>
+      <line num="93" count="1" type="stmt"/>
+      <line num="100" count="3" type="stmt"/>
+      <line num="101" count="3" type="stmt"/>
+      <line num="106" count="3" type="stmt"/>
+      <line num="125" count="4" type="stmt"/>
+      <line num="126" count="4" type="stmt"/>
+      <line num="129" count="4" type="cond" truecount="2" falsecount="0"/>
+      <line num="130" count="1" type="stmt"/>
+      <line num="134" count="3" type="stmt"/>
+      <line num="135" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="136" count="1" type="stmt"/>
+      <line num="139" count="2" type="stmt"/>
+      <line num="143" count="2" type="stmt"/>
+      <line num="161" count="5" type="stmt"/>
+      <line num="162" count="5" type="stmt"/>
+      <line num="165" count="5" type="cond" truecount="2" falsecount="0"/>
+      <line num="166" count="1" type="stmt"/>
+      <line num="169" count="4" type="stmt"/>
+      <line num="178" count="4" type="stmt"/>
+      <line num="179" count="4" type="stmt"/>
     </file>
   </project>
 </coverage>
