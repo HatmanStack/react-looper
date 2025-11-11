@@ -13,6 +13,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { IconButton } from "react-native-paper";
 import { VolumeSlider } from "../VolumeSlider";
 import { SpeedSlider } from "../SpeedSlider";
+import { TrackProgressBar } from "../TrackProgressBar";
 import { useTrackStore } from "../../store/useTrackStore";
 import type { Track } from "../../types";
 import { styles } from "./TrackListItem.styles";
@@ -155,6 +156,13 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
             accessibilityRole="button"
           />
         </View>
+
+        {/* Playback Progress Bar */}
+        <TrackProgressBar
+          trackId={track.id}
+          duration={track.duration / track.speed}
+          isPlaying={track.isPlaying}
+        />
       </View>
     </TouchableOpacity>
   );

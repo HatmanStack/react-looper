@@ -15,3 +15,5 @@ export type { SaveModalProps } from "./SaveModal";
 export { LoopModeToggle } from "./LoopModeToggle";
 export { ConfirmationDialog } from "./ConfirmationDialog";
 export type { ConfirmationDialogProps } from "./ConfirmationDialog";
+export { TrackProgressBar } from "./TrackProgressBar";
+export type { TrackProgressBarProps } from "./TrackProgressBar";
