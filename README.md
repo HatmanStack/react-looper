@@ -1,6 +1,6 @@
 <div align="center">
 
-# Looper - Audion Mixing App (React Native)
+# Looper - Audio Mixing App (React Native)
 
 [![](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
 [![](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -14,9 +14,7 @@ A cross-platform audio mixing application that lets you record, import, and mix 
 
 ---
 
-<p align="center">
-  <img width="600" src="assets/banner.png" alt="Looper App Banner">
-</p>
+![Looper App Banner](assets/banner.png)
 
 ---
 
