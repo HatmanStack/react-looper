@@ -13,3 +13,5 @@ export type { ActionButtonProps } from "./ActionButton";
 export { SaveModal } from "./SaveModal";
 export type { SaveModalProps } from "./SaveModal";
 export { LoopModeToggle } from "./LoopModeToggle";
+export { ConfirmationDialog } from "./ConfirmationDialog";
+export type { ConfirmationDialogProps } from "./ConfirmationDialog";
