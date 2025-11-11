@@ -17,6 +17,7 @@ import { ActionButton } from "@components/ActionButton";
 import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
+import { LoopModeToggle } from "@components/LoopModeToggle";
 import type { Track } from "../../types";
 import { styles } from "./MainScreen.styles";
 import { initializeAudioServices } from "../../services/audio/initialize";
@@ -579,6 +580,7 @@ export const MainScreen: React.FC = () => {
             disabled={!isRecording || isLoading}
             accessibilityHint="Stop recording and save track"
           />
+          <LoopModeToggle />
           <IconButton
             icon="help-circle"
             size={32}
