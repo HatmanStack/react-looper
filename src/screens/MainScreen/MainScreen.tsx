@@ -16,6 +16,7 @@ import { TrackList } from "@components/TrackList";
 import { ActionButton } from "@components/ActionButton";
 import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
+import { ConfirmationDialog } from "@components/ConfirmationDialog";
 import type { Track } from "../../types";
 import { styles } from "./MainScreen.styles";
 import { initializeAudioServices } from "../../services/audio/initialize";
@@ -38,6 +39,14 @@ export const MainScreen: React.FC = () => {
   const [baseLoopDuration, setBaseLoopDuration] = useState<number | null>(null); // Duration in ms
   const audioServiceRef = useRef<AudioService | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Confirmation dialog state for master track speed changes
+  const [speedConfirmationVisible, setSpeedConfirmationVisible] =
+    useState(false);
+  const [pendingSpeedChange, setPendingSpeedChange] = useState<{
+    trackId: string;
+    speed: number;
+  } | null>(null);
 
   // Initialize AudioService
   useEffect(() => {
@@ -446,6 +455,26 @@ export const MainScreen: React.FC = () => {
       return;
     }
 
+    // Check if this is the master track (first track) and if there are other tracks
+    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+    const hasOtherTracks = tracks.length > 1;
+
+    // If changing master track speed with other tracks present, show confirmation
+    if (isMasterTrack && hasOtherTracks) {
+      setPendingSpeedChange({ trackId, speed });
+      setSpeedConfirmationVisible(true);
+      return;
+    }
+
+    // Otherwise, apply speed change immediately
+    await applySpeedChange(trackId, speed);
+  };
+
+  const applySpeedChange = async (trackId: string, speed: number) => {
+    if (!audioServiceRef.current) {
+      return;
+    }
+
     try {
       await audioServiceRef.current.setTrackSpeed(trackId, speed);
 
@@ -460,6 +489,19 @@ export const MainScreen: React.FC = () => {
     } catch (error) {
       console.error("[MainScreen] Speed change failed:", error);
     }
+  };
+
+  const handleSpeedChangeConfirm = () => {
+    if (pendingSpeedChange) {
+      applySpeedChange(pendingSpeedChange.trackId, pendingSpeedChange.speed);
+      setPendingSpeedChange(null);
+    }
+    setSpeedConfirmationVisible(false);
+  };
+
+  const handleSpeedChangeCancel = () => {
+    setPendingSpeedChange(null);
+    setSpeedConfirmationVisible(false);
   };
 
   const handleSelect = (trackId: string) => {
@@ -558,6 +600,18 @@ export const MainScreen: React.FC = () => {
         <HelpModal
           visible={helpModalVisible}
           onDismiss={handleHelpModalDismiss}
+        />
+
+        {/* Speed Change Confirmation Dialog */}
+        <ConfirmationDialog
+          visible={speedConfirmationVisible}
+          title="Change Master Loop Speed?"
+          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Continue?"
+          onConfirm={handleSpeedChangeConfirm}
+          onCancel={handleSpeedChangeCancel}
+          confirmLabel="Change Speed"
+          cancelLabel="Cancel"
+          destructive={false}
         />
 
         {/* Loading Indicator */}

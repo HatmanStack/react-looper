@@ -45,7 +45,6 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         visible={visible}
         onDismiss={onCancel}
         testID="confirmation-dialog"
-        accessibilityRole="alertdialog"
       >
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Content>
