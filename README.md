@@ -12,7 +12,7 @@
 
 A cross-platform audio mixing application that lets you record, import, and mix audio tracks with independent speed and volume controls.
 
-![Try It](https://looper.hatstack.fun)
+[Try It](https://looper.hatstack.fun)
 
 ---
 
