@@ -17,9 +17,13 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginVertical: 4,
     marginHorizontal: 8,
-    // Left border for selection indicator (color set dynamically)
-    borderLeftWidth: 5,
-    // borderLeftColor is set dynamically based on selection
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  masterTrackContainer: {
+    borderWidth: 3,
+    borderColor: "#3F51B5", // Primary color
+    backgroundColor: "rgba(63, 81, 181, 0.1)", // Subtle primary tint
   },
   trackName: {
     color: "#E1E1E1",
