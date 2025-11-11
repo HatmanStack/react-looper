@@ -48,6 +48,11 @@ export const MainScreen: React.FC = () => {
     speed: number;
   } | null>(null);
 
+  // Confirmation dialog state for master track deletion
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] =
+    useState(false);
+  const [pendingDeletion, setPendingDeletion] = useState<string | null>(null);
+
   // Initialize AudioService
   useEffect(() => {
     try {
@@ -400,6 +405,25 @@ export const MainScreen: React.FC = () => {
       return;
     }
 
+    // Check if this is the master track (first track)
+    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+
+    // If deleting master track, show confirmation (this will clear all tracks)
+    if (isMasterTrack) {
+      setPendingDeletion(trackId);
+      setDeleteConfirmationVisible(true);
+      return;
+    }
+
+    // Otherwise, delete immediately
+    await performDelete(trackId);
+  };
+
+  const performDelete = async (trackId: string) => {
+    if (!audioServiceRef.current) {
+      return;
+    }
+
     try {
       // Unload and delete track
       await audioServiceRef.current.unloadTrack(trackId);
@@ -425,6 +449,19 @@ export const MainScreen: React.FC = () => {
         Alert.alert("Delete Error", error.userMessage);
       }
     }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (pendingDeletion) {
+      await performDelete(pendingDeletion);
+      setPendingDeletion(null);
+    }
+    setDeleteConfirmationVisible(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setPendingDeletion(null);
+    setDeleteConfirmationVisible(false);
   };
 
   const handleVolumeChange = async (trackId: string, volume: number) => {
@@ -612,6 +649,18 @@ export const MainScreen: React.FC = () => {
           confirmLabel="Change Speed"
           cancelLabel="Cancel"
           destructive={false}
+        />
+
+        {/* Master Track Deletion Confirmation Dialog */}
+        <ConfirmationDialog
+          visible={deleteConfirmationVisible}
+          title="Delete Master Track?"
+          message="This track sets the loop length. Deleting it will clear all tracks and start fresh. This cannot be undone."
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+          confirmLabel="Delete All Tracks"
+          cancelLabel="Cancel"
+          destructive={true}
         />
 
         {/* Loading Indicator */}
