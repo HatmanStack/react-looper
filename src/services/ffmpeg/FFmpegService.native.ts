@@ -61,7 +61,8 @@ export class FFmpegService implements IFFmpegService {
 
     try {
       // Prepare output path
-      const cacheDir = (FileSystem as any).cacheDirectory || FileSystem.documentDirectory;
+      const cacheDir =
+        (FileSystem as any).cacheDirectory || FileSystem.documentDirectory;
       const outputPath = `${cacheDir}mixed_${Date.now()}.mp3`;
 
       // Convert file URIs to absolute paths

@@ -81,20 +81,34 @@ describe("Mixing Flow Integration", () => {
     const mockProgressCallback = jest.fn();
     jest
       .spyOn(ffmpegService, "mix")
-      .mockImplementation(async ({ onProgress }: { onProgress?: (progress: { ratio: number; time: number; duration: number }) => void }) => {
-        // Simulate progress updates
-        onProgress?.({ ratio: 0.25, time: 7.5, duration: 30 });
-        onProgress?.({ ratio: 0.5, time: 15, duration: 30 });
-        onProgress?.({ ratio: 0.75, time: 22.5, duration: 30 });
-        onProgress?.({ ratio: 1.0, time: 30, duration: 30 });
+      .mockImplementation(
+        async ({
+          onProgress,
+        }: {
+          onProgress?: (progress: {
+            ratio: number;
+            time: number;
+            duration: number;
+          }) => void;
+        }) => {
+          // Simulate progress updates
+          onProgress?.({ ratio: 0.25, time: 7.5, duration: 30 });
+          onProgress?.({ ratio: 0.5, time: 15, duration: 30 });
+          onProgress?.({ ratio: 0.75, time: 22.5, duration: 30 });
+          onProgress?.({ ratio: 1.0, time: 30, duration: 30 });
 
-        return "file://mixed-output.mp3";
-      });
+          return "file://mixed-output.mp3";
+        },
+      );
 
     // 6. Perform mixing
     const result = await ffmpegService.mix({
       tracks: mixTracks,
-      onProgress: (progress: { ratio: number; time: number; duration: number }) => {
+      onProgress: (progress: {
+        ratio: number;
+        time: number;
+        duration: number;
+      }) => {
         // Offset by 10% for loading, scale remaining 90%
         const totalProgress = 0.1 + progress.ratio * 0.9;
         useUIStore.getState().setMixingProgress(totalProgress);
@@ -124,20 +138,34 @@ describe("Mixing Flow Integration", () => {
     jest.spyOn(ffmpegService, "load").mockResolvedValue(undefined);
     jest
       .spyOn(ffmpegService, "mix")
-      .mockImplementation(async ({ onProgress }: { onProgress?: (progress: { ratio: number; time: number; duration: number }) => void }) => {
-        // Simulate gradual progress
-        for (let i = 0; i <= 10; i++) {
-          const ratio = i / 10;
-          onProgress?.({ ratio, time: ratio * 30, duration: 30 });
-        }
-        return "file://output.mp3";
-      });
+      .mockImplementation(
+        async ({
+          onProgress,
+        }: {
+          onProgress?: (progress: {
+            ratio: number;
+            time: number;
+            duration: number;
+          }) => void;
+        }) => {
+          // Simulate gradual progress
+          for (let i = 0; i <= 10; i++) {
+            const ratio = i / 10;
+            onProgress?.({ ratio, time: ratio * 30, duration: 30 });
+          }
+          return "file://output.mp3";
+        },
+      );
 
     await ffmpegService.load();
 
     await ffmpegService.mix({
       tracks: [{ uri: "file://track1.mp3", speed: 1.0, volume: 75 }],
-      onProgress: (progress: { ratio: number; time: number; duration: number }) => {
+      onProgress: (progress: {
+        ratio: number;
+        time: number;
+        duration: number;
+      }) => {
         progressUpdates.push(progress.ratio);
         useUIStore.getState().setMixingProgress(progress.ratio);
       },

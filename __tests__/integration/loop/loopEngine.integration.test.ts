@@ -121,7 +121,9 @@ describe("Loop Engine Integration", () => {
         );
       useTrackStore
         .getState()
-        .addTrack(createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }));
+        .addTrack(
+          createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }),
+        );
 
       // Loop mode ON - track should loop
       expect(loopEngine.shouldTrackLoop("track-2")).toBe(true);
@@ -146,10 +148,14 @@ describe("Loop Engine Integration", () => {
         );
       useTrackStore
         .getState()
-        .addTrack(createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }));
+        .addTrack(
+          createMockTrack({ id: "track-2", duration: 5000, speed: 1.0 }),
+        );
       useTrackStore
         .getState()
-        .addTrack(createMockTrack({ id: "track-3", duration: 3000, speed: 1.0 }));
+        .addTrack(
+          createMockTrack({ id: "track-3", duration: 3000, speed: 1.0 }),
+        );
 
       expect(useTrackStore.getState().tracks).toHaveLength(3);
       expect(loopEngine.getMasterLoopInfo().duration).toBe(10000);
@@ -212,12 +218,16 @@ describe("Loop Engine Integration", () => {
       // Track 2: 6s (loops 4 times in 24s)
       useTrackStore
         .getState()
-        .addTrack(createMockTrack({ id: "track-2", duration: 6000, speed: 1.0 }));
+        .addTrack(
+          createMockTrack({ id: "track-2", duration: 6000, speed: 1.0 }),
+        );
 
       // Track 3: 8s (loops 3 times in 24s)
       useTrackStore
         .getState()
-        .addTrack(createMockTrack({ id: "track-3", duration: 8000, speed: 1.0 }));
+        .addTrack(
+          createMockTrack({ id: "track-3", duration: 8000, speed: 1.0 }),
+        );
 
       // Track 4: 30s (plays once, partially)
       useTrackStore
@@ -263,7 +273,9 @@ describe("Loop Engine Integration", () => {
       for (let i = 0; i < 10; i++) {
         usePlaybackStore.getState().toggleLoopMode();
         // After toggle: if i is even, we've toggled an odd number of times (opposite of initial)
-        expect(loopEngine.isLoopModeEnabled()).toBe((i + 1) % 2 === 0 ? initialLoopMode : !initialLoopMode);
+        expect(loopEngine.isLoopModeEnabled()).toBe(
+          (i + 1) % 2 === 0 ? initialLoopMode : !initialLoopMode,
+        );
       }
     });
   });

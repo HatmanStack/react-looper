@@ -85,11 +85,19 @@ describe("Playback Integration Tests", () => {
         deleteAudioFile: jest.fn().mockResolvedValue(undefined),
         copyToAppStorage: jest.fn().mockResolvedValue("app-storage-path"),
         exportToExternalStorage: jest.fn().mockResolvedValue("external-path"),
-        getAudioMetadata: jest.fn().mockResolvedValue({ duration: 120000, sampleRate: 44100, channels: 2 }),
+        getAudioMetadata: jest
+          .fn()
+          .mockResolvedValue({
+            duration: 120000,
+            sampleRate: 44100,
+            channels: 2,
+          }),
         listAudioFiles: jest.fn().mockResolvedValue([]),
         getFileSize: jest.fn().mockResolvedValue(1024000),
         checkFileExists: jest.fn().mockResolvedValue(true),
-        getStorageInfo: jest.fn().mockResolvedValue({ available: 1000000000, total: 2000000000 }),
+        getStorageInfo: jest
+          .fn()
+          .mockResolvedValue({ available: 1000000000, total: 2000000000 }),
         cleanupTempFiles: jest.fn().mockResolvedValue(undefined),
       },
     } as unknown as AudioServiceConfig;

@@ -42,7 +42,9 @@ describe("NativeFileImporter", () => {
         type: "cancel",
       });
 
-      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(AudioError);
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
+        AudioError,
+      );
       await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
         "File selection cancelled",
       );
@@ -53,7 +55,9 @@ describe("NativeFileImporter", () => {
         new Error("Picker error"),
       );
 
-      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(AudioError);
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
+        AudioError,
+      );
       await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
         "Failed to open file picker",
       );
