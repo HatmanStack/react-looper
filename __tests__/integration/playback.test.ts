@@ -16,16 +16,7 @@ import { BaseAudioPlayer } from "../../src/services/audio/BaseAudioPlayer";
 // Mock WebAudioPlayer
 jest.mock("../../src/services/audio/WebAudioPlayer");
 
-// Mock types for test configuration
-type MockRecorder = Pick<
-  AudioServiceConfig["recorder"],
-  "isRecording" | "stop" | "cleanup"
->;
-type MockMixer = Pick<AudioServiceConfig["mixer"], "cleanup" | "isMixing">;
-type MockFileManager = Pick<
-  AudioServiceConfig["fileManager"],
-  "cleanup" | "cleanupTempFiles"
->;
+// Mock types for test configuration - using simple type assertions since these are test mocks
 
 describe("Playback Integration Tests", () => {
   let audioService: AudioService;
@@ -73,22 +64,35 @@ describe("Playback Integration Tests", () => {
     });
 
     // Create AudioService with mock config
-    const mockConfig: AudioServiceConfig = {
+    const mockConfig = {
       recorder: {
-        isRecording: jest.fn().mockReturnValue(false),
-        stop: jest.fn().mockResolvedValue("mock-uri"),
-        cleanup: jest.fn().mockResolvedValue(undefined),
-      } as unknown as MockRecorder,
+        startRecording: jest.fn().mockResolvedValue(undefined),
+        stopRecording: jest.fn().mockResolvedValue("mock-uri"),
+        getPermissions: jest.fn().mockResolvedValue({ granted: true }),
+        cancelRecording: jest.fn().mockResolvedValue(undefined),
+        getRecordingDuration: jest.fn().mockReturnValue(0),
+      },
       playerFactory: () => new WebAudioPlayer() as unknown as BaseAudioPlayer,
       mixer: {
-        cleanup: jest.fn().mockResolvedValue(undefined),
-        isMixing: jest.fn().mockReturnValue(false),
-      } as unknown as MockMixer,
+        mixTracks: jest.fn().mockResolvedValue("mixed-output.mp3"),
+        setProgressCallback: jest.fn(),
+        cancel: jest.fn().mockResolvedValue(undefined),
+        estimateMixingDuration: jest.fn().mockResolvedValue(10000),
+        validateTracks: jest.fn().mockResolvedValue(undefined),
+      },
       fileManager: {
-        cleanup: jest.fn().mockResolvedValue(undefined),
+        saveAudioFile: jest.fn().mockResolvedValue("saved-path"),
+        deleteAudioFile: jest.fn().mockResolvedValue(undefined),
+        copyToAppStorage: jest.fn().mockResolvedValue("app-storage-path"),
+        exportToExternalStorage: jest.fn().mockResolvedValue("external-path"),
+        getAudioMetadata: jest.fn().mockResolvedValue({ duration: 120000, sampleRate: 44100, channels: 2 }),
+        listAudioFiles: jest.fn().mockResolvedValue([]),
+        getFileSize: jest.fn().mockResolvedValue(1024000),
+        checkFileExists: jest.fn().mockResolvedValue(true),
+        getStorageInfo: jest.fn().mockResolvedValue({ available: 1000000000, total: 2000000000 }),
         cleanupTempFiles: jest.fn().mockResolvedValue(undefined),
-      } as unknown as MockFileManager,
-    };
+      },
+    } as unknown as AudioServiceConfig;
 
     audioService = new AudioService(mockConfig);
   });

@@ -16,7 +16,7 @@ export {
   formatFileSize,
   isBlobUrl,
   isFileUri,
-} from "./audioUtils.ts";
+} from "./audioUtils";
 
 export interface AudioMetadata {
   duration: number; // in milliseconds

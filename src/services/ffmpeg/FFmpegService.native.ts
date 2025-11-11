@@ -12,7 +12,8 @@ import {
   Statistics,
 } from "ffmpeg-kit-react-native";
 import * as FileSystem from "expo-file-system";
-import { AudioError, AudioErrorCode } from "../audio/AudioError";
+import { AudioError } from "../audio/AudioError";
+import { AudioErrorCode } from "../../types/audio";
 import type { MixOptions, MixingProgress, IFFmpegService } from "./types";
 import { FFmpegCommandBuilder } from "./FFmpegCommandBuilder";
 
@@ -60,7 +61,8 @@ export class FFmpegService implements IFFmpegService {
 
     try {
       // Prepare output path
-      const outputPath = `${FileSystem.cacheDirectory}mixed_${Date.now()}.mp3`;
+      const cacheDir = (FileSystem as any).cacheDirectory || FileSystem.documentDirectory;
+      const outputPath = `${cacheDir}mixed_${Date.now()}.mp3`;
 
       // Convert file URIs to absolute paths
       const inputPaths = await Promise.all(

@@ -153,7 +153,7 @@ describe("Performance - PlaybackStore", () => {
     });
 
     const { duration } = await measureDuration(async () => {
-      usePlaybackStore.getState().updateTrackState("track-1", { volume: 50 });
+      usePlaybackStore.getState().setTrackVolume("track-1", 50);
     });
 
     const benchmark = assertPerformance("Update track state", duration, 10);
@@ -185,7 +185,7 @@ describe("Performance - PlaybackStore", () => {
     });
 
     const { duration } = await measureDuration(async () => {
-      usePlaybackStore.getState().setPlaying("track-1", true);
+      usePlaybackStore.getState().setTrackPlaying("track-1", true);
     });
 
     const benchmark = assertPerformance("Set track playing", duration, 10);
