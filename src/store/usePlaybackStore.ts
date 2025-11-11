@@ -4,9 +4,12 @@
  * Zustand store for managing playback state across all tracks.
  * Tracks playing state, speed, and volume for each track.
  * Persists playback settings (speed, volume) to storage.
+ *
+ * LOOPER FEATURE: Tracks global loop mode for looping behavior
  */
 
 import { create } from "zustand";
+import { useSettingsStore } from "./useSettingsStore";
 // Note: Persist middleware removed to avoid import.meta errors on web
 // See: react-vocabulary/TS_RENDER.md for details
 // TODO: Re-implement persistence with platform-specific approach
@@ -28,6 +31,10 @@ interface PlaybackState {
   // Whether any track is playing
   isAnyPlaying: boolean;
 
+  // LOOPER FEATURE: Global loop mode
+  // Controls whether tracks loop to fill master duration
+  loopMode: boolean;
+
   // Actions
   setTrackPlaying: (trackId: string, isPlaying: boolean) => void;
   setTrackSpeed: (trackId: string, speed: number) => void;
@@ -39,6 +46,10 @@ interface PlaybackState {
   playAll: () => void;
   getTrackState: (trackId: string) => TrackState | undefined;
   reset: () => void;
+
+  // LOOPER FEATURE: Loop mode actions
+  setLoopMode: (enabled: boolean) => void;
+  toggleLoopMode: () => void;
 }
 
 const DEFAULT_TRACK_STATE: TrackState = {
@@ -52,6 +63,8 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
   trackStates: new Map(),
   playingTracks: new Set(),
   isAnyPlaying: false,
+  // LOOPER FEATURE: Initialize loop mode from settings
+  loopMode: useSettingsStore.getState().defaultLoopMode,
 
   setTrackPlaying: (trackId: string, isPlaying: boolean) =>
     set((state) => {
@@ -181,5 +194,19 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
       trackStates: new Map(),
       playingTracks: new Set(),
       isAnyPlaying: false,
+      // LOOPER FEATURE: Reset loop mode to settings default
+      loopMode: useSettingsStore.getState().defaultLoopMode,
     }),
+
+  // LOOPER FEATURE: Set loop mode
+  setLoopMode: (enabled: boolean) =>
+    set({
+      loopMode: enabled,
+    }),
+
+  // LOOPER FEATURE: Toggle loop mode
+  toggleLoopMode: () =>
+    set((state) => ({
+      loopMode: !state.loopMode,
+    })),
 }));
