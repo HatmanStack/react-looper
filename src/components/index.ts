@@ -12,3 +12,4 @@ export { ActionButton } from "./ActionButton";
 export type { ActionButtonProps } from "./ActionButton";
 export { SaveModal } from "./SaveModal";
 export type { SaveModalProps } from "./SaveModal";
+export { LoopModeToggle } from "./LoopModeToggle";
