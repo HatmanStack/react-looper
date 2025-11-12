@@ -16,6 +16,8 @@ import {
   SegmentedButtons,
   Appbar,
 } from "react-native-paper";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../../App";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
@@ -24,7 +26,7 @@ import type { AudioFormat, QualityLevel } from "../../store/useSettingsStore";
 import { styles } from "./SettingsScreen.styles";
 
 interface SettingsScreenProps {
-  navigation?: any; // React Navigation navigation prop
+  navigation: NativeStackNavigationProp<RootStackParamList, "Settings">;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -49,9 +51,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // Handle back navigation
   const handleBack = () => {
-    if (navigation?.goBack) {
-      navigation.goBack();
-    }
+    navigation.goBack();
   };
 
   // Handle reset confirmation

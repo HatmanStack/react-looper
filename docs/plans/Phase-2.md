@@ -1,997 +1,1232 @@
-# Phase 2: Core UI Components
+# Phase 2: UI Components & Visual Indicators
 
----
+## ✅ Review Feedback - Phase 2 Nearly Complete (1 Issue)
 
-## ⚠️ CODE REVIEW STATUS: INCOMPLETE
+### Overall Status
+Phase 2 implementation is **95% complete** with excellent code quality. All components created, all tests passing (30 tests), proper commit messages. One integration task remains incomplete.
 
-**Reviewed by:** Senior Code Reviewer
-**Review Date:** 2025-11-08
-**Status:** ❌ **PHASE 2 INCOMPLETE - MISSING REQUIRED TASKS**
+**Completed Tasks:**
+- ✅ Task 1: Master track visual styling (TrackListItem)
+- ⚠️ Task 2: Loop mode toggle component (not integrated into MainScreen)
+- ✅ Task 3: Confirmation dialog component
+- ✅ Task 4: Speed change confirmation logic
+- ✅ Task 5: Master track deletion confirmation logic
+- ✅ Task 6: Per-track playback progress indicators
 
-### Summary of Completion:
+**Test Results:**
+```bash
+npm test -- LoopModeToggle.test.tsx ConfirmationDialog.test.tsx TrackProgressBar.test.tsx TrackListItem.test.tsx
+Test Suites: 4 passed, 4 total
+Tests:       30 passed, 30 total
+```
 
-**Completed Tasks (6 of 10):**
+**Git Commits:**
+```
+aa3860e feat(ui): add per-track playback progress indicators
+908b51d feat(ui): add confirmation for master track deletion
+e8137e7 feat(ui): add confirmation for master track speed changes
+9fecde2 feat(ui): create reusable confirmation dialog component
+d9b8051 feat(ui): add loop mode toggle button
+8a5a33f feat(ui): add master track visual styling
+```
 
-- ✅ Task 1: Main Screen Structure
-- ✅ Task 2: TrackListItem Component
-- ✅ Task 3: Track List with FlatList
-- ✅ Task 4: Custom Slider Components
-- ✅ Task 7: Icon Buttons for Track Controls
-- ✅ Task 8: Responsive Layout (SafeAreaView)
+### 🔧 Issue to Address: Task 2 Integration
 
-**Missing/Incomplete Tasks (4 of 10):**
+> **Consider:** The LoopModeToggle component exists at `src/components/LoopModeToggle/LoopModeToggle.tsx` and all its tests pass. However, when you search for "LoopModeToggle" in `src/screens/MainScreen/MainScreen.tsx`, what do you find?
+>
+> **Reflect:** Looking at lines 229-232 of the plan (Task 2), it states:
+> ```
+> Files to Modify:
+> - src/screens/MainScreen/MainScreen.tsx - Add toggle to playback controls
+> - src/components/index.ts - Export new component
+> ```
+> Have you completed both of these modifications?
+>
+> **Think about:** The component is exported from `src/components/index.ts` (line 15), so that's done. But what about adding it to MainScreen's playback controls?
+>
+> **Consider:** Looking at MainScreen.tsx, where are the playback controls located? Is there a play/pause button? Where would be an appropriate place to add the LoopModeToggle near it?
+>
+> **Reflect:** The plan's step 3 (line 250-253) states:
+> ```
+> 3. Add to MainScreen:
+>    - Position near play/pause button
+>    - Ensure proper spacing and alignment
+>    - Responsive layout (adjust for different screen sizes)
+> ```
+> Have you positioned the toggle near the play/pause button in MainScreen?
+>
+> **Think about:** All the other components (ConfirmationDialog, TrackProgressBar) are properly integrated and visible in MainScreen. Why is LoopModeToggle missing from the render tree?
 
-- ❌ Task 5: ActionButton Component (NOT created)
-- ❌ Task 6: SaveModal Dialog (NOT created)
-- ❌ Task 9: Component Tests (NOT created)
-- ⚠️ Task 10: Documentation (optional, skipped)
-
-### Verification Results:
-
-- ✅ TypeScript compilation (`npx tsc --noEmit`)
-- ✅ Tests pass (but only old tests, no new component tests)
-- ✅ Linting passes (24 warnings for console.log, acceptable for Phase 2)
-- ✅ Formatting passes (`npm run format:check`)
-- ✅ Commits follow conventional format
-
-**Verdict:** Phase 2 cannot be marked complete until Tasks 5, 6, and 9 are implemented as specified in the plan.
+### Next Steps
+1. Import LoopModeToggle in MainScreen.tsx
+2. Add it to the playback controls section near play/pause
+3. Verify it renders and functions correctly when MainScreen is displayed
+4. Commit with message: `feat(ui): integrate loop mode toggle into main screen`
+5. Return for final review
 
 ---
 
 ## Phase Goal
 
-Build the user interface components for the Looper app, matching the Material Design aesthetic of the Android app. Create reusable components for the track list, track controls, action buttons, and modals. Establish responsive layouts that work on web, mobile, and tablet screen sizes.
+Build user-facing UI components that make the looping functionality visible and controllable. Add master track visual styling, a global loop mode toggle, confirmation dialogs for destructive actions, and per-track playback indicators. This phase makes Phase 1's logic accessible to users.
 
-**Success Criteria:**
+**Success Criteria**:
 
-- Main screen layout renders correctly on all platforms
-- Track list displays multiple tracks with scrolling
-- Track control components respond to user interactions (non-functional audio operations)
-- Save modal opens and closes properly
-- UI matches Android app's visual design (dark theme, Material components)
-- Responsive layout adapts to different screen sizes
+- Master track has distinct visual styling
+- Loop mode toggle button functional and accessible
+- Confirmation dialogs prevent accidental destructive actions
+- Per-track playback indicators show loop progress
+- All components tested with React Native Testing Library
+- UI works on web and mobile platforms
 
-**Estimated tokens:** ~100,000
+**Estimated tokens**: ~90,000
 
 ---
 
 ## Prerequisites
 
-### Phase Dependencies
-
-- **Phase 1 completed:** Project setup, dependencies installed, theme configured
-
-### External Dependencies
-
-- React Native Paper installed and configured
-- Theme set up from Phase 1
-- Platform utilities available
+- Phase 0 reviewed
+- Phase 1 complete and all tests passing
+- Familiarity with React Native Paper components
+- Understanding of React Native Testing Library
 
 ---
 
 ## Tasks
 
-### Task 1: Create Main Screen Structure
+### Task 1: Update Track List Item Styling for Master Track
 
-**Goal:** Build the main screen layout with header controls, track list area, and bottom controls.
+**Goal**: Apply distinct visual styling to the master track so users can immediately identify which track sets the loop length.
 
-**Files to Create:**
+**Files to Modify**:
 
-- `src/screens/MainScreen/MainScreen.tsx` - Main screen component
-- `src/screens/MainScreen/MainScreen.styles.ts` - StyleSheet for main screen
-- `src/screens/MainScreen/index.ts` - Barrel export
+- `src/components/TrackListItem/TrackListItem.tsx` - Add master track detection and conditional styling
+- `src/components/TrackListItem/TrackListItem.styles.ts` - Add master track styles
+- `src/components/TrackListItem/__tests__/TrackListItem.test.tsx` - Create if missing, add tests
 
-**Prerequisites:**
+**Prerequisites**: Phase 1 Task 3 (track store with master track methods)
 
-- Phase 1 completed
+**Implementation Steps**:
 
-**Implementation Steps:**
+1. In `TrackListItem.tsx`:
+   - Import `useTrackStore` and `isMasterTrack` helper
+   - Detect if current track is master: `const isMaster = useTrackStore(state => state.isMasterTrack(track.id))`
+   - Apply conditional styles based on `isMaster` flag
 
-1. Create MainScreen component with three sections:
-   - Top controls (Record, Stop buttons)
-   - Middle track list area (FlatList placeholder)
-   - Bottom controls (Import Audio, Save buttons)
+2. In `TrackListItem.styles.ts`:
+   - Define `masterTrackContainer` style:
+     - Border: 3px solid primary color
+     - Background: primaryContainer (subtle tint)
+     - Optional: subtle shadow or elevation
+   - Ensure styles work with both light and dark themes
+   - Use theme colors from React Native Paper
 
-2. Use React Native Paper components:
-   - Button for action buttons
-   - Surface for elevated sections
-   - Use theme colors from Phase 1
+3. Add accessibility properties:
+   - `accessibilityLabel`: Include "Master loop track" in label when applicable
+   - `accessibilityHint`: "This track sets the loop length for all tracks"
 
-3. Implement responsive layout:
-   - Use Flexbox for layout
-   - Consider different orientations
-   - Test on various screen sizes (phone, tablet, web)
+4. Test that styling doesn't break existing layout:
+   - Check on different screen sizes
+   - Verify spacing and alignment maintained
+   - Ensure other track controls (sliders, buttons) still accessible
 
-4. Reference Android layout structure:
-   - Review `../app/src/main/res/layout/activity_main.xml`
-   - Match button placement and spacing
-   - Maintain visual hierarchy
+5. Write component tests:
+   - Test master track renders with correct styles
+   - Test non-master track renders without special styles
+   - Test accessibility labels
+   - Test theme compatibility (if theme switching exists)
 
-5. Add basic styling:
-   - Dark background matching theme
-   - Proper spacing and margins
-   - Button sizing and alignment
+**Verification Checklist**:
 
-**Verification Checklist:**
+- [ ] Master track has visible distinct styling
+- [ ] Styling works in light and dark themes
+- [ ] Layout not broken on small screens
+- [ ] All interactive elements still accessible
+- [ ] Accessibility labels correct
+- [ ] Tests verify conditional styling
 
-- [ ] Main screen renders on web, iOS, and Android
-- [ ] Three sections (top, middle, bottom) are visible
-- [ ] Buttons are styled with Paper theme
-- [ ] Layout is responsive to screen size changes
-- [ ] Dark theme is applied correctly
+**Testing Instructions**:
 
-**Testing Instructions:**
+```typescript
+describe('TrackListItem - master track styling', () => {
+  it('applies master track styling when track is first', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1', name: 'Master Track' }),
+      createMockTrack({ id: 'track-2', name: 'Track 2' }),
+    ];
 
-- Render MainScreen and verify all sections appear
-- Test on different screen sizes (resize web browser)
-- Verify buttons are touchable (add console.log to onPress)
-- Check spacing and alignment on all platforms
+    // Mock store to return tracks
+    useTrackStore.setState({ tracks });
 
-**Commit Message Template:**
+    const { getByTestId } = render(<TrackListItem track={tracks[0]} />);
+
+    const container = getByTestId('track-list-item-track-1');
+
+    // Verify master track styles applied
+    expect(container.props.style).toMatchObject({
+      borderWidth: 3,
+      borderColor: expect.any(String), // Primary color
+    });
+  });
+
+  it('does not apply master track styling to non-master tracks', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1', name: 'Master Track' }),
+      createMockTrack({ id: 'track-2', name: 'Track 2' }),
+    ];
+
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId } = render(<TrackListItem track={tracks[1]} />);
+
+    const container = getByTestId('track-list-item-track-2');
+
+    // Verify standard styling
+    expect(container.props.style.borderWidth).not.toBe(3);
+  });
+
+  it('includes accessibility label for master track', () => {
+    const tracks = [createMockTrack({ id: 'track-1', name: 'Master Track' })];
+    useTrackStore.setState({ tracks });
+
+    const { getByLabelText } = render(<TrackListItem track={tracks[0]} />);
+
+    expect(getByLabelText(/Master loop track/i)).toBeTruthy();
+  });
+});
+```
+
+Run tests: `npm test -- TrackListItem.test.tsx`
+
+**Commit Message Template**:
 
 ```
-feat(ui): create main screen layout structure
+feat(ui): add master track visual styling
 
-- Implement three-section layout (top/middle/bottom controls)
-- Add Record, Stop, Import, and Save buttons
-- Apply Material Design theme and dark mode
-- Ensure responsive layout for all screen sizes
+- Apply distinct border and background to master track
+- Add accessibility labels for master track
+- Include theme-aware styling
+- Add component tests for conditional styling
 ```
 
-**Estimated tokens:** ~12,000
+**Estimated tokens**: ~12,000
 
 ---
 
-### Task 2: Build TrackListItem Component
+### Task 2: Create Loop Mode Toggle Component
 
-**Goal:** Create a reusable component for individual track items in the list.
+**Goal**: Build a toggle button that controls the global loop mode, positioned near the main playback controls.
 
-**Files to Create:**
+**Files to Create**:
 
-- `src/components/TrackListItem/TrackListItem.tsx` - Track item component
-- `src/components/TrackListItem/TrackListItem.styles.ts` - StyleSheet
-- `src/components/TrackListItem/index.ts` - Barrel export
-- `src/types/Track.ts` - TypeScript type for Track data
+- `src/components/LoopModeToggle/LoopModeToggle.tsx` - Toggle component
+- `src/components/LoopModeToggle/LoopModeToggle.styles.ts` - Styles
+- `src/components/LoopModeToggle/__tests__/LoopModeToggle.test.tsx` - Tests
+- `src/components/LoopModeToggle/index.ts` - Re-export
 
-**Prerequisites:**
+**Files to Modify**:
 
-- Task 1 completed
+- `src/screens/MainScreen/MainScreen.tsx` - Add toggle to playback controls
+- `src/components/index.ts` - Export new component
 
-**Implementation Steps:**
+**Prerequisites**: Phase 1 Task 4 (playback store with loop mode)
 
-1. Create Track type definition:
+**Implementation Steps**:
 
-   ```typescript
-   interface Track {
-     id: string;
-     name: string;
-     uri: string;
-     duration: number;
-     speed: number; // 0.05 - 2.50
-     volume: number; // 0 - 100
-     isPlaying: boolean;
-     createdAt: number;
-   }
-   ```
+1. Create `LoopModeToggle` component:
+   - Use React Native Paper's `IconButton` or `ToggleButton`
+   - Connect to playback store: `const { loopMode, toggleLoopMode } = usePlaybackStore()`
+   - Icon: Loop icon when ON, crossed-out loop when OFF (or use color to indicate state)
+   - Label: "Loop Mode" with status (ON/OFF)
 
-2. Build TrackListItem component with:
-   - Track name/title display
-   - Play, Pause, Delete buttons (IconButtons from Paper)
-   - Volume slider (placeholder for now)
-   - Speed slider (placeholder for now)
-   - Visual feedback for playing state
+2. Visual design:
+   - Active state: Primary color
+   - Inactive state: Neutral/gray color
+   - Clear visual distinction between states
+   - Tooltip/label visible on hover (web) or long press (mobile)
 
-3. Reference Android track item layout:
-   - Review `../app/src/main/res/layout/sound_controls.xml`
-   - Match button positions (play left, pause/delete right)
-   - Position sliders between buttons
+3. Add to MainScreen:
+   - Position near play/pause button
+   - Ensure proper spacing and alignment
+   - Responsive layout (adjust for different screen sizes)
 
-4. Implement layout:
-   - Use ConstraintLayout equivalent (View with Flexbox)
-   - Horizontal layout for buttons
-   - Vertical stacked sliders
-   - Track name at top
+4. Accessibility:
+   - `accessibilityRole="switch"`
+   - `accessibilityState={{ checked: loopMode }}`
+   - `accessibilityLabel="Loop mode toggle"`
+   - `accessibilityHint="When enabled, tracks will loop to match the master loop duration"`
 
-5. Add styling to match Android design:
-   - Gradient background (if used in Android)
-   - Button icons (play, pause, delete)
-   - Proper spacing and padding
+5. Add visual feedback:
+   - Ripple effect on press (Android)
+   - Haptic feedback on toggle (mobile)
+   - Animation on state change (optional, but nice)
 
-**Verification Checklist:**
+6. Write component tests:
+   - Test rendering in both states
+   - Test toggle action
+   - Test store integration
+   - Test accessibility properties
 
-- [ ] TrackListItem renders with all elements
-- [ ] Buttons are pressable (log events for now)
-- [ ] Layout matches Android track control design
-- [ ] Component accepts Track prop and displays data
-- [ ] Playing state shows visual feedback
+**Verification Checklist**:
 
-**Testing Instructions:**
+- [ ] Toggle button visible and clearly indicates state
+- [ ] Clicking/tapping toggles loop mode in store
+- [ ] Visual feedback on interaction
+- [ ] Accessibility properties correct
+- [ ] Works on web and mobile
+- [ ] Tests cover functionality and accessibility
 
-- Render TrackListItem with mock Track data
-- Verify all buttons render and are clickable
-- Test with different track names and lengths
-- Check layout on different screen widths
+**Testing Instructions**:
 
-**Commit Message Template:**
+```typescript
+describe('LoopModeToggle', () => {
+  beforeEach(() => {
+    usePlaybackStore.getState().reset();
+  });
+
+  it('renders with correct initial state', () => {
+    usePlaybackStore.setState({ loopMode: true });
+
+    const { getByTestId } = render(<LoopModeToggle />);
+    const toggle = getByTestId('loop-mode-toggle');
+
+    expect(toggle.props.accessibilityState.checked).toBe(true);
+  });
+
+  it('toggles loop mode when pressed', () => {
+    usePlaybackStore.setState({ loopMode: false });
+
+    const { getByTestId } = render(<LoopModeToggle />);
+    const toggle = getByTestId('loop-mode-toggle');
+
+    fireEvent.press(toggle);
+
+    expect(usePlaybackStore.getState().loopMode).toBe(true);
+  });
+
+  it('has correct accessibility properties', () => {
+    const { getByTestId } = render(<LoopModeToggle />);
+    const toggle = getByTestId('loop-mode-toggle');
+
+    expect(toggle.props.accessibilityRole).toBe('switch');
+    expect(toggle.props.accessibilityLabel).toContain('Loop mode');
+  });
+
+  it('updates visual state when loop mode changes externally', () => {
+    const { getByTestId, rerender } = render(<LoopModeToggle />);
+
+    // Change loop mode via store (not via UI)
+    usePlaybackStore.getState().setLoopMode(true);
+    rerender(<LoopModeToggle />);
+
+    const toggle = getByTestId('loop-mode-toggle');
+    expect(toggle.props.accessibilityState.checked).toBe(true);
+  });
+});
+```
+
+Run tests: `npm test -- LoopModeToggle.test.tsx`
+
+**Commit Message Template**:
 
 ```
-feat(ui): create TrackListItem component
+feat(ui): add loop mode toggle button
 
-- Build track item with play/pause/delete buttons
-- Add volume and speed slider placeholders
-- Implement track name display
-- Match Android track control layout
-- Add visual feedback for playing state
+- Create toggle component for global loop mode
+- Integrate with playback store
+- Add to main screen playback controls
+- Include accessibility support
+- Add comprehensive component tests
 ```
 
-**Estimated tokens:** ~14,000
+**Estimated tokens**: ~15,000
 
 ---
 
-### Task 3: Implement Track List with FlatList
+### Task 3: Create Confirmation Dialog Component
 
-**Goal:** Create a scrollable list of tracks using React Native FlatList.
+## 🔍 Review Feedback - Task 3 Not Started
 
-**Files to Create:**
-
-- `src/components/TrackList/TrackList.tsx` - Track list component
-- `src/components/TrackList/TrackList.styles.ts` - StyleSheet
-- `src/components/TrackList/index.ts` - Barrel export
-
-**Prerequisites:**
-
-- Task 2 completed
-
-**Implementation Steps:**
-
-1. Create TrackList component:
-   - Accept tracks prop (array of Track objects)
-   - Use FlatList for rendering
-   - Render TrackListItem for each track
-   - Handle empty state (no tracks yet)
-
-2. Configure FlatList:
-   - Set keyExtractor (use track.id)
-   - Add ItemSeparator if needed
-   - Configure scrolling behavior
-   - Add ListEmptyComponent for empty state
-
-3. Implement empty state:
-   - Show message "No tracks yet"
-   - Suggest recording or importing audio
-   - Style consistently with theme
-
-4. Add performance optimizations:
-   - Set getItemLayout for consistent item heights
-   - Use windowSize if needed
-   - Consider memo for TrackListItem
-
-5. Integrate with MainScreen:
-   - Replace placeholder in middle section
-   - Pass mock data (array of 2-3 fake tracks)
-   - Verify scrolling works with many tracks
-
-**Verification Checklist:**
-
-- [ ] FlatList renders list of tracks
-- [ ] Empty state shows when no tracks
-- [ ] List scrolls smoothly with many items
-- [ ] Track items are separated visually
-- [ ] Performance is acceptable (no lag)
-
-**Testing Instructions:**
-
-- Test with empty array (should show empty state)
-- Test with 1 track (should render one item)
-- Test with 10+ tracks (should scroll)
-- Measure performance (should maintain 60fps while scrolling)
-
-**Commit Message Template:**
-
-```
-feat(ui): implement track list with FlatList
-
-- Create TrackList component using FlatList
-- Add empty state for zero tracks
-- Integrate with MainScreen
-- Optimize for smooth scrolling performance
-```
-
-**Estimated tokens:** ~12,000
+> **Consider:** Searching for `**/ConfirmationDialog/*.tsx` - do these files exist in your codebase?
+>
+> **Think about:** This is a critical component used by Tasks 4 and 5. Have you created it as a prerequisite?
+>
+> **Reflect:** This component uses React Native Paper's `Dialog` component. Have you reviewed the React Native Paper documentation for Dialog props and behavior?
+>
+> **Consider:** The plan specifies supporting both destructive and non-destructive variants. How will you differentiate button colors? What prop controls this?
 
 ---
 
-### Task 4: Create Custom Slider Components
+**Goal**: Build a reusable confirmation dialog component for destructive actions (changing master track speed, deleting master track).
 
-**Goal:** Build custom slider components for volume and speed control with Material Design styling.
+**Files to Create**:
 
-**Files to Create:**
+- `src/components/ConfirmationDialog/ConfirmationDialog.tsx` - Dialog component
+- `src/components/ConfirmationDialog/ConfirmationDialog.styles.ts` - Styles (if needed)
+- `src/components/ConfirmationDialog/__tests__/ConfirmationDialog.test.tsx` - Tests
+- `src/components/ConfirmationDialog/index.ts` - Re-export
 
-- `src/components/VolumeSlider/VolumeSlider.tsx` - Volume slider
-- `src/components/SpeedSlider/SpeedSlider.tsx` - Speed slider
-- `src/components/Slider/Slider.tsx` - Base slider component (shared)
-- `src/components/Slider/Slider.styles.ts` - Slider styles
+**Files to Modify**:
 
-**Prerequisites:**
+- `src/components/index.ts` - Export new component
 
-- Task 2 completed
+**Prerequisites**: None (standalone component)
 
-**Implementation Steps:**
+**Implementation Steps**:
 
-1. Evaluate React Native Paper's Slider:
-   - Check if it meets design requirements
-   - If not, consider alternatives (@react-native-community/slider)
+1. Create `ConfirmationDialog` component using React Native Paper's `Dialog`:
+   - Props:
+     - `visible: boolean` - Dialog visibility
+     - `title: string` - Dialog title
+     - `message: string` - Explanation message
+     - `onConfirm: () => void` - Confirm callback
+     - `onCancel: () => void` - Cancel callback
+     - `confirmLabel?: string` - Confirm button text (default: "Confirm")
+     - `cancelLabel?: string` - Cancel button text (default: "Cancel")
+     - `destructive?: boolean` - If true, confirm button is red/warning color
 
-2. Create base Slider component:
-   - Accept value, onValueChange, min, max, step props
-   - Style to match Android seekbars
-   - Use theme colors (primary for thumb/track)
+2. Design:
+   - Title: Bold, larger text
+   - Message: Regular text, supports multiple lines
+   - Buttons: Cancel (left/bottom), Confirm (right/top)
+   - Destructive confirm button: Red/warning color
+   - Non-destructive: Primary color
+   - Cancel button: Secondary/neutral color
 
-3. Create VolumeSlider:
-   - Range: 0-100
-   - Display current value
-   - Label: "Volume"
-   - Logarithmic scaling (if needed for playback, handle in Phase 5)
+3. Behavior:
+   - Clicking outside dialog dismisses it (calls onCancel)
+   - Escape key cancels (web)
+   - Confirm/Cancel buttons execute callbacks and close dialog
+   - Support keyboard navigation (web)
 
-4. Create SpeedSlider:
-   - Range: 3-102 (maps to 0.05x - 2.50x, divide by 41)
-   - Display formatted value (e.g., "1.25x")
-   - Label: "Speed"
-   - Format display value to 2 decimal places
+4. Accessibility:
+   - `accessibilityRole="alertdialog"`
+   - Focus management: trap focus inside dialog when open
+   - Screen reader announces title and message
+   - Buttons have clear labels
 
-5. Reference Android slider implementation:
-   - Review `../app/src/main/java/gemenie/looper/SoundControlsAdapter.java:128-161`
-   - Match value ranges and scaling
+5. Write component tests:
+   - Test rendering with various prop combinations
+   - Test confirm button callback
+   - Test cancel button callback
+   - Test destructive styling
+   - Test accessibility properties
 
-6. Integrate sliders into TrackListItem:
-   - Replace placeholder sliders
-   - Position below track name
-   - Add labels showing current values
+**Verification Checklist**:
 
-**Verification Checklist:**
+- [ ] Dialog renders correctly with title and message
+- [ ] Confirm and cancel buttons work
+- [ ] Destructive styling applied when appropriate
+- [ ] Dialog dismisses after action
+- [ ] Accessibility properties correct
+- [ ] Works on web and mobile
+- [ ] Tests cover all prop variations
 
-- [ ] Sliders are draggable and responsive
-- [ ] Volume slider shows 0-100 range
-- [ ] Speed slider shows formatted value (0.05x - 2.50x)
-- [ ] Styling matches Android seekbar design
-- [ ] onValueChange callbacks work correctly
+**Testing Instructions**:
 
-**Testing Instructions:**
+```typescript
+describe('ConfirmationDialog', () => {
+  it('renders with title and message', () => {
+    const { getByText } = render(
+      <ConfirmationDialog
+        visible={true}
+        title="Confirm Action"
+        message="Are you sure?"
+        onConfirm={jest.fn()}
+        onCancel={jest.fn()}
+      />
+    );
 
-- Drag volume slider and verify value updates
-- Drag speed slider and verify formatted display (e.g., "1.50")
-- Test on touch (mobile) and mouse (web)
-- Verify thumb is grabbable and visible
+    expect(getByText('Confirm Action')).toBeTruthy();
+    expect(getByText('Are you sure?')).toBeTruthy();
+  });
 
-**Commit Message Template:**
+  it('calls onConfirm when confirm button pressed', () => {
+    const onConfirm = jest.fn();
+    const { getByText } = render(
+      <ConfirmationDialog
+        visible={true}
+        title="Confirm Action"
+        message="Are you sure?"
+        onConfirm={onConfirm}
+        onCancel={jest.fn()}
+      />
+    );
+
+    fireEvent.press(getByText('Confirm'));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onCancel when cancel button pressed', () => {
+    const onCancel = jest.fn();
+    const { getByText } = render(
+      <ConfirmationDialog
+        visible={true}
+        title="Confirm Action"
+        message="Are you sure?"
+        onConfirm={jest.fn()}
+        onCancel={onCancel}
+      />
+    );
+
+    fireEvent.press(getByText('Cancel'));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies destructive styling when destructive prop is true', () => {
+    const { getByText } = render(
+      <ConfirmationDialog
+        visible={true}
+        title="Delete Item"
+        message="This cannot be undone"
+        onConfirm={jest.fn()}
+        onCancel={jest.fn()}
+        destructive={true}
+      />
+    );
+
+    const confirmButton = getByText('Confirm').parent;
+    // Check that button has error/warning color
+    expect(confirmButton.props.buttonColor).toMatch(/error|warning|danger/i);
+  });
+
+  it('uses custom button labels when provided', () => {
+    const { getByText } = render(
+      <ConfirmationDialog
+        visible={true}
+        title="Confirm Action"
+        message="Are you sure?"
+        onConfirm={jest.fn()}
+        onCancel={jest.fn()}
+        confirmLabel="Yes, continue"
+        cancelLabel="No, go back"
+      />
+    );
+
+    expect(getByText('Yes, continue')).toBeTruthy();
+    expect(getByText('No, go back')).toBeTruthy();
+  });
+});
+```
+
+Run tests: `npm test -- ConfirmationDialog.test.tsx`
+
+**Commit Message Template**:
 
 ```
-feat(ui): create custom volume and speed sliders
+feat(ui): create reusable confirmation dialog component
 
-- Build base Slider component with Material Design styling
-- Implement VolumeSlider with 0-100 range
-- Implement SpeedSlider with 0.05x-2.50x range and formatting
-- Integrate sliders into TrackListItem
-- Match Android seekbar visual design
+- Implement dialog with title, message, and action buttons
+- Support destructive and non-destructive variants
+- Add accessibility support and focus management
+- Include comprehensive component tests
 ```
 
-**Estimated tokens:** ~15,000
+**Estimated tokens**: ~14,000
 
 ---
 
-### Task 5: Build Action Buttons with Icons
+### Task 4: Add Confirmation for Master Track Speed Changes
 
-**Goal:** Create styled action buttons for Record, Stop, Import, and Save operations.
+## 🔍 Review Feedback - Task 4 Not Implemented
 
-**Files to Create:**
-
-- `src/components/ActionButton/ActionButton.tsx` - Reusable action button
-- `src/components/ActionButton/ActionButton.styles.ts` - Button styles
-- `src/components/ActionButton/index.ts` - Barrel export
-
-**Prerequisites:**
-
-- Task 1 completed
-
-**Implementation Steps:**
-
-1. Create ActionButton component:
-   - Accept label, icon, onPress, disabled props
-   - Use Paper Button with icon
-   - Support primary and secondary button styles
-   - Handle disabled state
-
-2. Style buttons to match Android:
-   - Review `../app/src/main/res/layout/activity_main.xml` button styles
-   - Use Paper's contained mode for primary buttons
-   - Apply theme colors
-   - Proper sizing and padding
-
-3. Create button variants:
-   - RecordButton (red or primary color, microphone icon)
-   - StopButton (gray, stop icon)
-   - ImportButton (primary, file/music icon)
-   - SaveButton (primary, save/download icon)
-
-4. Add button states:
-   - Normal, pressed, disabled
-   - Visual feedback on press
-   - Disable during operations (future)
-
-5. Replace placeholder buttons in MainScreen:
-   - Use ActionButton components
-   - Wire up onPress handlers (console.log for now)
-   - Position according to Android layout
-
-**Verification Checklist:**
-
-- [ ] Buttons render with icons
-- [ ] onPress handlers fire correctly
-- [ ] Disabled state prevents interaction
-- [ ] Buttons match Android visual design
-- [ ] Touch targets are adequate (44x44 min)
-
-**⚠️ CODE REVIEW FINDINGS (Task 5):**
-
-**ActionButton Component Not Created:**
-
-> **Consider:** Looking at `src/screens/MainScreen/MainScreen.tsx:101-148`, are the buttons implemented as reusable components or are they hardcoded in the MainScreen?
+> **Consider:** Looking at `__tests__/unit/components/SpeedSlider.test.tsx`, do you see ANY tests related to confirmation dialogs?
 >
-> **Think about:** The task specification says "Create ActionButton component" with files `src/components/ActionButton/ActionButton.tsx`, `ActionButton.styles.ts`, and `index.ts`. Do these files exist?
+> **Reflect:** The test file exists and has comprehensive speed slider tests, BUT none of the confirmation-related tests from this task are present:
+> - "shows confirmation when changing master track speed with other tracks"
+> - "does not show confirmation when changing master speed with no other tracks"
+> - "applies speed change when confirmation accepted"
+> - "reverts speed change when confirmation cancelled"
 >
-> **Reflect:** If you search the codebase with `Glob("src/components/ActionButton/**/*")`, what do you find? How does this compare to what the plan requires?
+> **Think about:** This task has a prerequisite: Task 3 (ConfirmationDialog) must be complete. Is it?
 >
-> **Consider:** The plan says to create "button variants" for Record, Stop, Import, and Save buttons. Are these implemented as separate reusable components, or are they just inline Button components from React Native Paper?
+> **Consider:** This task requires modifying MainScreen to manage confirmation dialog state. Have you added state for:
+> - `confirmationVisible: boolean`
+> - `pendingSpeedChange: { trackId: string, speed: number }`
 >
-> **Think about:** If the implementation directly uses `<Button mode="contained" onPress={handleRecord}>Record</Button>` in MainScreen, does that follow the DRY principle? What happens when you need to add more screens with similar buttons in Phase 3+?
-
-**Evidence:**
-
-```bash
-$ Glob("src/components/ActionButton/**/*")
-No files found
-```
-
-**Testing Instructions:**
-
-- Press each button and verify console logs
-- Test disabled state (button should not respond)
-- Verify visual feedback on press (ripple effect)
-- Check button sizing on different screen sizes
-
-**Commit Message Template:**
-
-```
-feat(ui): create action buttons with icons
-
-- Build reusable ActionButton component
-- Create Record, Stop, Import, and Save button variants
-- Apply Material Design styling and icons
-- Add disabled state handling
-- Replace placeholder buttons in MainScreen
-```
-
-**Estimated tokens:** ~12,000
+> **Reflect:** Have you modified SpeedSlider or its parent to check if the track is master AND if other tracks exist before applying speed changes?
 
 ---
 
-### Task 6: Implement Save Modal Dialog
+**Goal**: Show a confirmation dialog when the user changes the master track's speed while other tracks exist, warning that this will affect all tracks.
 
-**Goal:** Create a modal dialog for saving tracks with a name input field.
+**Files to Modify**:
 
-**Files to Create:**
+- `src/components/SpeedSlider/SpeedSlider.tsx` - Add confirmation logic
+- `src/screens/MainScreen/MainScreen.tsx` - Manage confirmation dialog state
+- `src/components/SpeedSlider/__tests__/SpeedSlider.test.tsx` - Add tests for confirmation
 
-- `src/components/SaveModal/SaveModal.tsx` - Save modal component
-- `src/components/SaveModal/SaveModal.styles.ts` - Modal styles
-- `src/components/SaveModal/index.ts` - Barrel export
+**Prerequisites**: Tasks 1 and 3 complete
 
-**Prerequisites:**
+**Implementation Steps**:
 
-- Task 5 completed
+1. In MainScreen or appropriate parent component:
+   - Add state for confirmation dialog visibility and pending speed change
+   - Add state to track which track is having speed changed
+   - Render ConfirmationDialog component
 
-**Implementation Steps:**
+2. In SpeedSlider (or where speed changes are handled):
+   - Before applying speed change, check if track is master
+   - Check if other tracks exist
+   - If both conditions true, show confirmation dialog instead of applying immediately
+   - Store pending speed value
 
-1. Use React Native Paper components:
-   - Portal for modal overlay
-   - Modal for dialog
-   - TextInput for file name
-   - Button for save/cancel actions
+3. Confirmation dialog props:
+   - Title: "Change Master Loop Speed?"
+   - Message: "This track sets the loop length. Changing its speed will affect how all other tracks loop. Continue?"
+   - Destructive: false (not truly destructive, just potentially disruptive)
+   - Confirm label: "Change Speed"
+   - Cancel label: "Cancel"
 
-2. Reference Android popup layout:
-   - Review `../app/src/main/res/layout/popup.xml`
-   - Match layout and content
-   - Show track number being saved
+4. On confirm:
+   - Apply the pending speed change
+   - Close dialog
 
-3. Create SaveModal component:
-   - Accept visible, onDismiss, onSave, trackId props
-   - Show "Track X" label
-   - TextInput for custom filename
-   - Save and Cancel buttons
-   - Close on backdrop press
+5. On cancel:
+   - Revert speed slider to previous value (if needed)
+   - Close dialog
 
-4. Implement validation:
-   - Check filename is not empty
-   - Sanitize filename (remove invalid characters)
-   - Show error if validation fails
+6. Write tests:
+   - Test that changing master speed with no other tracks applies immediately
+   - Test that changing master speed with other tracks shows dialog
+   - Test that changing non-master track speed never shows dialog
+   - Test confirm applies speed change
+   - Test cancel reverts speed change
 
-5. Integrate with MainScreen:
-   - Add state for modal visibility
-   - Connect Save button to open modal
-   - Handle onSave callback (console.log for now)
+**Verification Checklist**:
 
-6. Style modal:
-   - Center on screen
-   - Dark background matching theme
-   - Proper padding and spacing
-   - Keyboard-aware (dismiss on submit)
+- [ ] Dialog appears when changing master speed with other tracks
+- [ ] Dialog does not appear for non-master tracks
+- [ ] Dialog does not appear if master is only track
+- [ ] Confirm applies speed change correctly
+- [ ] Cancel reverts UI to previous speed
+- [ ] Tests cover all scenarios
 
-**Verification Checklist:**
+**Testing Instructions**:
 
-- [ ] Modal opens when Save button pressed
-- [ ] Modal closes on Cancel or backdrop press
-- [ ] TextInput allows filename entry
-- [ ] Save callback receives filename
-- [ ] Validation prevents empty filenames
-- [ ] Modal styling matches theme
+```typescript
+describe('SpeedSlider - master track confirmation', () => {
+  it('shows confirmation when changing master track speed with other tracks', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1', speed: 1.0 }),
+      createMockTrack({ id: 'track-2', speed: 1.0 }),
+    ];
+    useTrackStore.setState({ tracks });
 
-**⚠️ CODE REVIEW FINDINGS (Task 6):**
+    const { getByTestId, getByText } = render(
+      <MainScreen /> // Or whatever component contains SpeedSlider
+    );
 
-**SaveModal Component Completely Missing:**
+    // Find speed slider for track-1 (master)
+    const slider = getByTestId('speed-slider-track-1');
 
-> **Consider:** Looking at the files created so far, do you see `src/components/SaveModal/SaveModal.tsx`, `SaveModal.styles.ts`, or `index.ts` anywhere?
->
-> **Think about:** When you run `Glob("src/components/SaveModal/**/*")`, what result do you get?
->
-> **Reflect:** In `src/screens/MainScreen/MainScreen.tsx:67-69`, the Save button handler just logs to console. According to the task specification, shouldn't this button open a SaveModal dialog?
->
-> **Consider:** The task says to "Use React Native Paper components: Portal for modal overlay, Modal for dialog, TextInput for file name, Button for save/cancel actions." Has any of this been implemented?
->
-> **Think about:** Phase 2 success criteria states "Save modal opens and closes properly" - how can this be verified if the modal doesn't exist?
+    // Change speed
+    fireEvent(slider, 'valueChange', 1.5);
 
-**Evidence:**
+    // Verify confirmation dialog appeared
+    expect(getByText('Change Master Loop Speed?')).toBeTruthy();
+  });
 
-```bash
-$ Glob("src/components/SaveModal/**/*")
-No files found
+  it('does not show confirmation when changing master speed with no other tracks', () => {
+    const tracks = [createMockTrack({ id: 'track-1', speed: 1.0 })];
+    useTrackStore.setState({ tracks });
 
-$ grep -r "SaveModal" src/
-# No matches found
+    const { getByTestId, queryByText } = render(<MainScreen />);
+
+    const slider = getByTestId('speed-slider-track-1');
+    fireEvent(slider, 'valueChange', 1.5);
+
+    // Speed applied immediately, no dialog
+    expect(queryByText('Change Master Loop Speed?')).toBeNull();
+    expect(useTrackStore.getState().tracks[0].speed).toBe(1.5);
+  });
+
+  it('applies speed change when confirmation accepted', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1', speed: 1.0 }),
+      createMockTrack({ id: 'track-2', speed: 1.0 }),
+    ];
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId, getByText } = render(<MainScreen />);
+
+    // Change master speed
+    const slider = getByTestId('speed-slider-track-1');
+    fireEvent(slider, 'valueChange', 1.5);
+
+    // Confirm
+    fireEvent.press(getByText('Change Speed'));
+
+    // Verify speed applied
+    expect(useTrackStore.getState().tracks[0].speed).toBe(1.5);
+  });
+
+  it('reverts speed change when confirmation cancelled', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1', speed: 1.0 }),
+      createMockTrack({ id: 'track-2', speed: 1.0 }),
+    ];
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId, getByText } = render(<MainScreen />);
+
+    // Change master speed
+    const slider = getByTestId('speed-slider-track-1');
+    fireEvent(slider, 'valueChange', 1.5);
+
+    // Cancel
+    fireEvent.press(getByText('Cancel'));
+
+    // Verify speed NOT applied
+    expect(useTrackStore.getState().tracks[0].speed).toBe(1.0);
+  });
+});
 ```
 
-**Testing Instructions:**
+Run tests: `npm test -- SpeedSlider.test.tsx`
 
-- Open modal and verify it appears centered
-- Enter a filename and press Save
-- Try saving with empty filename (should show error or disable Save)
-- Press Cancel or backdrop to dismiss
-- Test keyboard behavior on mobile
-
-**Commit Message Template:**
+**Commit Message Template**:
 
 ```
-feat(ui): implement save modal dialog
+feat(ui): add confirmation for master track speed changes
 
-- Create SaveModal component with Paper Modal
-- Add filename TextInput and validation
-- Implement Save and Cancel actions
-- Match Android popup layout and styling
-- Integrate with MainScreen Save button
+- Show dialog when changing master speed with other tracks present
+- Implement confirm/cancel logic
+- Add tests for confirmation workflow
+- Improve UX by preventing accidental loop disruption
 ```
 
-**Estimated tokens:** ~13,000
+**Estimated tokens**: ~16,000
 
 ---
 
-### Task 7: Add Icon Buttons for Track Controls
+### Task 5: Add Confirmation for Master Track Deletion
 
-**Goal:** Implement play, pause, and delete icon buttons for each track with proper icons and styling.
+## 🔍 Review Feedback - Task 5 Not Implemented
 
-**Files to Modify:**
-
-- `src/components/TrackListItem/TrackListItem.tsx` - Add icon buttons
-
-**Prerequisites:**
-
-- Task 2 completed
-
-**Implementation Steps:**
-
-1. Use React Native Paper IconButton:
-   - Play button: "play" icon
-   - Pause button: "pause" icon
-   - Delete button: "delete" or "trash" icon
-
-2. Reference Android icon buttons:
-   - Review `../app/src/main/res/layout/sound_controls.xml`
-   - Match button sizes (50dp in Android)
-   - Match icon colors and styles
-
-3. Implement button layout:
-   - Play button on left side
-   - Pause and Delete buttons on right side
-   - Proper spacing between buttons
-
-4. Add button interactions:
-   - onPress handlers for each button
-   - Callbacks passed from parent (onPlay, onPause, onDelete)
-   - Visual feedback on press (Paper handles ripple)
-
-5. Style icon buttons:
-   - Use theme colors for icons
-   - Transparent or themed background
-   - Proper touch target size (minimum 44x44)
-
-6. Handle playing state:
-   - Highlight Play button when track is playing
-   - Consider disabling Pause when not playing
-   - Visual cue for active track
-
-**Verification Checklist:**
-
-- [ ] Icon buttons render correctly
-- [ ] Icons are recognizable and appropriate
-- [ ] Buttons fire onPress callbacks
-- [ ] Playing state is visually indicated
-- [ ] Touch targets are adequate
-- [ ] Styling matches Android design
-
-**Testing Instructions:**
-
-- Press Play button and verify callback
-- Press Pause button and verify callback
-- Press Delete button and verify callback
-- Test button states (normal, pressed, disabled)
-- Verify icon visibility on dark background
-
-**Commit Message Template:**
-
-```
-feat(ui): add icon buttons for track controls
-
-- Implement Play, Pause, and Delete IconButtons
-- Position buttons to match Android layout
-- Add onPress callbacks for each action
-- Style icons with theme colors
-- Show visual feedback for playing state
-```
-
-**Estimated tokens:** ~11,000
+> **Consider:** Looking at `__tests__/unit/components/TrackListItem.test.tsx`, do any tests verify master track deletion confirmation behavior?
+>
+> **Reflect:** The test at line 55 tests `onDelete` callback, but does it test:
+> - Showing confirmation when deleting master track?
+> - NOT showing confirmation when deleting non-master track?
+> - Clearing all tracks on confirm?
+> - Preserving tracks on cancel?
+>
+> **Think about:** This task depends on Task 3 (ConfirmationDialog). Has that been implemented yet?
+>
+> **Consider:** According to Phase 1 Task 3, removing the master track should automatically clear all tracks in the store. Have you verified this store behavior exists before implementing the UI confirmation?
 
 ---
 
-### Task 8: Implement Responsive Layout for Web and Mobile
+**Goal**: Show a confirmation dialog when the user attempts to delete the master track, warning that all tracks will be cleared.
 
-**Goal:** Ensure the UI adapts gracefully to different screen sizes and orientations.
+**Files to Modify**:
 
-**Files to Modify:**
+- `src/components/TrackListItem/TrackListItem.tsx` - Add confirmation logic for delete
+- `src/screens/MainScreen/MainScreen.tsx` - Manage delete confirmation dialog
+- `src/components/TrackListItem/__tests__/TrackListItem.test.tsx` - Add tests
 
-- `src/screens/MainScreen/MainScreen.tsx` - Add responsive layout
-- `src/components/TrackListItem/TrackListItem.tsx` - Adjust for different widths
+**Prerequisites**: Task 3 complete
 
-**Prerequisites:**
+**Implementation Steps**:
 
-- Tasks 1-7 completed
+1. In MainScreen or appropriate parent:
+   - Add state for delete confirmation dialog
+   - Add state to track which track is pending deletion
+   - Render separate ConfirmationDialog for delete action
 
-**Implementation Steps:**
+2. In TrackListItem delete handler (or wherever track deletion is triggered):
+   - Before deleting, check if track is master
+   - If true, show confirmation dialog instead of deleting immediately
+   - Store pending track ID
 
-1. Use React Native Dimensions or useWindowDimensions:
-   - Get screen width and height
-   - Determine if device is tablet/desktop (width > 768)
-   - Adjust layout based on screen size
+3. Confirmation dialog props:
+   - Title: "Delete Master Track?"
+   - Message: "This track sets the loop length. Deleting it will clear all tracks and start fresh. This cannot be undone."
+   - Destructive: true (this IS truly destructive)
+   - Confirm label: "Delete All Tracks"
+   - Cancel label: "Cancel"
 
-2. Implement responsive MainScreen:
-   - On mobile: vertical layout (top/middle/bottom)
-   - On tablet/desktop: consider two-column layout
-   - Adjust button sizes for larger screens
+4. On confirm:
+   - Remove the master track (which triggers auto-clear in store from Phase 1)
+   - Close dialog
 
-3. Make TrackListItem responsive:
-   - On narrow screens: stack sliders vertically
-   - On wide screens: sliders can be wider or side-by-side
-   - Adjust font sizes for readability
+5. On cancel:
+   - Close dialog, no action
 
-4. Handle orientation changes:
-   - Test landscape and portrait modes
-   - Ensure all content is accessible
-   - Re-layout if necessary
+6. Write tests:
+   - Test deleting master track shows confirmation
+   - Test deleting non-master track deletes immediately without confirmation
+   - Test confirm clears all tracks
+   - Test cancel preserves all tracks
 
-5. Test on various screen sizes:
-   - Mobile (320px - 480px width)
-   - Tablet (768px - 1024px width)
-   - Desktop (1024px+ width)
-   - Verify usability on each
+**Verification Checklist**:
 
-6. Add safe area handling:
-   - Use SafeAreaView or SafeAreaProvider
-   - Respect notches and system UI
-   - Test on iPhone X+ and Android devices with notches
+- [ ] Dialog appears when deleting master track
+- [ ] Dialog does not appear for non-master tracks
+- [ ] Confirm clears all tracks correctly
+- [ ] Cancel preserves tracks
+- [ ] Destructive styling applied to confirm button
+- [ ] Tests cover all scenarios
 
-**Verification Checklist:**
+**Testing Instructions**:
 
-- [ ] Layout adapts to screen width changes
-- [ ] All content is accessible on small screens
-- [ ] UI is optimized for larger screens
-- [ ] Orientation changes don't break layout
-- [ ] Safe areas are respected on notched devices
+```typescript
+describe('TrackListItem - master track deletion confirmation', () => {
+  it('shows confirmation when deleting master track', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1' }),
+      createMockTrack({ id: 'track-2' }),
+    ];
+    useTrackStore.setState({ tracks });
 
-**Testing Instructions:**
+    const { getByTestId, getByText } = render(<MainScreen />);
 
-- Resize web browser window and verify layout adapts
-- Test on physical devices with different screen sizes
-- Rotate device and check both orientations
-- Verify no content is cut off or overlapping
+    // Find and press delete button for master track
+    const deleteButton = getByTestId('delete-button-track-1');
+    fireEvent.press(deleteButton);
 
-**Commit Message Template:**
+    // Verify confirmation dialog appeared
+    expect(getByText('Delete Master Track?')).toBeTruthy();
+    expect(getByText(/clear all tracks/i)).toBeTruthy();
+  });
+
+  it('does not show confirmation when deleting non-master track', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1' }),
+      createMockTrack({ id: 'track-2' }),
+    ];
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId, queryByText } = render(<MainScreen />);
+
+    // Delete non-master track
+    const deleteButton = getByTestId('delete-button-track-2');
+    fireEvent.press(deleteButton);
+
+    // No dialog, track deleted immediately
+    expect(queryByText('Delete Master Track?')).toBeNull();
+    expect(useTrackStore.getState().tracks).toHaveLength(1);
+    expect(useTrackStore.getState().tracks[0].id).toBe('track-1');
+  });
+
+  it('clears all tracks when deletion confirmed', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1' }),
+      createMockTrack({ id: 'track-2' }),
+    ];
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId, getByText } = render(<MainScreen />);
+
+    // Delete master track
+    const deleteButton = getByTestId('delete-button-track-1');
+    fireEvent.press(deleteButton);
+
+    // Confirm deletion
+    fireEvent.press(getByText('Delete All Tracks'));
+
+    // Verify all tracks cleared
+    expect(useTrackStore.getState().tracks).toHaveLength(0);
+  });
+
+  it('preserves tracks when deletion cancelled', () => {
+    const tracks = [
+      createMockTrack({ id: 'track-1' }),
+      createMockTrack({ id: 'track-2' }),
+    ];
+    useTrackStore.setState({ tracks });
+
+    const { getByTestId, getByText } = render(<MainScreen />);
+
+    // Attempt to delete master track
+    const deleteButton = getByTestId('delete-button-track-1');
+    fireEvent.press(deleteButton);
+
+    // Cancel
+    fireEvent.press(getByText('Cancel'));
+
+    // Verify tracks preserved
+    expect(useTrackStore.getState().tracks).toHaveLength(2);
+  });
+});
+```
+
+Run tests: `npm test -- TrackListItem.test.tsx`
+
+**Commit Message Template**:
 
 ```
-feat(ui): implement responsive layout for all screen sizes
+feat(ui): add confirmation for master track deletion
 
-- Add responsive breakpoints for mobile/tablet/desktop
-- Adjust TrackListItem layout based on screen width
-- Handle orientation changes gracefully
-- Add SafeAreaView for notched devices
-- Optimize UI for various screen sizes
+- Show dialog warning that all tracks will be cleared
+- Implement confirm/cancel logic
+- Add destructive styling to confirm button
+- Add tests for deletion workflow
 ```
 
-**Estimated tokens:** ~12,000
+**Estimated tokens**: ~15,000
 
 ---
 
-### Task 9: Add Component Tests
+### Task 6: Add Per-Track Playback Indicators
 
-**Goal:** Write unit and integration tests for all UI components created in Phase 2.
+## 🔍 Review Feedback - Task 6 Not Started
 
-**Files to Create:**
-
-- `__tests__/unit/components/TrackListItem.test.tsx` - TrackListItem tests
-- `__tests__/unit/components/TrackList.test.tsx` - TrackList tests
-- `__tests__/unit/components/SaveModal.test.tsx` - SaveModal tests
-- `__tests__/unit/components/ActionButton.test.tsx` - ActionButton tests
-- `__tests__/unit/components/Slider.test.tsx` - Slider tests
-- `__tests__/integration/screens/MainScreen.test.tsx` - MainScreen integration test
-
-**Prerequisites:**
-
-- All component tasks (1-8) completed
-
-**Implementation Steps:**
-
-1. Test TrackListItem:
-   - Renders with track data
-   - Displays track name, speed, volume
-   - Buttons are pressable
-   - Sliders trigger onValueChange
-   - Playing state shows correctly
-
-2. Test TrackList:
-   - Renders list of tracks
-   - Shows empty state with no tracks
-   - Renders correct number of items
-   - FlatList scrolls properly
-
-3. Test SaveModal:
-   - Opens and closes correctly
-   - TextInput accepts input
-   - Save callback receives filename
-   - Cancel dismisses modal
-   - Validation prevents empty names
-
-4. Test ActionButton:
-   - Renders with label and icon
-   - onPress fires when clicked
-   - Disabled state prevents interaction
-   - Styling applied correctly
-
-5. Test Sliders:
-   - VolumeSlider accepts value changes
-   - SpeedSlider formats display correctly
-   - onValueChange callbacks fire
-
-6. Integration test for MainScreen:
-   - All sections render
-   - Buttons open modals
-   - Track list displays tracks
-   - Mock user interactions (press buttons, change sliders)
-
-7. Use React Native Testing Library:
-   - `render()` to render components
-   - `fireEvent` to simulate interactions
-   - `waitFor` for async updates
-   - `getByText`, `getByTestId` for queries
-
-8. Aim for high coverage:
-   - Test all user interactions
-   - Test edge cases (empty states, invalid input)
-   - Test accessibility (labels, roles)
-
-**Verification Checklist:**
-
-- [ ] All component tests pass
-- [ ] Integration test for MainScreen passes
-- [ ] Code coverage meets 80% threshold
-- [ ] Tests are readable and maintainable
-- [ ] No console errors or warnings in tests
-
-**⚠️ CODE REVIEW FINDINGS (Task 9):**
-
-**Component Tests Not Created:**
-
-> **Consider:** The task specifies creating test files in `__tests__/unit/components/` and `__tests__/integration/screens/`. Do these directories exist?
+> **Consider:** Searching for `**/TrackProgressBar/*.tsx` returns no results. Have you created this component?
 >
-> **Think about:** When you run `Glob("__tests__/unit/**/*.test.tsx")`, what files are found? Does this match the 6 test files specified in the task?
+> **Think about:** This task requires creating a new component with:
+> - Real-time progress updates at 60fps
+> - Platform-specific update mechanisms (requestAnimationFrame for web, Reanimated for native)
+> - Proper cleanup of intervals/animation frames
+> - Performance optimization for multiple simultaneous progress bars
 >
-> **Reflect:** Looking at the test output from `npm test`, how many test suites pass? The task says to create tests for TrackListItem, TrackList, SaveModal, ActionButton, Slider components, and MainScreen integration. Are these tests present?
+> **Reflect:** This is one of the more complex components due to performance considerations. Have you reviewed the updated implementation steps (lines 787-792) that specify using Reanimated for native platforms?
 >
-> **Consider:** The task says "Aim for high coverage: Test all user interactions, test edge cases, test accessibility". If you run `npm run test:coverage`, what coverage percentage do you see for the new Phase 2 components?
->
-> **Think about:** Phase 1 required 80% test coverage. Looking at files like `src/components/TrackListItem/TrackListItem.tsx`, `src/components/TrackList/TrackList.tsx`, and `src/screens/MainScreen/MainScreen.tsx`, are there any tests covering these implementations?
-
-**Evidence from tool verification:**
-
-```bash
-$ Glob("__tests__/unit/**/*.test.tsx")
-No files found
-
-$ Glob("__tests__/integration/**/*.test.tsx")
-No files found
-
-$ npm test
-Test Suites: 2 passed, 2 total  # Only setup.test.ts and App.test.tsx
-Tests:       7 passed, 7 total  # No new tests added for Phase 2 components
-```
-
-**Expected test files (per specification):**
-
-- `__tests__/unit/components/TrackListItem.test.tsx` - Missing
-- `__tests__/unit/components/TrackList.test.tsx` - Missing
-- `__tests__/unit/components/SaveModal.test.tsx` - Missing
-- `__tests__/unit/components/ActionButton.test.tsx` - Missing
-- `__tests__/unit/components/Slider.test.tsx` - Missing
-- `__tests__/integration/screens/MainScreen.test.tsx` - Missing
-
-**Testing Instructions:**
-
-- Run `npm test` and verify all tests pass
-- Run `npm run test:coverage` and check coverage report
-- Identify any uncovered lines and add tests
-- Verify tests fail when components are broken (intentionally break something)
-
-**Commit Message Template:**
-
-```
-test(ui): add comprehensive tests for Phase 2 components
-
-- Write unit tests for TrackListItem, TrackList, SaveModal
-- Add tests for ActionButton and Slider components
-- Create integration test for MainScreen
-- Achieve 80%+ code coverage for UI components
-- Use React Native Testing Library best practices
-```
-
-**Estimated tokens:** ~15,000
+> **Consider:** This component needs to integrate with audio player services to get current position. Have you checked how to access playback position from the audio service layer?
 
 ---
 
-### Task 10: Document Components and Create Storybook (Optional)
+**Goal**: Display a progress bar on each track showing its current playback position, helping users visualize loop boundaries.
 
-**Goal:** Document all UI components and optionally set up Storybook for component development.
+**Files to Create/Modify**:
 
-**Files to Create:**
+- `src/components/TrackProgressBar/TrackProgressBar.tsx` - Create progress bar component
+- `src/components/TrackProgressBar/TrackProgressBar.styles.ts` - Styles
+- `src/components/TrackProgressBar/__tests__/TrackProgressBar.test.tsx` - Tests
+- `src/components/TrackProgressBar/index.ts` - Re-export
+- `src/components/TrackListItem/TrackListItem.tsx` - Integrate progress bar
+- `src/components/index.ts` - Export new component
 
-- `src/components/README.md` - Component documentation
-- `.storybook/` - Storybook configuration (optional)
-- Component story files (optional)
+**Prerequisites**: Phase 1 complete (uses loop engine to calculate positions)
 
-**Prerequisites:**
+**Implementation Steps**:
 
-- Tasks 1-9 completed
+1. Create `TrackProgressBar` component:
+   - Props:
+     - `trackId: string` - Track to show progress for
+     - `isPlaying: boolean` - Whether playback is active
+   - Use React Native Paper's `ProgressBar` or custom view
+   - Update progress at 60fps during playback using `requestAnimationFrame` or interval
 
-**Implementation Steps:**
+2. Progress calculation:
+   - Get current playback position from audio player service
+   - Calculate progress: `(currentPosition % trackDuration) / trackDuration`
+   - Handle looping: progress resets to 0 when track loops
 
-1. Document each component:
-   - Purpose and usage
-   - Props and their types
-   - Example usage code
-   - Screenshots or descriptions
+3. Update mechanism:
+   - **Web**: Use `requestAnimationFrame` for smooth 60fps updates
+   - **Native**: Use React Native Reanimated for native 60fps animations
+   - **Fallback**: `setInterval` with 16ms interval (~60fps) if Reanimated unavailable
+   - Clean up animation loop on unmount or when playback stops
 
-2. Update component README:
-   - List all components created in Phase 2
-   - Explain component hierarchy
-   - Note any dependencies between components
+4. Visual design:
+   - Thin horizontal bar (2-4px height)
+   - Progress color: Primary or accent color
+   - Background: Light gray or transparent
+   - Optional: Flash/pulse animation on loop restart
 
-3. (Optional) Set up Storybook:
-   - Install @storybook/react-native
-   - Configure Storybook
-   - Create stories for each component
-   - Allows isolated component development
+5. Performance optimization:
+   - Only update when playing
+   - Use `useCallback` for update function
+   - Clean up interval/animation frame on unmount
+   - Throttle updates if needed (60fps should be fine)
 
-4. Add JSDoc comments to components:
-   - Document props with TypeScript
-   - Add usage examples in comments
-   - Explain complex logic
+6. Integrate into TrackListItem:
+   - Add progress bar below track controls
+   - Ensure it doesn't interfere with layout
+   - Test on various screen sizes
 
-5. Create visual regression baseline (if using Storybook):
-   - Take screenshots of each component
-   - Use for future comparison
+7. Accessibility:
+   - `accessibilityLabel`: "Playback progress" (updates not necessary, visual indicator only)
+   - Consider adding percentage for screen readers (optional)
 
-**Verification Checklist:**
+8. Write tests:
+   - Test progress updates during playback
+   - Test progress resets on loop
+   - Test no updates when paused
+   - Test cleanup on unmount
 
-- [ ] Component README is comprehensive
-- [ ] All components have JSDoc comments
-- [ ] (Optional) Storybook runs and shows components
-- [ ] Documentation is committed to git
+**Verification Checklist**:
 
-**Testing Instructions:**
+- [ ] Progress bar visible on all tracks
+- [ ] Progress updates smoothly during playback
+- [ ] Progress resets correctly at loop boundaries
+- [ ] No performance issues or memory leaks
+- [ ] Works on web and mobile
+- [ ] Tests cover playback and loop scenarios
 
-- Read component README and verify it's accurate
-- (Optional) Run Storybook and verify components render
-- Check that JSDoc comments appear in IDE tooltips
+**Testing Instructions**:
 
-**Commit Message Template:**
+```typescript
+describe('TrackProgressBar', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders progress bar with initial progress', () => {
+    const { getByTestId } = render(
+      <TrackProgressBar trackId="track-1" isPlaying={false} />
+    );
+
+    const progressBar = getByTestId('track-progress-bar-track-1');
+    expect(progressBar).toBeTruthy();
+  });
+
+  it('updates progress during playback', async () => {
+    // Mock audio player to return increasing position
+    const mockPlayer = {
+      getPosition: jest.fn()
+        .mockResolvedValueOnce(0)
+        .mockResolvedValueOnce(1000)
+        .mockResolvedValueOnce(2000),
+    };
+
+    const { getByTestId } = render(
+      <TrackProgressBar trackId="track-1" isPlaying={true} />
+    );
+
+    // Fast-forward time
+    jest.advanceTimersByTime(100);
+
+    // Verify progress updated
+    // Note: actual assertion depends on your implementation
+    // You may need to check internal state or mock the ProgressBar component
+  });
+
+  it('stops updating when playback paused', () => {
+    const { rerender } = render(
+      <TrackProgressBar trackId="track-1" isPlaying={true} />
+    );
+
+    // Initially playing
+    expect(/* some timer/interval to be set */).toBeTruthy();
+
+    // Pause
+    rerender(<TrackProgressBar trackId="track-1" isPlaying={false} />);
+
+    // Verify updates stopped
+    expect(/* timer/interval to be cleared */).toBeTruthy();
+  });
+
+  it('cleans up on unmount', () => {
+    const { unmount } = render(
+      <TrackProgressBar trackId="track-1" isPlaying={true} />
+    );
+
+    unmount();
+
+    // Verify no memory leaks (timers cleared, listeners removed)
+    expect(/* timers cleared */).toBeTruthy();
+  });
+});
+```
+
+Run tests: `npm test -- TrackProgressBar.test.tsx`
+
+**Commit Message Template**:
 
 ```
-docs(ui): document Phase 2 UI components
+feat(ui): add per-track playback progress indicators
 
-- Add comprehensive README for components
-- Add JSDoc comments to all component files
-- (Optional) Set up Storybook for isolated development
-- Document props, usage, and examples
+- Create progress bar component showing playback position
+- Update progress at 60fps during playback
+- Handle loop boundary resets
+- Integrate into track list items
+- Add performance optimizations and cleanup
+- Include component tests
 ```
 
-**Estimated tokens:** ~8,000
+**Estimated tokens**: ~18,000
 
 ---
 
 ## Phase Verification
 
-### How to Verify Phase 2 is Complete
+After completing all tasks, verify Phase 2 is complete:
 
-1. **Visual Verification:**
-   - Run app on web, iOS, and Android
-   - Verify all components render correctly
-   - Check that UI matches Android app aesthetic
-   - Test on different screen sizes
+### Automated Verification
 
-2. **Functional Verification:**
-   - Press all buttons (should log events)
-   - Drag all sliders (should update values)
-   - Open and close save modal
-   - Add mock tracks to list and verify scrolling
+```bash
+# Run all tests
+npm test
 
-3. **Code Quality:**
-   - Run linter: `npm run lint`
-   - Run tests: `npm test`
-   - Check coverage: `npm run test:coverage`
-   - Verify TypeScript compiles: `npx tsc --noEmit`
+# Run only Phase 2 tests
+npm test -- TrackListItem.test.tsx
+npm test -- LoopModeToggle.test.tsx
+npm test -- ConfirmationDialog.test.tsx
+npm test -- SpeedSlider.test.tsx
+npm test -- TrackProgressBar.test.tsx
 
-4. **Responsive Design:**
-   - Resize web browser window
-   - Test on mobile (portrait and landscape)
-   - Test on tablet
-   - Verify no layout breakage
+# Check test coverage
+npm test -- --coverage
+```
 
-5. **Accessibility:**
-   - Check that buttons have labels
-   - Verify touch targets are adequate
-   - Test with screen reader (basic check)
+**Expected Results**:
 
-### Integration Points for Phase 3
+- All tests pass
+- Code coverage ≥ 80% for new code
+- No existing tests broken
 
-Phase 2 creates the UI that Phase 3 will connect to audio services:
+### Manual Testing Scenarios
 
-- **TrackListItem callbacks:** onPlay, onPause, onDelete will connect to audio service
-- **Sliders:** onValueChange will call audio service methods (setSpeed, setVolume)
-- **ActionButtons:** onPress will trigger audio recording, import, save operations
-- **Track data:** Track type is ready for audio metadata (uri, duration)
+#### Scenario 1: Master Track Visual Indication
 
-### Known Limitations
+1. Open app
+2. Record or import first track
+3. **Verify**: Track has distinct border/background (master styling)
+4. Add second track
+5. **Verify**: First track still has master styling, second track has normal styling
+6. **Verify**: Accessibility labels include "Master loop track" for first track
 
-- Audio operations are not functional yet (Phase 4-5)
-- Sliders don't affect playback (Phase 5)
-- Save modal doesn't actually save files (Phase 6-7)
-- No state persistence (Phase 7)
+#### Scenario 2: Loop Mode Toggle
+
+1. Open app with tracks loaded
+2. Press play
+3. **Verify**: Loop mode toggle button visible near play controls
+4. **Verify**: Toggle indicates current state (ON by default)
+5. Tap toggle to turn OFF
+6. **Verify**: Visual state changes
+7. **Verify**: Store state updated (check in dev tools or console)
+8. Tap toggle to turn ON again
+9. **Verify**: State reverts correctly
+
+#### Scenario 3: Master Speed Change Confirmation
+
+1. Add first track (master)
+2. Add second track
+3. Adjust master track speed slider
+4. **Verify**: Confirmation dialog appears
+5. **Verify**: Dialog message mentions affecting all tracks
+6. Cancel dialog
+7. **Verify**: Speed reverts to original value
+8. Adjust master speed again
+9. Confirm dialog
+10. **Verify**: Speed change applied
+11. **Verify**: Loop duration recalculated (visible in dev tools)
+12. Adjust second track speed (non-master)
+13. **Verify**: No confirmation dialog, speed changes immediately
+
+#### Scenario 4: Master Track Deletion Confirmation
+
+1. Add multiple tracks
+2. Tap delete button on first track (master)
+3. **Verify**: Confirmation dialog appears
+4. **Verify**: Dialog message warns all tracks will be cleared
+5. **Verify**: Confirm button has destructive styling (red)
+6. Cancel dialog
+7. **Verify**: All tracks preserved
+8. Tap delete on first track again
+9. Confirm dialog
+10. **Verify**: All tracks cleared
+11. Add multiple tracks again
+12. Tap delete on second track (non-master)
+13. **Verify**: No confirmation dialog
+14. **Verify**: Only that track deleted
+
+#### Scenario 5: Playback Progress Indicators
+
+1. Add tracks
+2. Press play
+3. **Verify**: Progress bars visible on all tracks
+4. **Verify**: Progress bars move smoothly during playback
+5. Let tracks loop
+6. **Verify**: Progress bars reset at loop boundaries
+7. Pause playback
+8. **Verify**: Progress bars stop updating
+9. Resume playback
+10. **Verify**: Progress bars resume from correct position
+
+### Integration Points Tested
+
+- ✅ Master track styling applied based on store state
+- ✅ Loop mode toggle controls playback store
+- ✅ Confirmation dialogs prevent destructive actions
+- ✅ Speed changes integrate with master track detection
+- ✅ Track deletion integrates with confirmation flow
+- ✅ Progress indicators sync with audio playback
+
+### Known Limitations (to be addressed in later phases)
+
+- Loop mode toggle doesn't affect audio playback yet (audio engine update in Phase 5)
+- Settings page doesn't exist to configure defaults (Phase 3)
+- Save/export doesn't use loop repetitions yet (Phase 4)
+- Recording doesn't respect loop boundaries yet (Phase 5)
+- Progress indicators may not be perfectly accurate on mobile (platform-specific timing differences)
 
 ---
 
-## Next Phase
+---
 
-Proceed to **[Phase 3: Audio Abstraction Layer](./Phase-3.md)** to create the platform-specific audio service interfaces that will make these UI components functional.
+## ❌ Code Review Status: PHASE 2 NOT IMPLEMENTED
+
+### Summary of Issues Found
+
+**Critical Issues:**
+1. ❌ **No Phase 2 implementation** - All 6 tasks are incomplete
+2. ❌ **Missing components** - LoopModeToggle, ConfirmationDialog, TrackProgressBar do not exist
+3. ❌ **Existing components not updated** - TrackListItem and SpeedSlider lack Phase 2 functionality
+4. ❌ **Tests missing** - No Phase 2 tests have been written
+5. ❌ **Git commits missing** - No Phase 2 commits in history
+6. ⚠️ **Phase 1 issue persists** - `track.selected` property still used in TrackListItem despite being removed in Phase 1
+
+### Required Actions Before Re-Review
+
+1. **Read Phase-2.md thoroughly** - Understand all 6 tasks and their requirements
+2. **Verify Phase 1 complete** - Ensure Phase 1 is fully implemented (check `selected` property removed)
+3. **Follow TDD** - Write tests FIRST for each component
+4. **Implement sequentially** - Complete Tasks 1-6 in order (some have dependencies)
+5. **Make atomic commits** - One commit per task following conventional format
+6. **Test everything** - Run `npm test` and verify all tests pass
+7. **Manual verification** - Test each scenario from Phase Verification section
+
+### Task Completion Checklist
+
+- [ ] Task 1: TrackListItem master track styling (+ tests)
+- [ ] Task 2: LoopModeToggle component (+ tests)
+- [ ] Task 3: ConfirmationDialog component (+ tests)
+- [ ] Task 4: Master track speed change confirmation (+ tests)
+- [ ] Task 5: Master track deletion confirmation (+ tests)
+- [ ] Task 6: TrackProgressBar component (+ tests)
+
+### Expected Git Commit Pattern
+
+After implementation, `git log --oneline` should show commits like:
+```
+feat(ui): add per-track playback progress indicators
+feat(ui): add confirmation for master track deletion
+feat(ui): add confirmation for master track speed changes
+feat(ui): create reusable confirmation dialog component
+feat(ui): add loop mode toggle button
+feat(ui): add master track visual styling
+```
+
+### How to Proceed
+
+1. Start with Task 1 (master track styling)
+2. Write tests first (TDD approach)
+3. Implement the functionality
+4. Verify tests pass
+5. Make atomic commit
+6. Move to Task 2
+7. Repeat until all 6 tasks complete
+8. Return for re-review
+
+---
+
+## Next Steps (After Phase 2 Complete)
+
+Proceed to **Phase 3: Settings Page & Configuration** to build the settings screen where users can configure looping behavior and export options.
+
+**Phase 3 Preview**:
+
+- Settings screen navigation
+- Looping behavior settings
+- Export default settings
+- Recording default settings
+- Settings persistence and migration
+- Settings page tests

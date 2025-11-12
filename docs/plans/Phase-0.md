@@ -1,995 +1,730 @@
-# Phase 0: Foundation & Architecture Decisions
+# Phase 0: Foundation - Architecture & Design Decisions
 
-## Overview
-
-This phase establishes the architectural foundation, design decisions, and technical standards that will guide all subsequent implementation phases. These decisions are based on analysis of the existing Android (Java) codebase and the requirements for the React Native (Expo) migration.
-
-**This is not an implementation phase** - it's a reference document for all future phases.
-
----
-
-## Source Code Analysis Summary
-
-### Android Implementation (Current State)
-
-**Location:** `../app/src/main/java/gemenie/looper/`
-
-**Files Analyzed:**
-
-- `MainActivity.java` (489 lines) - Main activity, audio recording, file management
-- `SoundControlsAdapter.java` (174 lines) - RecyclerView adapter, playback controls
-
-**Audio Technologies Used:**
-
-1. **Recording** (MainActivity.java:150-159)
-   - `MediaRecorder` with MIC audio source
-   - Output Format: `THREE_GPP`
-   - Audio Encoder: `AMR_NB` (Adaptive Multi-Rate Narrowband)
-   - Output: `.mp3` files (despite THREE_GPP format)
-
-2. **Playback** (MainActivity.java:194-221, SoundControlsAdapter.java:106-125)
-   - Multiple `MediaPlayer` instances running simultaneously
-   - Each track has its own MediaPlayer instance
-   - Looping enabled via `setLooping(true)`
-   - **CRITICAL**: No actual audio mixing - Android's audio system mixes at output level
-
-3. **Speed Control** (SoundControlsAdapter.java:145-159)
-   - `MediaPlayer.setPlaybackParams(new PlaybackParams().setSpeed(float))`
-   - Range: 0.05x to 2.50x (seekbar 3-102, divided by 41)
-   - Requires API 23+ (Android M), hidden on older devices
-   - Preserves pitch automatically
-
-4. **Volume Control** (SoundControlsAdapter.java:134-143)
-   - `MediaPlayer.setVolume(float, float)` for left/right channels
-   - Logarithmic scaling: `1 - (Math.log(MAX_VOLUME - progress) / Math.log(MAX_VOLUME))`
-   - Range: 0-100 (seekbar)
-
-5. **File Management** (MainActivity.java:186-191, 236-280)
-   - Internal storage: `context.getFilesDir()` for recordings
-   - External storage: `Environment.DIRECTORY_DOWNLOADS/Looper` for exports
-   - File format: `.mp3` extension
-   - Save operation: Simple file copy (no mixing/rendering)
-
-**UI Structure:**
-
-- RecyclerView with custom adapter for track list
-- Each track item: Play/Pause/Delete buttons, Volume/Speed sliders
-- Top controls: Record/Stop buttons
-- Bottom controls: Audio import, Save buttons
-- Material Design theme with dark mode
-
-**Dependencies:**
-
-- Standard Android SDK only (no external audio libraries)
-- AndroidX: AppCompat, Material, RecyclerView, ConstraintLayout
-
-**Key Limitations Identified:**
-
-- ❌ No true audio mixing (just simultaneous playback)
-- ❌ Cannot export mixed audio file
-- ❌ Speed control requires API 23+
-- ❌ Limited to Android platform only
+This document contains architecture decisions, design patterns, and conventions that apply to ALL phases of the looper normalization feature. Read this carefully before starting any phase.
 
 ---
 
 ## Architecture Decision Records (ADRs)
 
-### ADR-001: Expo Dev Client vs Bare Workflow
+### ADR-001: Master Loop Track Model
 
-**Status:** Accepted
+**Decision**: The first track in the tracks array is always the master loop track.
 
-**Context:**
-True audio mixing requires custom native modules that aren't available in standard Expo Go. We need to choose between Expo Dev Client (custom development builds with native modules) and Bare Workflow (full ejection).
+**Rationale**:
 
-**Decision:** Use **Expo Dev Client** with custom development builds.
+- Simple and predictable: position-based selection eliminates ambiguity
+- Matches typical looper machine behavior (first recording sets the loop)
+- No need for complex track reordering or manual master selection
+- Easy to implement and test
 
-**Rationale:**
+**Implications**:
 
-- Maintains Expo ecosystem benefits (EAS Build, OTA updates, unified configuration)
-- Allows native modules via config plugins or custom native code
-- Easier to maintain than bare workflow
-- Better developer experience than pure bare React Native
-- Can still use all Expo libraries and services
+- Tracks array must maintain insertion order
+- Deleting first track requires clearing all tracks (with confirmation)
+- No drag-and-drop reordering needed
+- Master track determined by `tracks[0]`
 
-**Consequences:**
+**Implementation Notes**:
 
-- Need to create custom development client builds (cannot use Expo Go)
-- Requires EAS Build or local builds with expo-dev-client
-- Slightly more complex setup than managed workflow
-- Still much simpler than bare workflow maintenance
-
-**Implementation:**
-
-```json
-// app.json
-{
-  "expo": {
-    "plugins": ["expo-av", ["react-native-ffmpeg", { "package": "min" }]]
-  }
-}
-```
+- Use `tracks[0]?.id` to get master track ID
+- Always check `tracks.length > 0` before accessing master track
+- Master track duration = `tracks[0].duration * tracks[0].speed`
 
 ---
 
-### ADR-002: Audio Processing Library
+### ADR-002: Speed-Adjusted Loop Duration
 
-**Status:** Accepted
+**Decision**: Master loop duration is calculated using the track's speed-adjusted playback duration, not original file duration.
 
-**Context:**
-We need true audio mixing capabilities with speed/pitch control and volume adjustment. Options considered:
+**Rationale**:
 
-1. FFmpeg (command-line audio processing)
-2. Native Audio APIs (AudioTrack/AVAudioEngine)
-3. Web Audio API (web only)
-4. Hybrid approaches
+- Matches user expectation: what you hear is what you get
+- Aligns with hardware looper behavior
+- Allows musical manipulation (slow down a phrase to create a longer loop)
+- More intuitive than hidden "original" duration
 
-**Decision:** Use **FFmpeg for all platforms** with platform-specific binaries.
-
-**Platform-Specific Implementations:**
-
-- **Web:** `@ffmpeg/ffmpeg` (WebAssembly version)
-- **Native:** `react-native-ffmpeg` via Expo config plugin (or ffmpeg-kit)
-
-**Rationale:**
-
-- FFmpeg provides complete audio processing pipeline (decode, process, mix, encode)
-- Handles format conversion automatically
-- Battle-tested for audio manipulation
-- Same conceptual model across platforms (filter chains)
-- Supports all required operations: speed (atempo), volume, mixing (amix)
-
-**Consequences:**
-
-- Large binary size (~30-50MB depending on build)
-- Learning curve for FFmpeg filter syntax
-- Processing is offline/batch (not real-time)
-- Need separate real-time playback solution
-
-**Trade-offs Accepted:**
-
-- Size increase for reliability and feature completeness
-- Batch processing acceptable since mixing only happens on export
-
----
-
-### ADR-003: Platform-Specific Audio Implementations
-
-**Status:** Accepted
-
-**Context:**
-The app must run on Web (primary), Android, and iOS. Each platform has different audio APIs and capabilities.
-
-**Decision:** Implement **platform-specific audio layers** with unified interfaces.
-
-**Architecture:**
-
-```
-┌─────────────────────────────────────┐
-│   UI Layer (Shared)                 │
-│   - React Components                │
-│   - State Management                │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│   Audio Service Abstraction         │
-│   - IAudioRecorder                  │
-│   - IAudioPlayer                    │
-│   - IAudioMixer                     │
-└──────────────┬──────────────────────┘
-               │
-       ┌───────┴───────┐
-       │               │
-┌──────▼──────┐ ┌──────▼──────┐
-│ Web Impl    │ │ Native Impl │
-│ - MediaRec  │ │ - expo-av   │
-│ - WebAudio  │ │ - FFmpeg    │
-│ - @ffmpeg   │ │   native    │
-└─────────────┘ └─────────────┘
-```
-
-**Platform Detection:**
+**Formula**:
 
 ```typescript
-import { Platform } from "react-native";
-
-const audioService = Platform.select({
-  web: () => new WebAudioService(),
-  default: () => new NativeAudioService(),
-})();
+masterLoopDuration = tracks[0].duration / tracks[0].speed;
 ```
 
-**Rationale:**
+**Example**:
 
-- Optimized performance for each platform
-- Leverage platform-specific strengths (Web Audio API vs native audio)
-- Better user experience (faster processing on native)
-- Flexibility to use best tools per platform
-
-**Consequences:**
-
-- More code to maintain (~15-20% duplication)
-- Need comprehensive testing on all platforms
-- Shared interfaces must accommodate all platform capabilities
-- Core business logic remains shared (~80%)
+- Track 1: 10 seconds original, speed 0.5x
+- Master loop duration: 10 / 0.5 = 20 seconds
+- Track 2: 15 seconds original, speed 1.0x
+- Track 2 plays: 15s, then loops for 5s (total 20s)
 
 ---
 
-### ADR-004: UI Framework Selection
+### ADR-003: Seamless Loop Repetition
 
-**Status:** Accepted
+**Decision**: Shorter tracks loop continuously (seamless repetition) without regard to master loop boundaries.
 
-**Context:**
-Need cross-platform UI components that work on Web, Android, and iOS. Current Android app uses Material Design.
+**Rationale**:
 
-**Decision:** Use **React Native Paper** (Material Design for React Native).
+- Standard looper machine behavior
+- Enables musical patterns (4-bar bass over 8-bar drums)
+- Simpler implementation than time-stretching or quantization
+- No pitch/tempo artifacts
 
-**Rationale:**
+**Example**:
 
-- Material Design maintains visual consistency with current Android app
-- Works across all platforms (Web via React Native Web, native)
-- Comprehensive component library (buttons, sliders, cards, modals)
-- Built-in theming system
-- Active maintenance and good documentation
-- Native feel on Android, acceptable on iOS/Web
+- Master loop: 12 seconds
+- Track 2: 5 seconds (speed-adjusted)
+- Playback: 5s → 5s → 2s → (loop boundary) → 5s → 5s → 2s...
 
-**Components We'll Use:**
+**Implementation**: Audio players handle native looping, mixer duplicates audio data as needed for export.
 
-- `Button` - Action buttons (Record, Stop, Save, Import)
-- `IconButton` - Track controls (Play, Pause, Delete)
-- `Card` - Track list items
-- `Portal` + `Modal` - Save dialog
-- `TextInput` - File naming
-- Custom slider components (Paper's Slider may not meet needs)
+---
 
-**Theming:**
+### ADR-004: Loop Mode Toggle (Global)
+
+**Decision**: Single global toggle for loop preview mode, not per-track toggles.
+
+**Rationale**:
+
+- Simpler UX: one button near play controls
+- Matches looper behavior (all tracks loop together or not at all)
+- Avoids complex per-track state management
+- Clear mental model for users
+
+**States**:
+
+- **Loop Mode ON**: Tracks loop during playback (preview of exported audio)
+- **Loop Mode OFF**: Tracks play once then stop (inspection mode)
+
+**Default**: Loop Mode ON (typical looper behavior)
+
+---
+
+### ADR-005: Confirmation Dialogs for Destructive Actions
+
+**Decision**: Show confirmation dialogs before:
+
+1. Changing master track speed (when other tracks exist)
+2. Deleting master track
+
+**Rationale**:
+
+- Prevents accidental loss of work
+- Changing master speed recalculates all loop boundaries (potentially destructive)
+- Deleting master track clears entire session (highly destructive)
+
+**Dialog Pattern**:
+
+```
+Title: [Action] will affect all tracks
+Message: This will [consequence]. Continue?
+Buttons: Cancel | Confirm
+```
+
+**No confirmation needed for**:
+
+- Changing non-master track properties
+- Deleting non-master tracks
+- Adding tracks
+
+---
+
+### ADR-006: Settings Page Organization
+
+**Decision**: Create a dedicated Settings screen accessible from main screen, organized into logical sections.
+
+**Sections**:
+
+1. **Looping Behavior**
+   - Crossfade duration (0-50ms slider, default: 0ms = gapless)
+   - Default loop mode (ON/OFF, default: ON)
+
+2. **Export Settings**
+   - Default loop count (1, 2, 4, 8, custom)
+   - Default fadeout duration (None, 1s, 2s, 5s, custom)
+   - Default format (MP3/WAV)
+   - Default quality (Low/Medium/High)
+
+3. **Recording Settings**
+   - Default format
+   - Default quality
+   - Sample rate
+   - Bit rate
+
+4. **UI Preferences** (future expansion)
+   - Theme
+   - Track display options
+
+**Storage**: Use Zustand persist middleware (platform-specific implementation)
+
+---
+
+### ADR-007: Master Track Visual Styling
+
+**Decision**: Master track has distinct border and background styling, no icon/badge needed.
+
+**Styling**:
 
 ```typescript
-const theme = {
-  ...MD3DarkTheme,
-  colors: {
-    ...MD3DarkTheme.colors,
-    primary: "#BB86FC",
-    background: "#121212",
-    surface: "#1E1E1E",
-  },
+masterTrackStyle = {
+  borderColor: theme.colors.primary, // Distinct primary color border
+  borderWidth: 3, // Thicker than normal tracks (2px)
+  backgroundColor: theme.colors.primaryContainer, // Subtle tint
 };
 ```
 
-**Consequences:**
+**Rationale**:
 
-- Dependency on React Native Paper library
-- Bundle size increase (~200KB)
-- May need custom components for sliders (volume/speed)
-- Learning curve for Paper's theming system
-
----
-
-### ADR-005: State Management Strategy
-
-**Status:** Accepted
-
-**Context:**
-Need to manage complex state:
-
-- List of audio tracks (URIs, metadata)
-- Playback states (playing, paused, stopped)
-- Track settings (speed, volume)
-- Recording state
-- UI state (modals, dialogs)
-
-**Decision:** Use **Zustand** for global state management.
-
-**Rationale:**
-
-- Simpler than Redux, less boilerplate
-- TypeScript-first design
-- No Provider wrapping needed
-- Good performance (subscription-based)
-- Easy to persist state
-- Small bundle size (~3KB)
-- Works well with React hooks
-
-**Store Structure:**
-
-```typescript
-interface LooperStore {
-  // Track management
-  tracks: Track[];
-  addTrack: (track: Track) => void;
-  removeTrack: (id: string) => void;
-  updateTrack: (id: string, updates: Partial<Track>) => void;
-
-  // Playback state
-  playingTracks: Set<string>;
-  togglePlayback: (id: string) => void;
-
-  // Recording state
-  isRecording: boolean;
-  startRecording: () => void;
-  stopRecording: () => void;
-
-  // UI state
-  saveModalVisible: boolean;
-  selectedTrackId: string | null;
-}
-```
-
-**Persistence:**
-
-```typescript
-import { persist } from "zustand/middleware";
-
-const useStore = create(
-  persist(
-    (set) => ({
-      /* store */
-    }),
-    { name: "looper-storage" },
-  ),
-);
-```
-
-**Consequences:**
-
-- Need to learn Zustand API
-- State serialization requirements for persistence
-- Must handle platform-specific storage backends
-
-**Alternative Considered:** React Context API
-
-- Rejected: Too many re-renders for frequently changing audio state
-- Rejected: More complex to persist
+- Clean, professional appearance
+- No additional UI elements needed
+- Works across all screen sizes
+- Leverages existing Material Design 3 theme colors
 
 ---
 
-### ADR-006: Testing Strategy
+### ADR-008: Per-Track Playback Indicators
 
-**Status:** Accepted
+**Decision**: Each track displays a progress bar showing its current playback position within its own duration.
 
-**Context:**
-Complex audio processing logic, platform-specific implementations, and critical user workflows require comprehensive testing.
+**Rationale**:
 
-**Decision:** Multi-layered testing approach with **Jest + React Native Testing Library + Detox**.
+- Helps users understand loop restart points
+- Useful for debugging sync issues
+- Provides visual feedback during playback
 
-**Test Layers:**
+**Implementation**:
 
-1. **Unit Tests** (Jest)
-   - Audio service abstractions
-   - State management (Zustand stores)
-   - Utility functions (audio format conversion, time formatting)
-   - FFmpeg command builders
-   - Coverage target: 80%+
-
-2. **Integration Tests** (Jest + React Native Testing Library)
-   - Component interactions with audio services
-   - State updates triggering UI changes
-   - Platform-specific audio service implementations
-   - Mock audio APIs (MediaRecorder, expo-av)
-
-3. **E2E Tests** (Detox - Native only, Playwright - Web)
-   - Critical user flows:
-     - Record → Play → Adjust speed/volume → Save
-     - Import → Play → Mix with recording → Export
-     - Multi-track playback and mixing
-   - Platform-specific: Run on iOS Simulator, Android Emulator, Chrome/Firefox
-
-**Mock Strategy:**
-
-```typescript
-// __mocks__/expo-av.ts
-export const Audio = {
-  Recording: jest.fn().mockImplementation(() => ({
-    prepareToRecordAsync: jest.fn(),
-    startAsync: jest.fn(),
-    stopAndUnloadAsync: jest.fn(),
-  })),
-};
-```
-
-**FFmpeg Testing:**
-
-- Unit test command generation (don't run actual FFmpeg)
-- Integration tests with small audio fixtures
-- E2E tests verify actual mixed output
-
-**Rationale:**
-
-- Jest: Standard React Native testing, fast, good mocking
-- RTL: Best practices for component testing, accessible queries
-- Detox: Most mature E2E for React Native
-- Playwright: Better web E2E than Selenium/Cypress for RN Web
-
-**Consequences:**
-
-- Significant test setup time (Phase 8)
-- Need test fixtures (small audio files)
-- E2E tests slower, run on CI only
-- Platform-specific test infrastructure
+- Linear progress bar beneath each track
+- Updates at 60fps during playback
+- Shows position relative to track's speed-adjusted duration
+- Visual indicator when loop restarts (brief flash or color change)
 
 ---
 
-### ADR-007: File Format & Audio Codec Standards
+### ADR-009: Track Selection Removal
 
-**Status:** Accepted
+**Decision**: Remove the `selected` property and related UI from Track interface.
 
-**Context:**
-Need consistent audio formats for recording, playback, and export. Current Android app uses THREE_GPP/AMR_NB for recording but saves as .mp3.
+**Context**: The `selected` property was previously used for selective mixing, where only selected tracks would be included in the exported mix. Users could toggle tracks on/off for export.
 
-**Decision:** Standardize on **MP3 (MPEG-1 Audio Layer 3)** for all audio operations.
+**Rationale**:
 
-**Specifications:**
+- Not needed for looper workflow (all tracks always mix together)
+- Looper paradigm expects all recorded layers to play simultaneously
+- Simplifies UI and reduces confusion
+- Aligns with hardware looper behavior (no track selection concept)
 
-- **Format:** MP3
-- **Sample Rate:** 44.1 kHz (CD quality)
-- **Bit Rate:** 128 kbps (good quality/size balance)
-- **Channels:** Stereo (2 channels)
-
-**Rationale:**
-
-- Universal browser support (Web Audio API)
-- Native support on all platforms
-- Good compression (smaller files than WAV)
-- FFmpeg handles MP3 encoding/decoding natively
-- User familiarity (widely recognized format)
-
-**Platform-Specific Recording:**
-
-- **Web:** MediaRecorder API with `audio/webm` or `audio/mp4`, convert to MP3 via FFmpeg
-- **Native:** expo-av with MP3 output directly
-
-**FFmpeg Encoding Parameters:**
-
-```bash
--codec:a libmp3lame -b:a 128k -ar 44100
-```
-
-**Consequences:**
-
-- Potential conversion step for web recordings
-- Lossy compression (acceptable for looper use case)
-- Slightly larger than AMR-NB but better quality
-- Need FFmpeg build with libmp3lame support
-
-**Alternative Considered:** AAC
-
-- Rejected: Better quality but less universal support in older browsers
+**Migration**: Store migration to remove `selected` from existing tracks
 
 ---
 
-### ADR-008: Project Structure & Code Organization
+### ADR-010: Save Dialog Enhancements
 
-**Status:** Accepted
+**Decision**: Save dialog includes two new configuration options:
 
-**Context:**
-Need clear, scalable project structure for React Native + Expo project with platform-specific code.
+1. Number of loop repetitions (1, 2, 4, 8, custom input)
+2. Fadeout duration (None, 1s, 2s, 5s, custom input)
 
-**Decision:** Feature-based structure with platform folders.
+**Default Values**: Load from settings, fall back to:
 
-**Directory Structure:**
+- Loop count: 4
+- Fadeout: 2s
 
-```
-Migration/
-├── src/
-│   ├── components/           # Shared UI components
-│   │   ├── TrackControl/
-│   │   ├── TrackList/
-│   │   └── SaveModal/
-│   ├── screens/              # Screen components
-│   │   └── MainScreen/
-│   ├── services/             # Business logic services
-│   │   ├── audio/
-│   │   │   ├── AudioService.ts         # Abstract interface
-│   │   │   ├── AudioService.web.ts     # Web implementation
-│   │   │   ├── AudioService.native.ts  # Native implementation
-│   │   │   ├── FFmpegService.ts
-│   │   │   ├── FFmpegService.web.ts
-│   │   │   └── FFmpegService.native.ts
-│   │   └── storage/
-│   ├── store/                # Zustand stores
-│   │   ├── useTrackStore.ts
-│   │   └── useUIStore.ts
-│   ├── utils/                # Utility functions
-│   │   ├── audioUtils.ts
-│   │   └── formatters.ts
-│   ├── types/                # TypeScript types
-│   │   └── index.ts
-│   ├── constants/            # App constants
-│   │   └── audio.ts
-│   └── theme/                # Theme configuration
-│       └── paperTheme.ts
-├── assets/                   # Static assets
-│   ├── sounds/              # Sample sound effects
-│   └── images/
-├── __tests__/               # Test files
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-├── app.json                 # Expo configuration
-├── App.tsx                  # Root component
-├── package.json
-└── tsconfig.json
-```
+**Behavior**:
 
-**Platform-Specific File Extensions:**
-
-- `.web.ts` - Web-only implementation
-- `.native.ts` - iOS/Android implementation
-- `.ios.ts` / `.android.ts` - Platform-specific overrides
-- `.ts` - Shared across all platforms
-
-**Import Resolution:**
-
-```typescript
-// Automatically resolves to correct platform file
-import AudioService from "./services/audio/AudioService";
-// Loads AudioService.web.ts on web, AudioService.native.ts on native
-```
-
-**Rationale:**
-
-- Clear separation of concerns
-- Easy to find related code (feature-based)
-- Platform-specific code isolated but discoverable
-- Scalable as features grow
-- Standard React Native/Expo patterns
-
-**Consequences:**
-
-- More files (platform-specific duplicates)
-- Need to maintain parallel implementations
-- Import resolution requires proper bundler config
+- Total export duration = masterLoopDuration × loopCount + fadeoutDuration
+- Fadeout applies to final mixed output (all tracks)
+- Fadeout is linear volume reduction from 100% to 0%
 
 ---
 
-## Shared Patterns & Conventions
+## Design Patterns & Conventions
 
-### 1. TypeScript Usage
+### Pattern 1: Loop Duration Calculation
 
-**Strict Mode Enabled:**
+All loop duration calculations should use this utility:
 
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true
-  }
+```typescript
+// src/utils/loopUtils.ts
+export function calculateMasterLoopDuration(tracks: Track[]): number {
+  if (tracks.length === 0) return 0;
+  const masterTrack = tracks[0];
+  return masterTrack.duration / masterTrack.speed;
+}
+
+export function calculateLoopCount(
+  trackDuration: number,
+  masterDuration: number,
+): number {
+  if (masterDuration === 0) return 1;
+  return Math.ceil(trackDuration / masterDuration);
 }
 ```
 
-**Type Definitions:**
+**Usage**: Import and use these functions consistently across all code
+
+---
+
+### Pattern 2: Master Track Identification
+
+Use this pattern to safely identify the master track:
 
 ```typescript
-// src/types/index.ts
-export interface Track {
-  id: string;
-  uri: string;
-  name: string;
-  duration: number;
-  speed: number; // 0.05 - 2.50
-  volume: number; // 0 - 100
-  isPlaying: boolean;
-  createdAt: number;
-}
+const masterTrack = tracks[0];
+const hasMasterTrack = tracks.length > 0;
+const isMasterTrack = (trackId: string) => tracks[0]?.id === trackId;
+```
 
-export interface AudioServiceInterface {
-  record(): Promise<void>;
-  stopRecording(): Promise<string>; // Returns URI
-  play(uri: string, options: PlaybackOptions): Promise<void>;
-  pause(uri: string): Promise<void>;
-  setSpeed(uri: string, speed: number): Promise<void>;
-  setVolume(uri: string, volume: number): Promise<void>;
-}
+**Never**: Search for master track by ID in array (position is source of truth)
 
-export interface MixerOptions {
-  tracks: Array<{
-    uri: string;
-    speed: number;
-    volume: number;
-  }>;
-  outputPath: string;
+---
+
+### Pattern 3: Confirmation Dialog Component
+
+Create a reusable confirmation dialog component:
+
+```typescript
+// src/components/ConfirmationDialog/ConfirmationDialog.tsx
+interface ConfirmationDialogProps {
+  visible: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean; // Colors confirm button red
 }
 ```
 
-### 2. Error Handling Pattern
+**Usage**: Reuse for all confirmation scenarios
 
-**Consistent Error Boundaries:**
+---
+
+### Pattern 4: Settings Store Structure
 
 ```typescript
-// All async operations use try-catch
-try {
-  await audioService.record();
-} catch (error) {
-  // Log to error tracking service
-  console.error("[AudioService]", error);
-  // Show user-friendly message
-  Alert.alert("Recording Error", "Could not start recording");
-  // Rethrow for store/component handling
-  throw error;
+// src/store/useSettingsStore.ts
+interface SettingsStore {
+  // Looping
+  loopCrossfadeDuration: number; // milliseconds, 0-50
+  defaultLoopMode: boolean; // true = ON
+
+  // Export
+  defaultLoopCount: number;
+  defaultFadeoutDuration: number; // milliseconds
+  defaultExportFormat: AudioFormat;
+  defaultExportQuality: AudioQuality;
+
+  // Recording
+  defaultRecordingFormat: AudioFormat;
+  defaultRecordingQuality: AudioQuality;
+
+  // Actions
+  updateSettings: (partial: Partial<SettingsStore>) => void;
+  resetToDefaults: () => void;
 }
 ```
 
-**Error Types:**
+---
+
+### Pattern 5: Store State Updates
+
+When updating related state across multiple stores, use this pattern:
 
 ```typescript
-class AudioError extends Error {
-  constructor(
-    message: string,
-    public code: AudioErrorCode,
-    public platform: Platform,
-  ) {
-    super(message);
-  }
-}
+// ✅ Good: Synchronous updates in correct order
+useTrackStore.getState().updateTrack(id, updates);
+usePlaybackStore.getState().setTrackSpeed(id, updates.speed);
 
-enum AudioErrorCode {
-  PERMISSION_DENIED = "PERMISSION_DENIED",
-  RECORDING_FAILED = "RECORDING_FAILED",
-  PLAYBACK_FAILED = "PLAYBACK_FAILED",
-  MIXING_FAILED = "MIXING_FAILED",
-}
+// ❌ Bad: Async updates that may race
+await someAsyncFunction();
+updateTrack(id, updates); // State might be stale
 ```
 
-### 3. Logging & Debugging
+**Rule**: State updates should be synchronous and atomic when possible
 
-**Console Logging Pattern:**
+---
+
+## Tech Stack & Libraries
+
+### Existing (No Changes)
+
+- **React Native**: 0.81.5
+- **Expo**: ~54.0.23
+- **Zustand**: 5.0.8 (state management)
+- **React Native Paper**: 5.14.5 (UI components)
+- **TypeScript**: 5.9.2
+
+### New Dependencies (None Required)
+
+All features can be implemented with existing dependencies.
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+
+- Test all utility functions in isolation
+- Test store actions and selectors
+- Use Jest for all unit tests
+- Mock external dependencies (Audio APIs, file system)
+
+**Example**:
 
 ```typescript
-const DEBUG = __DEV__;
-
-const log = {
-  debug: (tag: string, ...args: any[]) => {
-    if (DEBUG) console.log(`[${tag}]`, ...args);
-  },
-  error: (tag: string, error: Error) => {
-    console.error(`[${tag}]`, error);
-    // Send to error tracking (Sentry, etc.)
-  },
-};
-
-// Usage
-log.debug("AudioService", "Starting recording", { uri });
-```
-
-### 4. Async/Await Standards
-
-**Always use async/await over promises:**
-
-```typescript
-// ✅ Good
-async function loadTrack(uri: string) {
-  const metadata = await fetchMetadata(uri);
-  const duration = await getDuration(uri);
-  return { metadata, duration };
-}
-
-// ❌ Avoid
-function loadTrack(uri: string) {
-  return fetchMetadata(uri).then((metadata) => {
-    return getDuration(uri).then((duration) => {
-      return { metadata, duration };
-    });
+// src/utils/__tests__/loopUtils.test.ts
+describe("calculateMasterLoopDuration", () => {
+  it("returns 0 for empty track array", () => {
+    expect(calculateMasterLoopDuration([])).toBe(0);
   });
-}
+
+  it("calculates speed-adjusted duration", () => {
+    const tracks = [{ duration: 10000, speed: 0.5 /* ... */ }];
+    expect(calculateMasterLoopDuration(tracks)).toBe(20000);
+  });
+});
 ```
 
-### 5. Component Composition
+---
 
-**Small, focused components:**
+### Component Tests
+
+- Use React Native Testing Library
+- Test user interactions (button presses, slider changes)
+- Test rendering of different states
+- Mock Zustand stores with initial state
+
+**Example**:
 
 ```typescript
-// ✅ Good - Single responsibility
-const PlayButton = ({ trackId, onPlay }) => (
-  <IconButton icon="play" onPress={() => onPlay(trackId)} />
-);
+// src/components/LoopModeToggle/__tests__/LoopModeToggle.test.tsx
+describe('LoopModeToggle', () => {
+  it('toggles loop mode when pressed', () => {
+    const { getByTestId } = render(<LoopModeToggle />);
+    const toggle = getByTestId('loop-mode-toggle');
 
-const TrackControl = ({ track }) => (
-  <View>
-    <PlayButton trackId={track.id} onPlay={handlePlay} />
-    <PauseButton trackId={track.id} onPause={handlePause} />
-    <DeleteButton trackId={track.id} onDelete={handleDelete} />
-  </View>
-);
+    fireEvent.press(toggle);
+
+    expect(usePlaybackStore.getState().loopMode).toBe(true);
+  });
+});
 ```
 
-### 6. Performance Optimization
+---
 
-**Memoization for expensive operations:**
+### Integration Tests
+
+- Test workflows across multiple components
+- Test store interactions
+- Test audio service integration
+
+**Example**: Test recording workflow
 
 ```typescript
-import { useMemo, useCallback } from 'react';
-
-const TrackList = ({ tracks }) => {
-  // Memoize filtered/sorted lists
-  const sortedTracks = useMemo(
-    () => tracks.sort((a, b) => a.createdAt - b.createdAt),
-    [tracks]
-  );
-
-  // Memoize callbacks to prevent re-renders
-  const handleDelete = useCallback((id: string) => {
-    deleteTrack(id);
-  }, []);
-
-  return <FlatList data={sortedTracks} />;
-};
+it("records first track and sets master loop", async () => {
+  // Start recording
+  // Stop recording
+  // Verify track added
+  // Verify master loop duration set
+});
 ```
+
+---
+
+### E2E Scenarios (Manual Testing)
+
+Each phase includes manual test scenarios. Critical paths:
+
+1. **Master Loop Creation**
+   - Record/import first track
+   - Verify master styling applied
+   - Change speed, verify loop duration updates
+
+2. **Adding Subsequent Tracks**
+   - Add second track
+   - Verify looping behavior in playback
+   - Verify save output includes repetitions
+
+3. **Confirmation Dialogs**
+   - Change master track speed with other tracks present
+   - Delete master track
+   - Verify warnings appear and actions complete correctly
+
+4. **Settings Persistence**
+   - Change settings
+   - Close app (web: refresh, mobile: background/foreground)
+   - Verify settings retained
 
 ---
 
 ## Common Pitfalls to Avoid
 
-### 1. Platform Detection Anti-Patterns
+### Pitfall 1: Off-by-One Errors with Master Track
 
-**❌ Don't check Platform.OS repeatedly:**
+**Problem**: Checking `tracks[1]` instead of `tracks[0]` for master track
+**Solution**: Always use `tracks[0]`, double-check all array access
 
-```typescript
-// Bad
-function playAudio() {
-  if (Platform.OS === "web") {
-    // web logic
-  } else {
-    // native logic
-  }
-}
+### Pitfall 2: Forgetting Speed Adjustment
+
+**Problem**: Using `track.duration` directly instead of `track.duration / track.speed`
+**Solution**: Use `calculateMasterLoopDuration()` utility everywhere
+
+### Pitfall 3: State Update Race Conditions
+
+**Problem**: Async updates to multiple stores may race or leave inconsistent state
+**Solution**: Update stores synchronously in a single function, avoid await between updates
+
+### Pitfall 4: Breaking Existing Playback
+
+**Problem**: Looping logic interferes with normal playback when loop mode is OFF
+**Solution**: Check loop mode flag before applying looping behavior, maintain separate code paths
+
+### Pitfall 5: Platform-Specific Audio API Differences
+
+**Problem**: Web Audio API and expo-av have different looping capabilities
+**Solution**: Abstract looping logic in BaseAudioPlayer, implement platform-specific solutions
+
+### Pitfall 6: Confirmation Dialog Memory Leaks
+
+**Problem**: Closures in dialog callbacks hold stale state references
+**Solution**: Use latest state inside callbacks, not captured variables
+
+### Pitfall 7: Performance Issues with Short Loops
+
+**Problem**: Calculating repetitions for 0.1s track in 60s loop creates massive data
+**Solution**: Set reasonable limits (max 1000 repetitions), warn user, or pre-calculate and cache
+
+### Pitfall 8: Not Testing Edge Cases
+
+**Problem**: Code works for normal cases but fails on edge cases (0 duration, very fast speed)
+**Solution**: Write tests for edge cases first:
+
+- Empty track array
+- Single track
+- Zero duration
+- Speed at min/max bounds (0.05, 2.5)
+- Very short tracks (<100ms)
+- Very long tracks (>10 minutes)
+
+---
+
+## File Structure Conventions
+
+New files should follow this structure:
+
+```
+src/
+  components/
+    ComponentName/
+      ComponentName.tsx         # Component implementation
+      ComponentName.styles.ts   # Styles (if complex)
+      ComponentName.test.tsx    # Component tests
+      index.ts                  # Re-export
+
+  services/
+    ServiceName/
+      ServiceName.ts            # Service implementation
+      ServiceName.test.ts       # Service tests
+      index.ts                  # Re-export
+
+  utils/
+    utilName.ts                 # Utility functions
+    utilName.test.ts            # Utility tests
+
+  store/
+    useStoreName.ts             # Zustand store
+    useStoreName.test.ts        # Store tests
 ```
 
-**✅ Use platform-specific files:**
+**Naming**:
 
-```typescript
-// AudioService.web.ts
-export class AudioService {
-  /* web implementation */
-}
+- Components: PascalCase
+- Files: PascalCase for components, camelCase for utilities
+- Test files: Same name as source with `.test.ts(x)` extension
+- Use index.ts for clean re-exports
 
-// AudioService.native.ts
-export class AudioService {
-  /* native implementation */
-}
+---
+
+## Git Commit Conventions
+
+Use Conventional Commits format:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
 ```
 
-### 2. FFmpeg Command Building
+**Types**:
 
-**❌ Don't concatenate strings:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code restructuring without behavior change
+- `test`: Adding or updating tests
+- `docs`: Documentation only
+- `style`: Code style changes (formatting, etc.)
+- `chore`: Build, dependencies, tooling
 
-```typescript
-// Bad
-const cmd = "-i " + input + " -filter:a atempo=" + speed;
+**Scopes**:
+
+- `loop-engine`: Core looping logic
+- `stores`: State management
+- `ui`: User interface components
+- `settings`: Settings page
+- `recording`: Recording workflow
+- `export`: Save/export functionality
+- `tests`: Test infrastructure
+
+**Examples**:
+
+```
+feat(loop-engine): add master loop duration calculation
+
+- Implement calculateMasterLoopDuration utility
+- Add speed adjustment to duration calculation
+- Include edge case handling for empty tracks
+
+Closes #123
 ```
 
-**✅ Use array and join:**
+```
+test(stores): add tests for track store loop behavior
 
-```typescript
-// Good
-const buildCommand = (input: string, speed: number) => {
-  const args = [
-    "-i",
-    input,
-    "-filter:a",
-    `atempo=${speed}`,
-    "-y", // Overwrite output
-    output,
-  ];
-  return args;
-};
+- Test master track identification
+- Test loop duration updates
+- Mock playback store interactions
 ```
 
-### 3. State Management
+---
 
-**❌ Don't mutate state directly:**
+## Performance Considerations
 
-```typescript
-// Bad
-const addTrack = (track) => {
-  state.tracks.push(track); // Mutation!
-};
+### Memory Usage
+
+- **Problem**: Duplicating audio data for looping can increase memory usage
+- **Solution**: Stream/loop in audio players when possible, only duplicate for final export
+
+### Calculation Caching
+
+- **Problem**: Recalculating loop durations on every render
+- **Solution**: Use Zustand selectors with memoization, calculate once on track changes
+
+### Playback Synchronization
+
+- **Problem**: Multiple looping tracks may drift over time
+- **Solution**: Use existing MultiTrackManager drift detection, resync periodically
+
+### Large Loop Counts
+
+- **Problem**: Exporting 1000 loops of a 1-second track = massive audio file
+- **Solution**: Set reasonable limits (e.g., max export duration 10 minutes or 100 loops)
+
+---
+
+## Accessibility Considerations
+
+- All interactive elements must have accessibility labels
+- Screen reader support for master track indication
+- High contrast mode support for master track styling
+- Keyboard navigation for settings page (web)
+- Voice control compatibility (mobile)
+
+**Example**:
+
+```tsx
+<Button
+  accessibilityLabel="Toggle loop mode"
+  accessibilityHint="When enabled, tracks will loop during playback"
+  accessibilityRole="switch"
+  accessibilityState={{ checked: loopMode }}
+>
+  Loop Mode
+</Button>
 ```
 
-**✅ Use immutable updates:**
+---
+
+## Migration Strategy
+
+### Store Migration
+
+Implement migration to handle existing user data:
 
 ```typescript
-// Good
-const addTrack = (track) => {
-  set((state) => ({
-    tracks: [...state.tracks, track],
-  }));
-};
-```
-
-### 4. Audio Resource Cleanup
-
-**❌ Don't forget to release resources:**
-
-```typescript
-// Bad
-async function playTrack(uri) {
-  const sound = new Audio.Sound();
-  await sound.loadAsync({ uri });
-  await sound.playAsync();
-  // Missing: await sound.unloadAsync();
-}
-```
-
-**✅ Always cleanup in finally or effect cleanup:**
-
-```typescript
-// Good
-useEffect(() => {
-  let sound: Audio.Sound | null = null;
-
-  const play = async () => {
-    sound = new Audio.Sound();
-    await sound.loadAsync({ uri });
-    await sound.playAsync();
+// src/store/migrations/looperNormalization.ts
+export function migrateToLooperNormalization(state: any) {
+  return {
+    ...state,
+    tracks:
+      state.tracks?.map((track: any) => {
+        const { selected, ...rest } = track; // Remove 'selected' property
+        return rest;
+      }) || [],
   };
-
-  play();
-
-  return () => {
-    sound?.unloadAsync();
-  };
-}, [uri]);
+}
 ```
 
-### 5. FFmpeg Processing
+Run migration on store initialization.
 
-**❌ Don't block UI thread:**
+---
 
-```typescript
-// Bad
-const mixTracks = async () => {
-  setLoading(true);
-  await ffmpeg.execute(longCommand); // Blocks for minutes!
-  setLoading(false);
-};
+## Documentation Updates
+
+After implementation, update:
+
+1. **README.md**: Add looper mode to features list
+2. **USER_GUIDE.md**: Document master loop concept, loop mode toggle, save options
+3. **DEVELOPER_GUIDE.md**: Architecture decisions, new patterns, testing strategies
+4. **In-app Help**: Update HelpModal with looper workflow explanation
+
+---
+
+## Questions to Ask During Implementation
+
+If you encounter any of these situations, STOP and ask for clarification:
+
+1. **Ambiguous Requirements**: "Should X happen when Y condition?"
+2. **Technical Trade-offs**: "Approach A is faster but less accurate, which is preferred?"
+3. **Edge Cases**: "What should happen if user does Z?"
+4. **Scope Boundaries**: "Does this feature include W or is that out of scope?"
+5. **Priority Conflicts**: "Feature X breaks feature Y, which takes precedence?"
+
+**Format**:
+
 ```
-
-**✅ Show progress, use background processing:**
-
-```typescript
-// Good
-const mixTracks = async () => {
-  setProgress(0);
-  ffmpeg.setProgressCallback((progress) => {
-    setProgress(progress.time / totalDuration);
-  });
-  await ffmpeg.execute(longCommand);
-  setProgress(1);
-};
+QUESTION: [Concise question]
+Context: [Relevant details]
+Options: [If applicable]
 ```
 
 ---
 
-## Technology Stack Summary
+## Success Metrics
 
-### Core Framework
+After completing all phases, verify these metrics:
 
-- **React Native:** 0.72+
-- **Expo SDK:** 49+
-- **Expo Dev Client:** For custom native modules
-- **TypeScript:** 5.x
-
-### UI Framework
-
-- **React Native Paper:** Material Design components
-- **React Native Reanimated:** Smooth animations (sliders)
-- **React Native Gesture Handler:** Touch interactions
-
-### Audio Libraries
-
-**Web:**
-
-- `@ffmpeg/ffmpeg` - WebAssembly FFmpeg
-- `@ffmpeg/core` - FFmpeg core
-- Native Web APIs: MediaRecorder, Web Audio API
-
-**Native:**
-
-- `expo-av` - Recording and playback
-- `react-native-ffmpeg` or `ffmpeg-kit-react-native` - Audio processing
-- `expo-file-system` - File management
-
-### State Management
-
-- **Zustand** - Global state
-- **zustand/middleware** - Persistence
-
-### File & Permissions
-
-- `expo-file-system` - File operations
-- `expo-document-picker` - Import audio
-- `expo-media-library` - Save to device
-- `expo-permissions` - Runtime permissions
-
-### Development Tools
-
-- **ESLint** - Linting
-- **Prettier** - Code formatting
-- **TypeScript** - Type checking
-- **Jest** - Unit/integration testing
-- **React Native Testing Library** - Component testing
-- **Detox** - E2E testing (native)
-- **Playwright** - E2E testing (web)
-
-### Build & Deployment
-
-- **EAS Build** - Cloud builds
-- **EAS Submit** - App store submission
-- **expo-dev-client** - Custom development builds
+- ✅ All unit tests pass (80%+ coverage on new code)
+- ✅ All integration tests pass
+- ✅ Manual E2E scenarios complete successfully
+- ✅ No performance regression (measure mixing time before/after)
+- ✅ No memory leaks (profile app with React DevTools)
+- ✅ Accessibility audit passes
+- ✅ Works on web, Android, iOS
+- ✅ Documentation complete and accurate
 
 ---
 
-## Success Criteria for Migration
+## Ready to Start?
 
-The migration will be considered successful when:
+You've reviewed Phase 0. Proceed to **Phase 1: Core Looping Engine** to begin implementation.
 
-1. **Feature Parity:**
-   - ✅ Record audio (matching or better quality than Android AMR-NB)
-   - ✅ Import audio files from device
-   - ✅ Multiple simultaneous track playback
-   - ✅ Independent speed control per track (0.05x - 2.50x)
-   - ✅ Independent volume control per track (0-100)
-   - ✅ Loop playback for all tracks
+**Remember**:
 
-2. **New Capabilities:**
-   - ✅ **True audio mixing** (export combined tracks)
-   - ✅ Mix accounts for speed and volume adjustments
-   - ✅ Export mixed audio as MP3
-
-3. **Platform Support:**
-   - ✅ Runs on web browsers (Chrome, Firefox, Safari)
-   - ✅ Builds for Android (APK/AAB)
-   - ✅ Builds for iOS (IPA)
-
-4. **Quality Standards:**
-   - ✅ TypeScript strict mode, no type errors
-   - ✅ 80%+ test coverage for core logic
-   - ✅ All E2E workflows passing
-   - ✅ No critical accessibility violations
-   - ✅ Performance: <3s cold start, <100ms UI interactions
-
-5. **User Experience:**
-   - ✅ Material Design matching Android app aesthetic
-   - ✅ Responsive layout (mobile and desktop web)
-   - ✅ Proper error handling and user feedback
-   - ✅ Persistent state (tracks survive app restart)
-
----
-
-## Phase Dependencies
-
-```
-Phase 0: Foundation (this document)
-    ↓
-Phase 1: Project Setup & Tooling
-    ↓
-Phase 2: Core UI Components
-    ↓
-Phase 3: Audio Abstraction Layer
-    ↓
-    ├─→ Phase 4: Recording & Import
-    └─→ Phase 5: Playback & Controls
-          ↓
-      Phase 6: FFmpeg Integration & Mixing
-          ↓
-      Phase 7: State Management & Persistence
-          ↓
-      Phase 8: Testing & Quality Assurance
-          ↓
-      Phase 9: Build & Deployment
-```
-
-**Parallelization Opportunities:**
-
-- Phases 4 and 5 can be developed in parallel after Phase 3
-- Platform-specific implementations within each phase can be parallel
-- UI work (Phase 2) can overlap with audio abstraction (Phase 3)
-
----
-
-## Next Steps
-
-Proceed to **Phase 1: Project Setup & Tooling** to initialize the React Native (Expo) project and configure the development environment.
-
-**Estimated Total Effort:** 9 phases, ~900,000 tokens (900k)
+- Write tests first (TDD)
+- Commit frequently
+- Follow the patterns defined here
+- Ask questions when uncertain
+- Reference this document throughout all phases

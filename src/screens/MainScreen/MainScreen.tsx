@@ -10,6 +10,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View } from "react-native";
 import { Surface, ActivityIndicator, IconButton } from "react-native-paper";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../../App";
 import { Alert } from "../../utils/alert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TrackList } from "@components/TrackList";
@@ -31,7 +33,11 @@ import { getFFmpegService } from "../../services/ffmpeg/FFmpegService";
 // Initialize audio services for current platform
 initializeAudioServices();
 
-export const MainScreen: React.FC = () => {
+type MainScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "Main">;
+};
+
+export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
@@ -265,6 +271,10 @@ export const MainScreen: React.FC = () => {
 
   const handleHelpModalDismiss = () => {
     setHelpModalVisible(false);
+  };
+
+  const handleSettings = () => {
+    navigation.navigate("Settings");
   };
 
   const handleSaveModalSave = async (filename: string) => {
@@ -581,6 +591,15 @@ export const MainScreen: React.FC = () => {
             accessibilityHint="Stop recording and save track"
           />
           <LoopModeToggle />
+          <IconButton
+            icon="cog"
+            size={32}
+            iconColor="#FFFFFF"
+            onPress={handleSettings}
+            testID="settings-button"
+            accessibilityLabel="Settings"
+            accessibilityHint="Open settings screen"
+          />
           <IconButton
             icon="help-circle"
             size={32}
