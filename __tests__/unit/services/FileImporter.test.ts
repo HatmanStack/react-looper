@@ -13,11 +13,8 @@ jest.mock("expo-document-picker", () => ({
 }));
 
 describe("NativeFileImporter", () => {
-  let importer: NativeFileImporter;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    importer = new NativeFileImporter();
   });
 
   describe("pickAudioFile", () => {
@@ -30,7 +27,7 @@ describe("NativeFileImporter", () => {
         mimeType: "audio/mpeg",
       });
 
-      const result = await importer.pickAudioFile();
+      const result = await NativeFileImporter.pickAudioFile();
 
       expect(result).toEqual({
         uri: "file://test-audio.mp3",
@@ -45,8 +42,10 @@ describe("NativeFileImporter", () => {
         type: "cancel",
       });
 
-      await expect(importer.pickAudioFile()).rejects.toThrow(AudioError);
-      await expect(importer.pickAudioFile()).rejects.toThrow(
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
+        AudioError,
+      );
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
         "File selection cancelled",
       );
     });
@@ -56,14 +55,16 @@ describe("NativeFileImporter", () => {
         new Error("Picker error"),
       );
 
-      await expect(importer.pickAudioFile()).rejects.toThrow(AudioError);
-      await expect(importer.pickAudioFile()).rejects.toThrow(
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
+        AudioError,
+      );
+      await expect(NativeFileImporter.pickAudioFile()).rejects.toThrow(
         "Failed to open file picker",
       );
     });
 
     it("should use correct mime types for audio files", async () => {
-      await importer.pickAudioFile();
+      await NativeFileImporter.pickAudioFile();
 
       expect(DocumentPicker.getDocumentAsync).toHaveBeenCalledWith({
         type: ["audio/*", "audio/mpeg", "audio/mp4", "audio/wav", "audio/webm"],
@@ -107,7 +108,7 @@ describe("WebFileImporter", () => {
       );
 
       // Trigger the change event
-      const pickPromise = importer.pickAudioFile();
+      const pickPromise = NativeFileImporter.pickAudioFile();
 
       // Simulate user selecting file
       const changeEvent = new Event("change");
@@ -129,7 +130,7 @@ describe("WebFileImporter", () => {
         configurable: true,
       });
 
-      const pickPromise = importer.pickAudioFile();
+      const pickPromise = NativeFileImporter.pickAudioFile();
 
       const changeEvent = new Event("change");
       mockInput.dispatchEvent(changeEvent);
@@ -139,7 +140,7 @@ describe("WebFileImporter", () => {
     });
 
     it("should create input with audio accept types", async () => {
-      const pickPromise = importer.pickAudioFile();
+      const pickPromise = NativeFileImporter.pickAudioFile();
 
       expect(mockInput.type).toBe("file");
       expect(mockInput.accept).toBe("audio/*,.mp3,.wav,.m4a,.webm");
@@ -158,7 +159,7 @@ describe("WebFileImporter", () => {
     it("should trigger click on input", () => {
       const clickSpy = jest.spyOn(mockInput, "click");
 
-      void importer.pickAudioFile();
+      void NativeFileImporter.pickAudioFile();
 
       expect(clickSpy).toHaveBeenCalled();
 

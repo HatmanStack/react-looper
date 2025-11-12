@@ -44,7 +44,7 @@ describe("Import Flow Integration", () => {
       uri: "file://imported-audio.mp3",
       name: "imported-audio.mp3",
       size: 1024000,
-      mimeType: "audio/mpeg",
+      type: "audio/mpeg",
     });
 
     // 1. Pick audio file
@@ -108,13 +108,13 @@ describe("Import Flow Integration", () => {
         uri: "file://track1.mp3",
         name: "track1.mp3",
         size: 1000000,
-        mimeType: "audio/mpeg",
+        type: "audio/mpeg",
       },
       {
         uri: "file://track2.wav",
         name: "track2.wav",
         size: 2000000,
-        mimeType: "audio/wav",
+        type: "audio/wav",
       },
     ];
 
@@ -199,7 +199,7 @@ describe("Import Flow Integration", () => {
       uri: "file://new.mp3",
       name: "new.mp3",
       size: 1000000,
-      mimeType: "audio/mpeg",
+      type: "audio/mpeg",
     });
 
     const importedFile = await fileImporter.pickAudioFile();

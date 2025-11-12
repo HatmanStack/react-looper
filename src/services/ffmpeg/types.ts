@@ -17,6 +17,19 @@ export interface MixTrack {
 export interface MixOptions {
   tracks: MixTrack[];
   onProgress?: (progress: MixingProgress) => void;
+
+  /**
+   * Number of master loop cycles to export
+   * Default: 1 (single loop)
+   */
+  loopCount?: number;
+
+  /**
+   * Fadeout duration in milliseconds
+   * Applied to the very end of the mixed output
+   * Default: 0 (no fadeout)
+   */
+  fadeoutDuration?: number;
 }
 
 export interface IFFmpegService {

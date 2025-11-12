@@ -1,714 +1,850 @@
-# Phase 3: Audio Abstraction Layer
-
----
-
-## ⚠️ CODE REVIEW STATUS: ISSUES FOUND
-
-**Reviewed by:** Senior Code Reviewer
-**Review Date:** 2025-11-09
-**Status:** ⚠️ **PHASE 3 MOSTLY COMPLETE - QUALITY ISSUES NEED FIXES**
-
-### Summary of Completion:
-
-**All 8 Tasks Completed:**
-
-- ✅ Task 1: Audio service interfaces defined
-- ✅ Task 2: Abstract base classes created
-- ✅ Task 3: Platform detection and factory implemented
-- ✅ Task 4: Mock services created
-- ✅ Task 5: Error handling implemented
-- ✅ Task 6: UI integration complete
-- ✅ Task 7: Unit tests added
-- ✅ Task 8: Documentation (README.md) created
-
-**Quality Issues to Fix:**
-
-- ❌ **Test coverage**: 55.95% (below 80% threshold from Phase 1)
-- ❌ **Formatting**: 11 files need prettier fixes
-- ❌ **Linting**: TypeScript `any` types and missing globals
-- ❌ **Test organization**: mockAudioData.ts incorrectly treated as test file
-- ⚠️ **Test warnings**: Async cleanup issues in integration tests
-
-### Verification Results:
-
-- ✅ TypeScript compilation (`npx tsc --noEmit`)
-- ⚠️ Tests: 88 passed, 9 failed (fixtures file issue + async warnings)
-- ❌ Linting: 24 errors (prettier + `any` types + undefined globals)
-- ❌ Formatting: 11 files fail `npm run format:check`
-- ✅ Commits: Follow conventional format
-
-**Verdict:** Implementation is functionally complete and demonstrates excellent architecture, but quality standards from Phase 1 (80% coverage, clean linting/formatting) are not met. Fix issues before proceeding.
-
----
+# Phase 3: Settings Page & Configuration
 
 ## Phase Goal
 
-Design and implement platform-agnostic interfaces for audio operations (recording, playback, mixing). Create abstract base classes that will be implemented differently for web and native platforms in Phases 4-6. Establish error handling, logging, and dependency injection patterns for audio services.
+Create a comprehensive settings screen where users can configure looping behavior, export defaults, recording preferences, and other options. Implement settings persistence so preferences survive app restarts. This phase makes the looper fully customizable while maintaining sensible defaults.
 
-**Success Criteria:**
+**Success Criteria**:
 
-- TypeScript interfaces defined for all audio operations
-- Abstract service classes created
-- Platform detection working correctly
-- Mock implementations functional for testing UI
-- Error handling patterns established
-- Dependency injection configured
+- Settings screen accessible from main screen
+- All settings from Phase 0 ADR-006 implemented
+- Settings persist across app restarts
+- Settings integrate with existing stores and components
+- Settings screen tested and accessible
+- Works on web and mobile platforms
 
-**Estimated tokens:** ~90,000
+**Estimated tokens**: ~75,000
 
 ---
 
 ## Prerequisites
 
-- Phase 2 completed (UI components ready)
-- Understanding of Phase 0 ADR-003 (Platform-Specific Audio Implementations)
+- Phase 0 reviewed
+- Phase 1 complete (settings store created)
+- Phase 2 complete (UI components)
+- Familiarity with React Navigation (app uses it for screen navigation)
 
 ---
 
 ## Tasks
 
-### Task 1: Define Audio Service Interfaces
+### Task 1: Create Settings Screen UI
 
-**Goal:** Create TypeScript interfaces for all audio operations.
+**Goal**: Build the settings screen with all configuration options organized into logical sections.
 
-**Files to Create:**
+**Files to Create**:
 
-- `src/services/audio/interfaces/IAudioRecorder.ts` - Recording interface
-- `src/services/audio/interfaces/IAudioPlayer.ts` - Playback interface
-- `src/services/audio/interfaces/IAudioMixer.ts` - Mixing interface
-- `src/services/audio/interfaces/IFileManager.ts` - File operations interface
-- `src/types/audio.ts` - Audio-related types
+- `src/screens/SettingsScreen/SettingsScreen.tsx` - Settings screen component
+- `src/screens/SettingsScreen/SettingsScreen.styles.ts` - Styles
+- `src/screens/SettingsScreen/__tests__/SettingsScreen.test.tsx` - Tests
+- `src/screens/SettingsScreen/index.ts` - Re-export
 
-**Implementation Steps:**
+**Prerequisites**: Phase 1 Task 2 (settings store exists)
 
-1. Define IAudioRecorder interface with methods:
-   - `startRecording(): Promise<void>`
-   - `stopRecording(): Promise<string>` (returns URI)
-   - `isRecording(): boolean`
-   - `getPermissions(): Promise<boolean>`
+**Implementation Steps**:
 
-2. Define IAudioPlayer interface:
-   - `load(uri: string): Promise<void>`
-   - `play(): Promise<void>`
-   - `pause(): Promise<void>`
-   - `stop(): Promise<void>`
-   - `setSpeed(speed: number): Promise<void>` (0.05 - 2.50)
-   - `setVolume(volume: number): Promise<void>` (0 - 100)
-   - `setLooping(loop: boolean): Promise<void>`
-   - `getDuration(): Promise<number>`
-   - `isPlaying(): boolean`
-   - `unload(): Promise<void>`
+1. Create SettingsScreen component structure:
+   - Use ScrollView for vertical scrolling
+   - Organize into sections: Looping, Export, Recording
+   - Use React Native Paper components for consistency (List, Switch, Slider, etc.)
 
-3. Define IAudioMixer interface:
-   - `mixTracks(tracks: MixerTrackInput[], outputPath: string): Promise<string>`
-   - `setProgressCallback(callback: (progress: number) => void): void`
-   - `cancel(): Promise<void>`
+2. **Looping Behavior Section**:
+   - **Crossfade Duration**: Slider (0-50ms)
+     - Label: "Loop Crossfade"
+     - Description: "Smooth transition at loop boundaries (0ms = gapless)"
+     - Display current value
+   - **Default Loop Mode**: Switch (ON/OFF)
+     - Label: "Default Loop Mode"
+     - Description: "Enable looping by default when app starts"
 
-4. Define types in `audio.ts`:
-   - `AudioFormat`, `AudioQuality`, `MixerTrackInput`, `RecordingOptions`, `PlaybackOptions`
+3. **Export Settings Section**:
+   - **Default Loop Count**: Radio buttons or picker (1, 2, 4, 8, custom)
+     - Label: "Loop Repetitions"
+     - Description: "Number of loops to include in exported audio"
+     - If custom selected, show number input
+   - **Default Fadeout Duration**: Radio buttons or picker (None, 1s, 2s, 5s, custom)
+     - Label: "Fadeout Duration"
+     - Description: "Apply fadeout at end of export"
+     - If custom selected, show number input (in seconds)
+   - **Export Format**: Dropdown/Picker (MP3, WAV)
+     - Label: "Export Format"
+   - **Export Quality**: Dropdown/Picker (Low, Medium, High)
+     - Label: "Export Quality"
 
-**Verification Checklist:**
+4. **Recording Settings Section**:
+   - **Recording Format**: Dropdown/Picker (based on platform)
+   - **Recording Quality**: Dropdown/Picker (Low, Medium, High)
 
-- [ ] All interfaces have complete method signatures
-- [ ] Return types use Promise for async operations
-- [ ] Types are exported and importable
-- [ ] JSDoc comments explain each method
+5. **Actions Section** (at bottom):
+   - **Reset to Defaults** button
+     - Shows confirmation dialog before resetting
 
-**Commit Message Template:**
+6. Connect to settings store:
+   - Read current values from `useSettingsStore`
+   - Update store on any setting change
+   - Debounce slider changes to avoid excessive updates
+
+7. Add header with back navigation
+
+8. Style appropriately:
+   - Group sections visually (dividers or cards)
+   - Consistent spacing
+   - Clear labels and descriptions
+   - Responsive layout
+
+9. Write tests:
+   - Test rendering all settings
+   - Test changing each setting updates store
+   - Test reset to defaults
+   - Test navigation
+
+**Verification Checklist**:
+
+- [ ] All settings from ADR-006 present
+- [ ] Settings organized into logical sections
+- [ ] Changing settings updates store immediately
+- [ ] Reset to defaults works correctly
+- [ ] UI is clear and easy to navigate
+- [ ] Works on web and mobile
+- [ ] Tests cover all settings and interactions
+
+**Testing Instructions**:
+
+```typescript
+describe('SettingsScreen', () => {
+  beforeEach(() => {
+    useSettingsStore.getState().resetToDefaults();
+  });
+
+  it('renders all settings sections', () => {
+    const { getByText } = render(<SettingsScreen />);
+
+    expect(getByText('Looping Behavior')).toBeTruthy();
+    expect(getByText('Export Settings')).toBeTruthy();
+    expect(getByText('Recording Settings')).toBeTruthy();
+  });
+
+  it('displays current setting values', () => {
+    useSettingsStore.setState({
+      loopCrossfadeDuration: 25,
+      defaultLoopMode: true,
+    });
+
+    const { getByTestId } = render(<SettingsScreen />);
+
+    const crossfadeSlider = getByTestId('crossfade-slider');
+    expect(crossfadeSlider.props.value).toBe(25);
+
+    const loopModeSwitch = getByTestId('loop-mode-switch');
+    expect(loopModeSwitch.props.value).toBe(true);
+  });
+
+  it('updates store when settings changed', () => {
+    const { getByTestId } = render(<SettingsScreen />);
+
+    // Change crossfade duration
+    const slider = getByTestId('crossfade-slider');
+    fireEvent(slider, 'valueChange', 30);
+
+    expect(useSettingsStore.getState().loopCrossfadeDuration).toBe(30);
+  });
+
+  it('shows confirmation before resetting to defaults', () => {
+    useSettingsStore.setState({ loopCrossfadeDuration: 30 });
+
+    const { getByText } = render(<SettingsScreen />);
+
+    // Press reset button
+    fireEvent.press(getByText('Reset to Defaults'));
+
+    // Verify confirmation dialog
+    expect(getByText(/reset all settings/i)).toBeTruthy();
+  });
+
+  it('resets all settings when confirmed', () => {
+    useSettingsStore.setState({
+      loopCrossfadeDuration: 30,
+      defaultLoopCount: 8,
+      defaultFadeoutDuration: 5000,
+    });
+
+    const { getByText } = render(<SettingsScreen />);
+
+    // Reset
+    fireEvent.press(getByText('Reset to Defaults'));
+    fireEvent.press(getByText('Confirm'));
+
+    // Verify defaults restored
+    const state = useSettingsStore.getState();
+    expect(state.loopCrossfadeDuration).toBe(0);
+    expect(state.defaultLoopCount).toBe(4);
+    expect(state.defaultFadeoutDuration).toBe(2000);
+  });
+});
+```
+
+Run tests: `npm test -- SettingsScreen.test.tsx`
+
+**Commit Message Template**:
 
 ```
-feat(audio): define audio service interfaces
+feat(settings): create settings screen UI
 
-- Create IAudioRecorder, IAudioPlayer, IAudioMixer interfaces
-- Define audio-related TypeScript types
-- Add JSDoc comments for all methods
-- Establish contract for platform implementations
+- Implement settings screen with all configuration options
+- Organize into looping, export, and recording sections
+- Connect to settings store for persistence
+- Add reset to defaults with confirmation
+- Include comprehensive tests
 ```
 
-**Estimated tokens:** ~10,000
+**Estimated tokens**: ~20,000
 
 ---
 
-### Task 2: Create Abstract Audio Service Classes
+### Task 2: Add Settings Navigation
 
-**Goal:** Implement abstract base classes with common logic.
+**Goal**: Add a way to navigate to the settings screen from the main screen (button, menu, or tab).
 
-**Files to Create:**
+**Files to Modify**:
 
-- `src/services/audio/AudioService.ts` - Main audio service orchestrator
-- `src/services/audio/BaseAudioRecorder.ts` - Abstract recorder
-- `src/services/audio/BaseAudioPlayer.ts` - Abstract player
-- `src/services/audio/BaseAudioMixer.ts` - Abstract mixer
+- Navigation configuration (e.g., `App.tsx` or navigation setup file)
+- `src/screens/MainScreen/MainScreen.tsx` - Add settings button
+- `src/screens/SettingsScreen/SettingsScreen.tsx` - Add back navigation
 
-**Implementation Steps:**
+**Prerequisites**: Task 1 complete
 
-1. Create BaseAudioRecorder abstract class:
-   - Implement common state management (isRecording flag)
-   - Define abstract methods matching IAudioRecorder
-   - Add validation (e.g., can't start if already recording)
-   - Implement error handling wrapper
+**Implementation Steps**:
 
-2. Create BaseAudioPlayer abstract class:
-   - State management (current URI, playing state)
-   - Abstract methods for platform-specific implementation
-   - Common validation logic
-   - Event emitter for playback events
+1. Register SettingsScreen in navigation:
+   - If using stack navigator, add SettingsScreen to stack
+   - Configure header title: "Settings"
+   - Configure back button behavior
 
-3. Create BaseAudioMixer abstract class:
-   - Track input validation
-   - Progress tracking state
-   - Abstract mix method
-   - Cancellation support
+2. Add settings button to MainScreen:
+   - Use gear/cog icon button
+   - Position in header (top-right) or as floating action button
+   - On press, navigate to SettingsScreen
 
-4. Create AudioService orchestrator:
-   - Manages instances of recorder, players, mixer
-   - Provides high-level API for UI
-   - Handles multi-track coordination
-   - Platform detection and service instantiation
+3. Add back navigation to SettingsScreen:
+   - Use native header back button OR
+   - Add custom back button in header
+   - Ensure back button returns to MainScreen
 
-**Verification Checklist:**
+4. Handle deep linking (if applicable):
+   - Allow direct navigation to settings via URL (web)
 
-- [ ] Abstract classes implement interfaces
-- [ ] Common logic is not duplicated
-- [ ] Abstract methods are clearly defined
-- [ ] Error handling is consistent
+5. Test navigation:
+   - Navigate to settings and back
+   - Verify state preserved on return
+   - Test on web and mobile
 
-**Commit Message Template:**
+**Verification Checklist**:
+
+- [ ] Settings button visible on main screen
+- [ ] Pressing settings button navigates to settings screen
+- [ ] Back button on settings screen returns to main screen
+- [ ] Navigation animations smooth (if applicable)
+- [ ] Works on web and mobile
+- [ ] Tests verify navigation
+
+**Testing Instructions**:
+
+```typescript
+describe('Settings Navigation', () => {
+  it('navigates to settings screen when button pressed', () => {
+    const navigation = createMockNavigation();
+    const { getByTestId } = render(<MainScreen navigation={navigation} />);
+
+    const settingsButton = getByTestId('settings-button');
+    fireEvent.press(settingsButton);
+
+    expect(navigation.navigate).toHaveBeenCalledWith('Settings');
+  });
+
+  it('navigates back to main screen from settings', () => {
+    const navigation = createMockNavigation();
+    const { getByTestId } = render(<SettingsScreen navigation={navigation} />);
+
+    const backButton = getByTestId('back-button');
+    fireEvent.press(backButton);
+
+    expect(navigation.goBack).toHaveBeenCalled();
+  });
+
+  it('preserves main screen state when returning from settings', () => {
+    // This test may require navigation stack testing
+    // Verify tracks, playback state, etc. are preserved
+  });
+});
+```
+
+Run tests: `npm test -- navigation`
+
+**Commit Message Template**:
 
 ```
-feat(audio): create abstract audio service base classes
+feat(navigation): add settings screen to navigation
 
-- Implement BaseAudioRecorder with common state logic
-- Create BaseAudioPlayer with validation
-- Add BaseAudioMixer with progress tracking
-- Build AudioService orchestrator for high-level API
+- Register settings screen in navigation stack
+- Add settings button to main screen header
+- Configure back navigation from settings
+- Add navigation tests
 ```
 
-**Estimated tokens:** ~15,000
+**Estimated tokens**: ~10,000
 
 ---
 
-### Task 3: Implement Platform Detection and Service Factory
+### Task 3: Implement Settings Persistence
 
-**Goal:** Create factory pattern for instantiating platform-specific audio services.
+**Goal**: Ensure settings persist across app restarts using platform-appropriate storage (localStorage for web, AsyncStorage for mobile).
 
-**Files to Create:**
+**Files to Modify**:
 
-- `src/services/audio/AudioServiceFactory.ts` - Factory for creating services
-- `src/services/audio/PlatformAudioConfig.ts` - Platform-specific configuration
+- `src/store/useSettingsStore.ts` - Add persistence middleware
+- Create platform-specific persistence utilities if needed
 
-**Implementation Steps:**
+**Prerequisites**: Phase 1 Task 2 (settings store created)
 
-1. Create AudioServiceFactory:
-   - Use Platform.select() to choose implementation
-   - Return appropriate service instances for web vs native
-   - Handle missing implementations gracefully
-   - Log which platform implementation is being used
+**Implementation Steps**:
 
-2. Implement service registration:
-   - Allow platform-specific modules to register themselves
-   - Support dynamic loading (lazy initialization)
-   - Handle initialization errors
+1. Choose persistence strategy:
+   - **Web**: Use localStorage
+   - **Native**: Use AsyncStorage or Expo SecureStore
+   - **Cross-platform**: Use Zustand persist middleware with platform-specific storage adapter
 
-3. Create configuration per platform:
-   - Audio format settings (MP3, sample rate, bit rate)
-   - Buffer sizes, latency settings
-   - Platform-specific optimizations
+2. Implement persistence for settings store:
+   - Serialize store state to JSON
+   - Save to storage on state changes (debounced)
+   - Load from storage on app initialization
+   - Handle JSON parse errors gracefully
 
-4. Add service lifecycle management:
-   - Singleton pattern for main AudioService
-   - Proper cleanup on app shutdown
-   - Resource release
+3. Create storage adapter:
 
-**Verification Checklist:**
+   ```typescript
+   // src/utils/settingsStorage.ts
+   const storage = {
+     getItem: async (key: string) => {
+       // Platform-specific implementation
+     },
+     setItem: async (key: string, value: string) => {
+       // Platform-specific implementation
+     },
+     removeItem: async (key: string) => {
+       // Platform-specific implementation
+     },
+   };
+   ```
 
-- [ ] Factory returns correct service for each platform
-- [ ] Services are singletons where appropriate
-- [ ] Configuration is loaded correctly
-- [ ] Errors are handled if service unavailable
+4. Apply persistence to settings store:
+   - Use Zustand's persist middleware OR
+   - Implement custom persistence logic
+   - Ensure hydration happens before first render
 
-**Commit Message Template:**
+5. Handle versioning:
+   - Include version number in persisted data
+   - Migrate old format if needed (e.g., from Phase 1 to Phase 3)
+
+6. Test persistence:
+   - Change settings
+   - Simulate app restart (reload page, kill and restart app)
+   - Verify settings loaded correctly
+   - Test with corrupted data (should fallback to defaults)
+   - Test with missing data (first launch)
+
+**Verification Checklist**:
+
+- [ ] Settings persist on web (localStorage)
+- [ ] Settings persist on mobile (AsyncStorage)
+- [ ] Settings load correctly on app start
+- [ ] Corrupted data handled gracefully
+- [ ] First launch uses defaults
+- [ ] Performance acceptable (no slow app start)
+- [ ] Tests cover persistence scenarios
+
+**Testing Instructions**:
+
+```typescript
+describe("Settings Persistence", () => {
+  beforeEach(async () => {
+    // Clear storage
+    await AsyncStorage.clear(); // or localStorage.clear() on web
+  });
+
+  it("saves settings to storage when changed", async () => {
+    useSettingsStore.getState().updateSettings({
+      loopCrossfadeDuration: 25,
+    });
+
+    // Wait for debounced save
+    await waitFor(() => {
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith("settings");
+    });
+
+    const stored = await AsyncStorage.getItem("settings");
+    const parsed = JSON.parse(stored);
+    expect(parsed.loopCrossfadeDuration).toBe(25);
+  });
+
+  it("loads settings from storage on initialization", async () => {
+    // Pre-populate storage
+    const settings = {
+      loopCrossfadeDuration: 30,
+      defaultLoopMode: false,
+    };
+    await AsyncStorage.setItem("settings", JSON.stringify(settings));
+
+    // Reinitialize store (may require test utility to reset)
+    const store = createSettingsStore(); // Or whatever your initialization is
+
+    // Wait for hydration
+    await waitFor(() => {
+      expect(store.getState().loopCrossfadeDuration).toBe(30);
+      expect(store.getState().defaultLoopMode).toBe(false);
+    });
+  });
+
+  it("uses defaults when storage is empty", async () => {
+    const store = createSettingsStore();
+
+    await waitFor(() => {
+      const state = store.getState();
+      expect(state.loopCrossfadeDuration).toBe(0); // Default
+      expect(state.defaultLoopMode).toBe(true); // Default
+    });
+  });
+
+  it("handles corrupted storage gracefully", async () => {
+    // Store invalid JSON
+    await AsyncStorage.setItem("settings", "invalid json {{{");
+
+    const store = createSettingsStore();
+
+    // Should fallback to defaults without crashing
+    await waitFor(() => {
+      expect(store.getState().loopCrossfadeDuration).toBe(0);
+    });
+  });
+});
+```
+
+Run tests: `npm test -- settingsStorage`
+
+**Commit Message Template**:
 
 ```
-feat(audio): implement platform detection and service factory
+feat(settings): implement settings persistence
 
-- Create AudioServiceFactory with Platform.select
-- Add platform-specific configuration
-- Implement service lifecycle management
-- Support dynamic service registration
+- Add platform-specific storage adapter
+- Implement persistence for settings store
+- Handle hydration on app start
+- Add error handling for corrupted data
+- Include persistence tests
 ```
 
-**Estimated tokens:** ~12,000
+**Estimated tokens**: ~15,000
 
 ---
 
-### Task 4: Create Mock Audio Services for Testing
+### Task 4: Connect Settings to Loop Mode Default
 
-**Goal:** Implement mock/stub versions of audio services for UI testing.
+**Goal**: Ensure the default loop mode setting is applied when the app starts or when playback store is reset.
 
-**Files to Create:**
+**Files to Modify**:
 
-- `src/services/audio/mock/MockAudioRecorder.ts` - Mock recorder
-- `src/services/audio/mock/MockAudioPlayer.ts` - Mock player
-- `src/services/audio/mock/MockAudioMixer.ts` - Mock mixer
-- `__tests__/fixtures/mockAudioData.ts` - Test fixtures
+- `src/store/usePlaybackStore.ts` - Read default from settings on init
+- `src/store/__tests__/usePlaybackStore.test.ts` - Add tests
 
-**Implementation Steps:**
+**Prerequisites**: Task 3 complete (settings persistence working)
 
-1. Create MockAudioRecorder:
-   - Simulates recording with setTimeout
-   - Returns fake URI
-   - Tracks calls for testing
+**Implementation Steps**:
 
-2. Create MockAudioPlayer:
-   - Simulates playback with timers
-   - Updates isPlaying state
-   - Logs speed/volume changes
-   - Returns fake durations
+1. Update playback store initialization:
+   - On store creation, read `defaultLoopMode` from settings store
+   - Set initial `loopMode` state to this value
+   - **Ensure this happens after settings hydration** to avoid race conditions:
 
-3. Create MockAudioMixer:
-   - Simulates mixing with progress updates
-   - Returns success after delay
-   - No actual audio processing
+     ```typescript
+     // Option A: Use Zustand persist onRehydrateStorage callback
+     const usePlaybackStore = create(
+       persist(
+         (set, get) => ({
+           loopMode: false, // Temporary default
+           _hasHydrated: false,
+         }),
+         {
+           name: "playback-storage",
+           onRehydrateStorage: () => (state) => {
+             // Sync with settings after hydration
+             if (state) {
+               state.loopMode = useSettingsStore.getState().defaultLoopMode;
+               state._hasHydrated = true;
+             }
+           },
+         },
+       ),
+     );
 
-4. Create test fixtures:
-   - Mock track data
-   - Fake URIs
-   - Sample audio metadata
+     // Option B: Subscribe to settings hydration and update
+     // In playback store initialization
+     useSettingsStore.persist.onFinishHydration(() => {
+       usePlaybackStore.setState({
+         loopMode: useSettingsStore.getState().defaultLoopMode,
+       });
+     });
+     ```
 
-5. Register mocks in factory (for test environment):
-   - Use **DEV** or process.env.NODE_ENV
-   - Allow switching between mock and real services
+2. Update `reset()` action in playback store:
+   - When resetting, read current default from settings
+   - Don't hardcode default value
 
-**Verification Checklist:**
+3. Handle settings changes:
+   - When user changes default loop mode in settings, it should affect NEW sessions
+   - Current session loop mode remains unchanged (user might have toggled it mid-session)
 
-- [ ] Mocks implement full interfaces
-- [ ] UI works with mock services
-- [ ] Mocks are only used in development/test
-- [ ] Mock behavior is predictable
+4. Test integration:
+   - Change default in settings
+   - Restart app (or reset playback store)
+   - Verify new default applied
 
-**⚠️ CODE REVIEW FINDINGS (Task 4):**
+**Verification Checklist**:
 
-**Test File Organization Issue:**
+- [ ] Playback store reads default from settings
+- [ ] Default applied on app start
+- [ ] Reset action uses current default
+- [ ] Changing setting affects future sessions
+- [ ] Tests verify integration
 
-> **Consider:** Looking at the test output, why does Jest fail with "Your test suite must contain at least one test" for `__tests__/fixtures/mockAudioData.ts`?
->
-> **Think about:** The file `__tests__/fixtures/mockAudioData.ts` is a fixtures file, not a test file. When you run `cat __tests__/fixtures/mockAudioData.ts | grep -E "test|describe|it\("`, do you find any test functions?
->
-> **Reflect:** Jest runs all `.ts` files in the `__tests__` directory by default. Should fixtures files be in `__tests__/fixtures/` or should they be somewhere else (like `__tests__/__fixtures__/` which Jest ignores by default)?
->
-> **Consider:** Looking at Jest configuration in `jest.config.js`, is there a `testPathIgnorePatterns` or `testMatch` configuration that excludes fixtures?
+**Testing Instructions**:
 
-**Linting Issues in Mock Files:**
+```typescript
+describe("Playback Store - Settings Integration", () => {
+  it("initializes loop mode from settings default", () => {
+    useSettingsStore.setState({ defaultLoopMode: false });
 
-> **Think about:** When you run `npm run lint`, why do `MockAudioMixer.ts` and `MockAudioPlayer.ts` have errors saying `'NodeJS' is not defined`?
->
-> **Reflect:** These files use `NodeJS.Timeout` for timer types. Looking at `eslint.config.mjs`, are NodeJS globals defined in the globals configuration?
->
-> **Consider:** Should you add `NodeJS: 'readonly'` to the globals, or use a different type like `ReturnType<typeof setTimeout>`?
+    // Create new playback store (or reset)
+    const playbackStore = createPlaybackStore();
 
-**Evidence:**
+    expect(playbackStore.getState().loopMode).toBe(false);
+  });
 
-```bash
-$ npm test
-FAIL __tests__/fixtures/mockAudioData.ts
-  ● Test suite failed to run
-    Your test suite must contain at least one test.
+  it("uses updated default when reset", () => {
+    const playbackStore = usePlaybackStore.getState();
 
-$ npm run lint
-/Migration/src/services/audio/mock/MockAudioMixer.ts
-  13:24  error  'NodeJS' is not defined  no-undef
-/Migration/src/services/audio/mock/MockAudioPlayer.ts
-  13:26  error  'NodeJS' is not defined  no-undef
+    // Start with one default
+    useSettingsStore.setState({ defaultLoopMode: true });
+    playbackStore.reset();
+    expect(playbackStore.loopMode).toBe(true);
+
+    // Change default
+    useSettingsStore.setState({ defaultLoopMode: false });
+    playbackStore.reset();
+    expect(playbackStore.loopMode).toBe(false);
+  });
+
+  it("does not change current loop mode when settings changed mid-session", () => {
+    const playbackStore = usePlaybackStore.getState();
+
+    // Start session
+    useSettingsStore.setState({ defaultLoopMode: true });
+    playbackStore.reset();
+    expect(playbackStore.loopMode).toBe(true);
+
+    // User toggles loop mode
+    playbackStore.setLoopMode(false);
+
+    // Settings changed
+    useSettingsStore.setState({ defaultLoopMode: true });
+
+    // Current session NOT affected
+    expect(playbackStore.loopMode).toBe(false);
+  });
+});
 ```
 
-**Commit Message Template:**
+Run tests: `npm test -- usePlaybackStore.test.ts`
+
+**Commit Message Template**:
 
 ```
-test(audio): create mock audio services for UI testing
+feat(stores): connect settings default to loop mode
 
-- Implement MockAudioRecorder, MockAudioPlayer, MockAudioMixer
-- Add test fixtures for mock data
-- Register mocks in factory for dev environment
-- Enable UI development without real audio
+- Initialize loop mode from settings default
+- Update reset action to use current default
+- Add tests for settings integration
 ```
 
-**Estimated tokens:** ~13,000
+**Estimated tokens**: ~10,000
 
 ---
 
-### Task 5: Implement Error Handling and Logging
+### Task 5: Add Crossfade Setting Integration (Placeholder)
 
-**Goal:** Create consistent error handling and logging for audio operations.
+**Goal**: Add the crossfade setting to the settings store and UI, but note that actual crossfade implementation in audio mixing is deferred to Phase 4.
 
-**Files to Create:**
+**Files to Modify**:
 
-- `src/services/audio/AudioError.ts` - Custom error class
-- `src/utils/logger.ts` - Logging utility
-- `src/utils/logger.web.ts` - Web logging
-- `src/utils/logger.native.ts` - Native logging
+- `src/screens/SettingsScreen/SettingsScreen.tsx` - Already added in Task 1
+- `src/store/useSettingsStore.ts` - Verify crossfade setting exists
 
-**Implementation Steps:**
+**Prerequisites**: Tasks 1 and 3 complete
 
-1. Create AudioError class:
-   - Extend Error with custom properties
-   - Error codes (PERMISSION_DENIED, RECORDING_FAILED, etc.)
-   - Platform information
-   - User-friendly messages
+**Implementation Steps**:
 
-2. Implement logging utility:
-   - debug(), info(), warn(), error() methods
-   - Platform-specific implementations
-   - Only log in development mode
-   - Integration with error tracking (Sentry, etc.) placeholder
+1. Verify `loopCrossfadeDuration` is in settings store (should be from Phase 1)
 
-3. Add error boundaries:
-   - Wrap audio operations in try-catch
-   - Log errors with context
-   - Show user-friendly error messages
-   - Retry logic for transient failures
+2. Verify crossfade slider is in SettingsScreen UI (should be from Task 1)
 
-4. Create error recovery strategies:
-   - Permission errors → prompt user
-   - Resource errors → cleanup and retry
-   - Platform errors → fallback or notify user
+3. Add TODO comment in audio mixer files indicating where crossfade will be applied:
 
-**Verification Checklist:**
+   ```typescript
+   // TODO (Phase 4): Apply crossfade from settings when looping tracks
+   // const crossfadeDuration = useSettingsStore.getState().loopCrossfadeDuration;
+   ```
 
-- [ ] AudioError has all necessary fields
-- [ ] Logging works on all platforms
-- [ ] Errors are caught and handled
-- [ ] User sees helpful error messages
+4. Document in Phase 3 completion notes that crossfade UI exists but functionality is in Phase 4
 
-**⚠️ CODE REVIEW FINDINGS (Task 5):**
+5. Write placeholder test:
+   ```typescript
+   it.todo("applies crossfade duration from settings to looped tracks");
+   ```
 
-**TypeScript `any` Types:**
+**Verification Checklist**:
 
-> **Consider:** Looking at `src/services/audio/AudioError.ts:29` and `AudioError.ts:40`, why are the `context` parameters typed as `Record<string, any>`?
->
-> **Think about:** Phase 1 established strict TypeScript mode. Does using `any` violate the strict type checking principle?
->
-> **Reflect:** Could you use `Record<string, unknown>` instead of `Record<string, any>` to maintain type safety while allowing flexible context data?
->
-> **Consider:** Similarly, in `src/services/audio/interfaces/IFileManager.ts:20`, the `metadata` property uses `any`. Should this be `unknown` or a more specific type?
+- [ ] Crossfade setting in store
+- [ ] Crossfade slider in UI
+- [ ] Setting persists correctly
+- [ ] TODO comments added for Phase 4 implementation
+- [ ] Documented in completion notes
 
-**Evidence:**
+**Testing Instructions**:
 
-```bash
-$ npm run lint
-/Migration/src/services/audio/AudioError.ts
-  29:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  40:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+```typescript
+describe('Crossfade Setting', () => {
+  it('persists crossfade duration setting', () => {
+    const { getByTestId } = render(<SettingsScreen />);
 
-/Migration/src/services/audio/interfaces/IFileManager.ts
-  20:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    const slider = getByTestId('crossfade-slider');
+    fireEvent(slider, 'valueChange', 25);
+
+    expect(useSettingsStore.getState().loopCrossfadeDuration).toBe(25);
+  });
+
+  it.todo('applies crossfade duration from settings to looped tracks');
+});
 ```
 
-**Commit Message Template:**
+**Commit Message Template**:
 
 ```
-feat(audio): implement error handling and logging
+feat(settings): add crossfade setting (UI only)
 
-- Create AudioError custom error class with codes
-- Build platform-specific logging utilities
-- Add error boundaries around audio operations
-- Define error recovery strategies
+- Add crossfade duration slider to settings screen
+- Verify setting persists correctly
+- Add TODO comments for Phase 4 implementation
+- Note: Actual crossfade mixing in Phase 4
 ```
 
-**Estimated tokens:** ~12,000
+**Estimated tokens**: ~8,000
 
 ---
 
-### Task 6: Integrate Audio Services with UI
+### Task 6: Add Help/Info Section to Settings
 
-**Goal:** Connect Phase 2 UI components to audio service abstraction.
+**Goal**: Add a help or about section to settings screen with information about the looper feature and how to use it.
 
-**Files to Modify:**
+**Files to Modify**:
 
-- `src/screens/MainScreen/MainScreen.tsx` - Wire up audio service
-- `src/components/TrackListItem/TrackListItem.tsx` - Connect controls
+- `src/screens/SettingsScreen/SettingsScreen.tsx` - Add help section
+- Optionally update existing HelpModal component
 
-**Implementation Steps:**
+**Prerequisites**: Task 1 complete
 
-1. Initialize AudioService in MainScreen:
-   - Use factory to get service instance
-   - Store in state or context
-   - Use mock services for now
+**Implementation Steps**:
 
-2. Connect Record button:
-   - Call audioService.startRecording()
-   - Handle errors (show alert)
-   - Update UI state (recording indicator)
+1. Add "Help & Info" section to settings screen:
+   - Version number (read from package.json)
+   - Link to user guide (if exists)
+   - Link to GitHub issues for bug reports
+   - Brief explanation of master loop concept
 
-3. Connect Stop button:
-   - Call audioService.stopRecording()
-   - Add track to list with returned URI
-   - Reset recording state
+2. Add expandable section explaining looper functionality:
+   - "How Master Loop Works"
+   - "What is Loop Mode?"
+   - "Understanding Track Repetition"
+   - Link to full documentation or in-app tutorial
 
-4. Connect Track controls:
-   - Play → audioService.play(uri)
-   - Pause → audioService.pause()
-   - Delete → remove from list, unload audio
-   - Speed slider → audioService.setSpeed()
-   - Volume slider → audioService.setVolume()
+3. Style consistently with rest of settings screen
 
-5. Add loading states:
-   - Show spinner during async operations
-   - Disable buttons while loading
-   - Handle concurrent operations
+4. Make links functional:
+   - Open external links in browser
+   - Navigate to internal screens if applicable
 
-**Verification Checklist:**
+5. Test help section displays correctly
 
-- [ ] Record button starts mock recording
-- [ ] Stop button creates track in list
-- [ ] Play/Pause buttons update state
-- [ ] Sliders call service methods
-- [ ] Errors show user feedback
+**Verification Checklist**:
 
-**Commit Message Template:**
+- [ ] Help section visible in settings
+- [ ] Version number correct
+- [ ] Links functional
+- [ ] Information clear and helpful
+- [ ] Works on web and mobile
 
-```
-feat(integration): connect UI to audio services
+**Testing Instructions**:
 
-- Wire MainScreen to AudioService via factory
-- Connect Record/Stop buttons to recorder
-- Link track controls to audio player methods
-- Add loading states and error handling
-- Use mock services for testing
-```
+```typescript
+describe('Settings - Help Section', () => {
+  it('displays app version', () => {
+    const { getByText } = render(<SettingsScreen />);
 
-**Estimated tokens:** ~13,000
+    expect(getByText(/Version 1.0.0/i)).toBeTruthy(); // Or actual version
+  });
 
----
+  it('provides looper feature explanation', () => {
+    const { getByText } = render(<SettingsScreen />);
 
-### Task 7: Add Unit Tests for Audio Abstractions
+    expect(getByText(/Master Loop/i)).toBeTruthy();
+    expect(getByText(/Loop Mode/i)).toBeTruthy();
+  });
 
-**Goal:** Test all audio service interfaces and base classes.
+  it('has functional link to documentation', () => {
+    const { getByText } = render(<SettingsScreen />);
+    const link = getByText('User Guide');
 
-**Files to Create:**
+    fireEvent.press(link);
 
-- `__tests__/unit/services/AudioService.test.ts`
-- `__tests__/unit/services/AudioServiceFactory.test.ts`
-- `__tests__/unit/services/mock/MockAudioServices.test.ts`
-
-**Implementation Steps:**
-
-1. Test AudioServiceFactory:
-   - Returns correct service for platform
-   - Handles missing implementations
-   - Singleton behavior
-
-2. Test Mock services:
-   - Implement interface correctly
-   - State updates as expected
-   - Async operations resolve
-
-3. Test error handling:
-   - AudioError created correctly
-   - Errors are caught and logged
-   - Recovery strategies work
-
-4. Test service lifecycle:
-   - Initialization succeeds
-   - Cleanup releases resources
-   - Multiple instances handled correctly
-
-**Verification Checklist:**
-
-- [ ] All tests pass
-- [ ] Coverage >80% for audio services
-- [ ] Mocks tested independently
-- [ ] Platform detection tested
-
-**⚠️ CODE REVIEW FINDINGS (Task 7):**
-
-**Test Coverage Below Threshold:**
-
-> **Consider:** When you run `npm run test:coverage`, what is the overall coverage percentage? Phase 1 specified an 80% coverage threshold. Are you meeting that requirement?
->
-> **Think about:** The coverage report shows:
->
-> - Statements: 55.95% (target: 80%)
-> - Branches: 38.26% (target: 80%)
-> - Functions: 57.84% (target: 80%)
-> - Lines: 56.09% (target: 80%)
->
-> **Reflect:** Which files or components have low coverage? Looking at the coverage report, are the base classes (`BaseAudioRecorder`, `BaseAudioPlayer`, `BaseAudioMixer`) adequately tested?
->
-> **Consider:** Should you add more tests for edge cases, error paths, and the abstract base classes to reach the 80% threshold?
-
-**Async Test Cleanup Issues:**
-
-> **Think about:** Several tests show warnings: "Cannot log after tests are done. Did you forget to wait for something async in your test?"
->
-> **Reflect:** Looking at `__tests__/integration/screens/MainScreen.test.tsx` and `__tests__/App.test.tsx`, are there any timers (setTimeout/setInterval) or promises that aren't being cleaned up?
->
-> **Consider:** Are the mock services using timers that aren't being cleared? Should you add `afterEach()` hooks to clean up timers with `jest.clearAllTimers()`?
-
-**Evidence:**
-
-```bash
-$ npm run test:coverage
-File                       | % Stmts | % Branch | % Funcs | % Lines
-All files                  |   55.95 |    38.26 |   57.84 |   56.09
-
-Jest: "global" coverage threshold for statements (80%) not met: 55.95%
-Jest: "global" coverage threshold for branches (80%) not met: 38.26%
-Jest: "global" coverage threshold for lines (80%) not met: 56.09%
-Jest: "global" coverage threshold for functions (80%) not met: 57.84%
-
-$ npm test
-●  Cannot log after tests are done. Did you forget to wait for something async in your test?
-(repeated in App.test.tsx and MainScreen.test.tsx)
+    // Verify link opened (may need to mock Linking module)
+    expect(Linking.openURL).toHaveBeenCalled();
+  });
+});
 ```
 
-**Commit Message Template:**
+**Commit Message Template**:
 
 ```
-test(audio): add unit tests for audio abstractions
+feat(settings): add help and info section
 
-- Test AudioServiceFactory platform detection
-- Verify mock services implement interfaces
-- Test error handling and logging
-- Ensure service lifecycle management works
+- Add version number and links to settings
+- Include looper feature explanation
+- Add links to documentation and support
+- Test help section rendering and links
 ```
 
-**Estimated tokens:** ~10,000
-
----
-
-### Task 8: Document Audio Architecture
-
-**Goal:** Create comprehensive documentation for audio service architecture.
-
-**Files to Create:**
-
-- `src/services/audio/README.md` - Architecture documentation
-- `docs/architecture/audio-services.md` - Detailed architecture doc
-
-**Implementation Steps:**
-
-1. Document service architecture:
-   - Class diagrams (can use ASCII or PlantUML)
-   - Sequence diagrams for key operations
-   - Explain abstraction pattern
-
-2. Document platform-specific approach:
-   - Why platform-specific implementations
-   - How factory pattern works
-   - When to use mock vs real services
-
-3. Add usage examples:
-   - How to use AudioService in components
-   - How to add new audio operations
-   - How to implement platform-specific service
-
-4. Document testing approach:
-   - How to test with mocks
-   - How to add new mock services
-   - Testing platform-specific code
-
-**Verification Checklist:**
-
-- [ ] Documentation is clear and comprehensive
-- [ ] Diagrams are included
-- [ ] Examples are accurate
-- [ ] New developers can understand architecture
-
-**Commit Message Template:**
-
-```
-docs(audio): document audio service architecture
-
-- Create architecture documentation with diagrams
-- Explain platform-specific implementation pattern
-- Add usage examples for components
-- Document testing approach for audio services
-```
-
-**Estimated tokens:** ~5,000
+**Estimated tokens**: ~12,000
 
 ---
 
 ## Phase Verification
 
-**⚠️ CODE QUALITY ISSUES (All Tasks):**
+After completing all tasks, verify Phase 3 is complete:
 
-**Formatting Not Applied:**
+### Automated Verification
 
-> **Consider:** When you run `npm run format:check`, 11 files are reported as having formatting issues. Did you run `npm run format` to fix them before committing?
->
-> **Think about:** Phase 1 established that all code should pass `npm run format:check`. Looking at the list of files, which ones need formatting?
->
-> **Evidence:**
->
-> ```bash
-> $ npm run format:check
-> [warn] __tests__/fixtures/mockAudioData.ts
-> [warn] __tests__/unit/components/SaveModal.test.tsx
-> [warn] __tests__/unit/components/TrackList.test.tsx
-> [warn] __tests__/unit/services/MockAudioServices.test.ts
-> [warn] docs/plans/Phase-2.md
-> [warn] src/screens/MainScreen/MainScreen.tsx
-> [warn] src/services/audio/AudioService.ts
-> [warn] src/services/audio/BaseAudioMixer.ts
-> [warn] src/services/audio/BaseAudioPlayer.ts
-> [warn] src/services/audio/PlatformAudioConfig.ts
-> [warn] src/services/audio/README.md
-> ```
+```bash
+# Run all tests
+npm test
 
-**Quick Fixes Needed:**
+# Run only Phase 3 tests
+npm test -- SettingsScreen.test.tsx
+npm test -- settingsStorage
+npm test -- navigation
 
-> **Reflect:** All of these issues can be fixed quickly:
->
-> 1. Run `npm run format` to fix formatting
-> 2. Move `__tests__/fixtures/` to `__tests__/__fixtures__/` or add to `testPathIgnorePatterns`
-> 3. Add `NodeJS: 'readonly'` to eslint globals
-> 4. Change `Record<string, any>` to `Record<string, unknown>`
-> 5. Add more tests to reach 80% coverage
-> 6. Add cleanup in test `afterEach` hooks
+# Check test coverage
+npm test -- --coverage
+```
+
+**Expected Results**:
+
+- All tests pass
+- Code coverage ≥ 80% for new code
+- No existing tests broken
+
+### Manual Testing Scenarios
+
+#### Scenario 1: Settings Screen Access and Navigation
+
+1. Open app
+2. Tap settings button (gear icon)
+3. **Verify**: Settings screen opens
+4. **Verify**: All sections visible (Looping, Export, Recording, Help)
+5. Tap back button
+6. **Verify**: Returns to main screen
+7. **Verify**: App state preserved
+
+#### Scenario 2: Looping Settings
+
+1. Navigate to settings
+2. Adjust crossfade slider
+3. **Verify**: Value updates in real-time
+4. Toggle default loop mode switch
+5. **Verify**: Switch state changes
+6. Navigate away and back
+7. **Verify**: Settings preserved
+
+#### Scenario 3: Export Settings
+
+1. Navigate to settings
+2. Change default loop count (e.g., to 8)
+3. Change default fadeout (e.g., to 5s)
+4. Change export format (e.g., to WAV)
+5. Change export quality (e.g., to Low)
+6. **Verify**: All changes reflected in UI
+7. Navigate away
+8. **Verify**: Save dialog (in Phase 4) will use these defaults
+
+#### Scenario 4: Settings Persistence
+
+1. Change multiple settings
+2. Close app completely (web: close tab, mobile: kill app)
+3. Reopen app
+4. Navigate to settings
+5. **Verify**: All changed settings retained
+
+#### Scenario 5: Reset to Defaults
+
+1. Change several settings away from defaults
+2. Scroll to bottom, tap "Reset to Defaults"
+3. **Verify**: Confirmation dialog appears
+4. Cancel
+5. **Verify**: Settings unchanged
+6. Tap "Reset to Defaults" again
+7. Confirm
+8. **Verify**: All settings revert to defaults
+
+#### Scenario 6: Default Loop Mode Integration
+
+1. Navigate to settings
+2. Turn OFF default loop mode
+3. Navigate to main screen
+4. Restart app (or simulate by resetting stores)
+5. **Verify**: Loop mode toggle on main screen is OFF
+
+### Integration Points Tested
+
+- ✅ Settings screen integrated into navigation
+- ✅ Settings store persists across restarts
+- ✅ Default loop mode setting affects playback store
+- ✅ All settings accessible and functional
+- ✅ Reset to defaults works correctly
+- ✅ Help section provides useful information
+
+### Known Limitations (to be addressed in later phases)
+
+- Crossfade setting exists but not applied to audio yet (Phase 4)
+- Export default settings exist but not used in save dialog yet (Phase 4)
+- Recording default settings exist but not used in recorder yet (Phase 5)
 
 ---
 
-### How to Verify Phase 3 is Complete
+## Next Steps
 
-1. **Interface Completeness:**
-   - All audio operations have interface definitions
-   - Interfaces cover recording, playback, mixing
+Proceed to **Phase 4: Save/Export Enhancements** to implement loop repetition in exported audio and configurable fadeout.
 
-2. **Mock Functionality:**
-   - UI works with mock audio services
-   - Record creates tracks, play toggles state
-   - No real audio operations yet
+**Phase 4 Preview**:
 
-3. **Platform Detection:**
-   - Factory returns correct services for platform
-   - Test on web and native
-
-4. **Error Handling:**
-   - Errors are caught and shown to user
-   - Logging works correctly
-
-5. **Tests:**
-   - All unit tests pass
-   - Coverage meets threshold
-
-### Integration Points for Phases 4-5
-
-Phase 3 provides foundation for:
-
-- Phase 4: Implement IAudioRecorder for web and native
-- Phase 5: Implement IAudioPlayer for web and native
-- Phase 6: Implement IAudioMixer for web and native
-
-### Known Limitations
-
-- No real audio operations (using mocks)
-- Actual implementation in Phases 4-6
-- File management minimal (URI handling only)
-
----
-
-## Next Phase
-
-Proceed to **[Phase 4: Recording & Import (Platform-Specific)](./Phase-4.md)** to implement real audio recording and file import.
+- Enhanced save dialog with loop count and fadeout options
+- Audio mixer updates to duplicate tracks for loop repetitions
+- Fadeout implementation in final mix
+- Export using settings defaults
+- Progress tracking for longer exports
+- Testing with various loop configurations

@@ -53,7 +53,27 @@ describe("useTrackStore", () => {
       expect(state.tracks[2].name).toBe("Track 3");
     });
 
-    it("should remove track by id", () => {
+    it("should remove non-master track by id", () => {
+      const store = useTrackStore.getState();
+      const track1 = createMockTrack({ id: "track-1", name: "Track 1" });
+      const track2 = createMockTrack({ id: "track-2", name: "Track 2" });
+      const track3 = createMockTrack({ id: "track-3", name: "Track 3" });
+
+      store.addTrack(track1);
+      store.addTrack(track2);
+      store.addTrack(track3);
+      expect(useTrackStore.getState().tracks).toHaveLength(3);
+
+      // Remove non-master track (track-2)
+      store.removeTrack("track-2");
+
+      const state = useTrackStore.getState();
+      expect(state.tracks).toHaveLength(2);
+      expect(state.tracks[0].id).toBe("track-1"); // Master still exists
+      expect(state.tracks[1].id).toBe("track-3");
+    });
+
+    it("should clear all tracks when removing master track", () => {
       const store = useTrackStore.getState();
       const track1 = createMockTrack({ id: "track-1", name: "Track 1" });
       const track2 = createMockTrack({ id: "track-2", name: "Track 2" });
@@ -62,11 +82,12 @@ describe("useTrackStore", () => {
       store.addTrack(track2);
       expect(useTrackStore.getState().tracks).toHaveLength(2);
 
+      // Remove master track (first track)
       store.removeTrack("track-1");
 
+      // LOOPER FEATURE: All tracks should be cleared
       const state = useTrackStore.getState();
-      expect(state.tracks).toHaveLength(1);
-      expect(state.tracks[0].id).toBe("track-2");
+      expect(state.tracks).toHaveLength(0);
     });
 
     it("should handle removing non-existent track", () => {
@@ -156,7 +177,8 @@ describe("useTrackStore", () => {
       store.addTrack(createMockTrack({ id: "track-2" }));
       expect(store.getTrackCount()).toBe(2);
 
-      store.removeTrack("track-1");
+      // Remove non-master track
+      store.removeTrack("track-2");
       expect(store.getTrackCount()).toBe(1);
     });
 
@@ -269,8 +291,8 @@ describe("useTrackStore", () => {
         store.updateTrack(`track-${i}`, { speed: 2.0 });
       }
 
-      // Remove some tracks
-      for (let i = 0; i < 25; i++) {
+      // Remove some non-master tracks (from the end, not the beginning)
+      for (let i = 75; i < 100; i++) {
         store.removeTrack(`track-${i}`);
       }
 

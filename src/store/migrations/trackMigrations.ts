@@ -10,7 +10,7 @@ import type { MigrationConfig } from "./types";
 /**
  * Current schema version for tracks
  */
-export const TRACK_STORE_VERSION = 1;
+export const TRACK_STORE_VERSION = 2;
 
 /**
  * Track store state interface
@@ -74,17 +74,8 @@ export const trackMigrationConfig: MigrationConfig<TrackStoreState> = {
       return { tracks: validTracks };
     },
 
-    // Future migrations would go here:
-    // 2: (state) => {
-    //   // Example: Add new field 'category' to tracks
-    //   return {
-    //     ...state,
-    //     tracks: state.tracks.map(track => ({
-    //       ...track,
-    //       category: track.category || 'default',
-    //     })),
-    //   };
-    // },
+    // Version 2: Looper Normalization - Remove 'selected' property
+    2: migration_v2_removeSelected,
   },
 
   validate: validateTrackState,
@@ -95,32 +86,52 @@ export const trackMigrationConfig: MigrationConfig<TrackStoreState> = {
 };
 
 /**
- * Example migration: Add new field to tracks
- * (Commented out - template for future use)
+ * Migration V2: Remove 'selected' property from tracks
+ *
+ * The looper normalization removes the 'selected' property as track selection
+ * is now handled differently. This migration:
+ * 1. Removes the 'selected' property from all tracks
+ * 2. Validates track integrity
+ * 3. Filters out invalid tracks
+ *
+ * @param state - Old state with potentially 'selected' property
+ * @returns Migrated state without 'selected' property
  */
-// export const migration_v2_addCategory = (state: TrackStoreState): TrackStoreState => {
-//   return {
-//     ...state,
-//     tracks: state.tracks.map(track => ({
-//       ...track,
-//       category: 'default', // Add new field
-//     })),
-//   };
-// };
+export function migration_v2_removeSelected(state: any): TrackStoreState {
+  // Handle empty or invalid state
+  if (!state || typeof state !== "object") {
+    return { tracks: [] };
+  }
 
-/**
- * Example migration: Rename field
- * (Commented out - template for future use)
- */
-// export const migration_v3_renameField = (state: any): TrackStoreState => {
-//   return {
-//     ...state,
-//     tracks: state.tracks.map((track: any) => {
-//       const { oldFieldName, ...rest } = track;
-//       return {
-//         ...rest,
-//         newFieldName: oldFieldName, // Rename field
-//       };
-//     }),
-//   };
-// };
+  // Handle missing or invalid tracks array
+  if (!Array.isArray(state.tracks)) {
+    return { tracks: [] };
+  }
+
+  // Process each track: remove 'selected' and validate
+  const migratedTracks = state.tracks
+    .map((track: any) => {
+      if (!track || typeof track !== "object") {
+        return null;
+      }
+
+      // Destructure to remove 'selected' property
+      const { selected, ...trackWithoutSelected } = track;
+
+      return trackWithoutSelected;
+    })
+    .filter((track: any) => {
+      // Filter out null entries and validate required fields
+      return (
+        track &&
+        typeof track.id === "string" &&
+        typeof track.uri === "string" &&
+        typeof track.speed === "number" &&
+        typeof track.volume === "number"
+      );
+    });
+
+  return {
+    tracks: migratedTracks,
+  };
+}

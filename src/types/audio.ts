@@ -189,6 +189,20 @@ export interface MixingOptions {
    * Apply fade out at the end (ms)
    */
   fadeOut?: number;
+
+  /**
+   * Number of master loop cycles to export
+   * Default: 1 (single loop)
+   * Used to repeat all tracks for the specified number of master loop iterations
+   */
+  loopCount?: number;
+
+  /**
+   * Fadeout duration in milliseconds
+   * Applied to the very end of the mixed output (after all loop repetitions)
+   * Default: 0 (no fadeout)
+   */
+  fadeoutDuration?: number;
 }
 
 /**

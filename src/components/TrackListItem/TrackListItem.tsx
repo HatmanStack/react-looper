@@ -5,6 +5,7 @@
  * - Track name
  * - Play, Pause, Delete buttons
  * - Volume and Speed sliders
+ * - Master track indication (distinct styling for first track)
  */
 
 import React from "react";
@@ -12,6 +13,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { IconButton } from "react-native-paper";
 import { VolumeSlider } from "../VolumeSlider";
 import { SpeedSlider } from "../SpeedSlider";
+import { TrackProgressBar } from "../TrackProgressBar";
+import { useTrackStore } from "../../store/useTrackStore";
 import type { Track } from "../../types";
 import { styles } from "./TrackListItem.styles";
 
@@ -34,6 +37,9 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
   onSpeedChange,
   onSelect,
 }) => {
+  // Check if this track is the master track (first track in store)
+  const isMaster = useTrackStore((state) => state.isMasterTrack(track.id));
+
   const handlePlay = () => {
     console.log(`Play track: ${track.id}`);
     onPlay?.(track.id);
@@ -62,19 +68,31 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
     onSelect?.(track.id);
   };
 
-  // Dynamic border color based on selection
-  const borderColor = track.selected ? "#EF5555" : "transparent";
+  // Build container styles with master track styling if applicable
+  const containerStyles = [
+    styles.container,
+    isMaster && styles.masterTrackContainer,
+  ];
+
+  // Build accessibility label
+  const accessibilityLabel = isMaster
+    ? `Master loop track: ${track.name}`
+    : `Track: ${track.name}`;
 
   return (
     <TouchableOpacity
       onPress={handleSelect}
       activeOpacity={0.7}
       accessible={true}
-      accessibilityLabel={`Track: ${track.name}${track.selected ? ", selected" : ""}`}
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
-      accessibilityHint="Tap to select this track for saving"
+      accessibilityHint={
+        isMaster
+          ? "This track sets the loop length for all tracks"
+          : "Tap to select this track for saving"
+      }
     >
-      <View style={[styles.container, { borderLeftColor: borderColor }]}>
+      <View style={containerStyles} testID={`track-list-item-${track.id}`}>
         {/* Track Name */}
         <Text style={styles.trackName} accessibilityRole="header">
           {track.name}
@@ -138,6 +156,13 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
             accessibilityRole="button"
           />
         </View>
+
+        {/* Playback Progress Bar */}
+        <TrackProgressBar
+          trackId={track.id}
+          duration={track.duration / track.speed}
+          isPlaying={track.isPlaying}
+        />
       </View>
     </TouchableOpacity>
   );

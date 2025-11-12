@@ -181,7 +181,7 @@ Factory for creating platform-specific service instances.
 
 ```typescript
 // Register platform services during app initialization
-registerAudioServices('native', {
+registerAudioServices("native", {
   recorder: NativeAudioRecorder,
   player: NativeAudioPlayer,
   mixer: NativeAudioMixer,
@@ -239,8 +239,8 @@ Uses `Platform.select()` from React Native:
 
 ```typescript
 const platform = Platform.select({
-  web: 'web',
-  default: 'native', // iOS or Android
+  web: "web",
+  default: "native", // iOS or Android
 });
 ```
 
@@ -273,8 +273,8 @@ Platform-specific settings in `PlatformAudioConfig.ts`:
 ### Basic Recording and Playback
 
 ```typescript
-import { getAudioService } from '@services/audio/AudioServiceFactory';
-import { registerMockServices } from '@services/audio/mock';
+import { getAudioService } from "@services/audio/AudioServiceFactory";
+import { registerMockServices } from "@services/audio/mock";
 
 // Initialize (in App.tsx or similar)
 if (__DEV__) {
@@ -289,28 +289,33 @@ await audioService.startRecording();
 const uri = await audioService.stopRecording();
 
 // Play recorded audio
-await audioService.loadTrack('track-1', uri, {
+await audioService.loadTrack("track-1", uri, {
   speed: 1.0,
   volume: 75,
   loop: true,
 });
 
-await audioService.playTrack('track-1');
+await audioService.playTrack("track-1");
 ```
 
 ### Multi-Track Mixing
 
 ```typescript
 const tracks = [
-  { uri: 'recording1.m4a', speed: 1.0, volume: 75 },
-  { uri: 'recording2.m4a', speed: 1.25, volume: 100 },
-  { uri: 'recording3.m4a', speed: 0.75, volume: 50 },
+  { uri: "recording1.m4a", speed: 1.0, volume: 75 },
+  { uri: "recording2.m4a", speed: 1.25, volume: 100 },
+  { uri: "recording3.m4a", speed: 0.75, volume: 50 },
 ];
 
 // Set progress callback
-audioService.mixTracks(tracks, 'output.mp3', { format: AudioFormat.MP3 }, (progress) => {
-  console.log(`Mixing: ${progress}%`);
-});
+audioService.mixTracks(
+  tracks,
+  "output.mp3",
+  { format: AudioFormat.MP3 },
+  (progress) => {
+    console.log(`Mixing: ${progress}%`);
+  },
+);
 ```
 
 ### Error Handling
@@ -321,9 +326,9 @@ try {
 } catch (error) {
   if (error instanceof AudioError) {
     if (error.isPermissionError()) {
-      Alert.alert('Permission Required', error.userMessage);
+      Alert.alert("Permission Required", error.userMessage);
     } else {
-      Alert.alert('Recording Error', error.userMessage);
+      Alert.alert("Recording Error", error.userMessage);
     }
   }
 }
@@ -347,7 +352,7 @@ useEffect(() => {
 Mock implementations simulate audio operations without actual audio processing:
 
 ```typescript
-import { registerMockServices } from '@services/audio/mock';
+import { registerMockServices } from "@services/audio/mock";
 
 // In test setup or development mode
 registerMockServices();

@@ -205,7 +205,7 @@ describe("Stress Tests - Rapid Operations", () => {
     const startTime = performance.now();
 
     for (let i = 0; i < operations; i++) {
-      usePlaybackStore.getState().setPlaying(track.id, i % 2 === 0);
+      usePlaybackStore.getState().setTrackPlaying(track.id, i % 2 === 0);
     }
 
     const endTime = performance.now();

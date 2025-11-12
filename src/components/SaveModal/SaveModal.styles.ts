@@ -13,8 +13,12 @@ export const styles = StyleSheet.create({
     marginVertical: "auto",
     padding: 24,
     borderRadius: 8,
-    maxWidth: 400,
+    maxWidth: 500,
+    maxHeight: "90%",
     alignSelf: "center",
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   content: {
     gap: 16,
@@ -28,6 +32,45 @@ export const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#1E1E1E",
+  },
+  section: {
+    gap: 8,
+  },
+  sectionLabel: {
+    color: "#E1E1E1",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  customInput: {
+    backgroundColor: "#1E1E1E",
+    marginTop: 8,
+  },
+  infoSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#2A2A2A",
+    borderRadius: 8,
+  },
+  infoLabel: {
+    color: "#B0B0B0",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  infoValue: {
+    color: "#E1E1E1",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  warningText: {
+    color: "#FFA726", // Warning/amber color
+    fontSize: 12,
+    fontStyle: "italic",
+    textAlign: "center",
+    paddingHorizontal: 8,
   },
   errorText: {
     color: "#CF6679", // Error color from MD3 dark theme

@@ -5,9 +5,11 @@ This document contains the text content for all app store listings.
 ## Google Play Store Listing
 
 ### App Name
+
 Looper
 
 ### Short Description (80 characters max)
+
 Record, mix, and loop audio tracks with independent speed and volume controls
 
 ### Full Description (4000 characters max)
@@ -69,6 +71,7 @@ Export mixed audio that accounts for all your speed and volume adjustments.
 📱 USER-FRIENDLY
 
 Simple, intuitive interface makes it easy to:
+
 - Add and remove tracks
 - Adjust playback controls with smooth sliders
 - See all your tracks at a glance
@@ -77,6 +80,7 @@ Simple, intuitive interface makes it easy to:
 🎨 MODERN DESIGN
 
 Beautiful Material Design interface with:
+
 - Clean, uncluttered layout
 - Responsive controls
 - Dark theme for comfortable use
@@ -98,6 +102,7 @@ Download Looper today and start creating amazing audio mixes!
 Initial release of Looper!
 
 Features:
+
 - Multi-track audio recording
 - Audio file import
 - Independent speed control (0.05x-2.50x)
@@ -115,12 +120,15 @@ Perfect for musicians, podcasters, and audio enthusiasts!
 ## Apple App Store Listing
 
 ### App Name
+
 Looper
 
 ### Subtitle (30 characters max)
+
 Mix Audio with Speed Control
 
 ### Promotional Text (170 characters - shown above description)
+
 Create professional audio mixes with multi-track recording, independent speed and volume controls, and true FFmpeg-powered audio mixing.
 
 ### Description (4000 characters max)
@@ -140,10 +148,11 @@ Play up to 20 tracks at once with perfect synchronization.
 
 • Independent Speed Control
 Adjust each track's speed from 0.05x (slow motion) to 2.50x (double speed). Perfect for:
-  - Practicing difficult musical passages
-  - Transcribing audio
-  - Creating speed effects
-  - Matching tempos
+
+- Practicing difficult musical passages
+- Transcribing audio
+- Creating speed effects
+- Matching tempos
 
 • Independent Volume Control
 Fine-tune each track's volume from 0-100 for perfect balance in your mix.
@@ -160,21 +169,25 @@ Export your mix as a single high-quality MP3 file with all speed and volume adju
 PERFECT FOR
 
 Musicians
+
 - Practice with slowed-down backing tracks
 - Layer multiple instrument recordings
 - Create loops for practice
 
 Podcasters
+
 - Mix multiple audio sources
 - Balance voice levels
 - Combine intro music with dialogue
 
 DJs & Producers
+
 - Create seamless loops
 - Layer beats and samples
 - Experiment with speed effects
 
 Students
+
 - Slow down lectures for note-taking
 - Transcribe audio at comfortable speeds
 - Study language recordings
@@ -231,6 +244,7 @@ Whether you're a professional musician fine-tuning a performance, a podcaster ba
 Download Looper and start creating amazing audio mixes today!
 
 ### Keywords (100 characters max, comma-separated)
+
 audio,mixer,looper,music,record,podcast,multitrack,ffmpeg,mixing,loop,speed,practice
 
 ### What's New
@@ -261,6 +275,7 @@ We're excited to bring you this powerful audio mixing tool. Enjoy creating!
 ## Web (PWA) Description
 
 ### Short Description
+
 Record, import, and mix audio tracks with independent speed and volume controls. Professional audio mixing in your browser.
 
 ### Full Description
@@ -268,6 +283,7 @@ Record, import, and mix audio tracks with independent speed and volume controls.
 Looper is a powerful web-based audio mixing application that runs entirely in your browser—no installation required!
 
 Features:
+
 - Record audio with your microphone
 - Import audio files from your computer
 - Play multiple tracks simultaneously
@@ -287,15 +303,19 @@ Try Looper now—no signup, no installation, just visit and start mixing!
 ## Contact Information
 
 ### Support Email
+
 support@looper.app
 
 ### Website
+
 https://looper.app
 
 ### Privacy Policy URL
+
 https://looper.app/privacy-policy
 
 ### Terms of Service URL
+
 https://looper.app/terms
 
 ---
@@ -303,10 +323,12 @@ https://looper.app/terms
 ## Category Selection
 
 ### Google Play
+
 **Primary Category**: Music & Audio
 **Tags**: Audio, Music, Mixer, Recording, Podcast
 
 ### Apple App Store
+
 **Primary Category**: Music
 **Secondary Category**: Productivity
 
@@ -334,6 +356,7 @@ https://looper.app/terms
 **Age Rating**: 4+
 
 **Reasons**:
+
 - No objectionable content
 - No violence or mature themes
 - No access to external services
@@ -366,16 +389,19 @@ A: The current version focuses on mixing with speed and volume controls. Audio e
 ### Troubleshooting
 
 **Microphone not working?**
+
 - Check that you've granted microphone permission
 - Try refreshing the page
 - Check your device's microphone settings
 
 **Files won't import?**
+
 - Check that the file is a supported audio format
 - Ensure you have storage permission granted
 - Try a different audio file
 
 **Mixing is slow?**
+
 - Mixing large files takes time
 - Reduce the number of tracks
 - Use shorter audio files for testing
@@ -385,12 +411,15 @@ A: The current version focuses on mixing with speed and volume controls. Audio e
 ## Promotional Materials
 
 ### Press Release Title
+
 "Looper Launches: Professional Multi-Track Audio Mixing for Everyone"
 
 ### Press Release Subtitle
+
 "New app brings FFmpeg-powered audio mixing to web, Android, and iOS with intuitive interface and powerful features"
 
 ### Taglines
+
 - "Mix Like a Pro"
 - "Multi-Track Mixing Made Simple"
 - "Your Portable Audio Studio"

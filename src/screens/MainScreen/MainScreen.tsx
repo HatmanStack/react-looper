@@ -10,12 +10,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View } from "react-native";
 import { Surface, ActivityIndicator, IconButton } from "react-native-paper";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../../App";
 import { Alert } from "../../utils/alert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TrackList } from "@components/TrackList";
 import { ActionButton } from "@components/ActionButton";
 import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
+import { ConfirmationDialog } from "@components/ConfirmationDialog";
+import { LoopModeToggle } from "@components/LoopModeToggle";
+import { RecordingProgressIndicator } from "@components/RecordingProgressIndicator";
 import type { Track } from "../../types";
 import { styles } from "./MainScreen.styles";
 import { initializeAudioServices } from "../../services/audio/initialize";
@@ -25,19 +30,46 @@ import { AudioError } from "../../services/audio/AudioError";
 import { getFileImporter } from "../../services/audio/FileImporterFactory";
 import { getAudioMetadata } from "../../utils/audioUtils";
 import { getFFmpegService } from "../../services/ffmpeg/FFmpegService";
+import { useTrackStore } from "../../store/useTrackStore";
 
 // Initialize audio services for current platform
 initializeAudioServices();
 
-export const MainScreen: React.FC = () => {
-  const [tracks, setTracks] = useState<Track[]>([]);
+type MainScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "Main">;
+};
+
+export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
+  // Use track store instead of local state
+  const tracks = useTrackStore((state) => state.tracks);
+  const addTrack = useTrackStore((state) => state.addTrack);
+  const removeTrack = useTrackStore((state) => state.removeTrack);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const getMasterLoopDuration = useTrackStore((state) => state.getMasterLoopDuration);
+  const hasMasterTrack = useTrackStore((state) => state.hasMasterTrack);
+  const isMasterTrack = useTrackStore((state) => state.isMasterTrack);
+
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [baseLoopDuration, setBaseLoopDuration] = useState<number | null>(null); // Duration in ms
+  const [recordingDuration, setRecordingDuration] = useState(0); // Current recording duration in ms
   const audioServiceRef = useRef<AudioService | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // For updating recording duration
+
+  // Confirmation dialog state for master track speed changes
+  const [speedConfirmationVisible, setSpeedConfirmationVisible] =
+    useState(false);
+  const [pendingSpeedChange, setPendingSpeedChange] = useState<{
+    trackId: string;
+    speed: number;
+  } | null>(null);
+
+  // Confirmation dialog state for master track deletion
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] =
+    useState(false);
+  const [pendingDeletion, setPendingDeletion] = useState<string | null>(null);
 
   // Initialize AudioService
   useEffect(() => {
@@ -58,6 +90,9 @@ export const MainScreen: React.FC = () => {
       }
       if (recordingTimerRef.current) {
         clearTimeout(recordingTimerRef.current);
+      }
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
       }
     };
   }, []);
@@ -87,24 +122,45 @@ export const MainScreen: React.FC = () => {
     try {
       console.log("[MainScreen] Starting recording...");
       setIsLoading(true);
-      await audioServiceRef.current.startRecording();
-      setIsRecording(true);
-      console.log("[MainScreen] Recording started successfully");
 
-      // If this isn't the first track, set up auto-stop timer
-      if (baseLoopDuration !== null) {
-        const targetDuration = calculateQuantizedDuration(baseLoopDuration);
-        console.log(
-          `[MainScreen] Auto-stop timer set for ${targetDuration}ms (base: ${baseLoopDuration}ms)`,
-        );
+      // Detect recording context: first track or subsequent
+      const masterLoopDuration = getMasterLoopDuration();
+      const isFirstTrackRecording = !hasMasterTrack();
 
+      console.log(`[MainScreen] Recording context: ${isFirstTrackRecording ? "First track (master)" : "Subsequent track (overdub)"}`);
+      console.log(`[MainScreen] Master loop duration: ${masterLoopDuration}ms`);
+
+      // Start recording with maxDuration for subsequent tracks
+      if (!isFirstTrackRecording) {
+        const targetDuration = calculateQuantizedDuration(masterLoopDuration);
+        console.log(`[MainScreen] Auto-stop duration set: ${targetDuration}ms`);
+
+        await audioServiceRef.current.startRecording({
+          maxDuration: targetDuration,
+        });
+
+        // Set up auto-stop timer as backup
         recordingTimerRef.current = setTimeout(() => {
-          console.log(
-            "[MainScreen] Auto-stopping recording at quantized duration",
-          );
+          console.log("[MainScreen] Auto-stopping recording at loop boundary");
           handleStop();
         }, targetDuration);
+      } else {
+        // First track - no auto-stop
+        await audioServiceRef.current.startRecording();
       }
+
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start interval to update recording duration display
+      recordingIntervalRef.current = setInterval(() => {
+        if (audioServiceRef.current) {
+          const duration = audioServiceRef.current.getRecordingDuration();
+          setRecordingDuration(duration);
+        }
+      }, 100); // Update every 100ms for smooth progress
+
+      console.log("[MainScreen] Recording started successfully");
     } catch (error) {
       console.error("[MainScreen] Recording failed:", error);
       if (error instanceof AudioError) {
@@ -129,20 +185,23 @@ export const MainScreen: React.FC = () => {
       recordingTimerRef.current = null;
     }
 
+    // Clear the recording duration update interval
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
     try {
       setIsLoading(true);
       const uri = await audioServiceRef.current.stopRecording();
       setIsRecording(false);
+      setRecordingDuration(0);
 
       const recordingDuration = audioServiceRef.current.getRecordingDuration();
 
-      // If this is the first track, set it as the base loop duration
-      if (baseLoopDuration === null) {
-        setBaseLoopDuration(recordingDuration);
-        console.log(
-          `[MainScreen] Base loop duration set to ${recordingDuration}ms`,
-        );
-      }
+      console.log(
+        `[MainScreen] Recording stopped, duration: ${recordingDuration}ms`,
+      );
 
       // Create new track
       const newTrack: Track = {
@@ -164,7 +223,8 @@ export const MainScreen: React.FC = () => {
         loop: true,
       });
 
-      setTracks((prevTracks) => [...prevTracks, newTrack]);
+      // Add track to store
+      addTrack(newTrack);
       console.log(
         "[MainScreen] Recording stopped and track added:",
         newTrack.name,
@@ -220,7 +280,8 @@ export const MainScreen: React.FC = () => {
         loop: true,
       });
 
-      setTracks((prevTracks) => [...prevTracks, newTrack]);
+      // Add track to store
+      addTrack(newTrack);
       console.log("[MainScreen] Imported track added:", newTrack.name);
     } catch (error) {
       console.error("[MainScreen] Import failed:", error);
@@ -252,7 +313,15 @@ export const MainScreen: React.FC = () => {
     setHelpModalVisible(false);
   };
 
-  const handleSaveModalSave = async (filename: string) => {
+  const handleSettings = () => {
+    navigation.navigate("Settings");
+  };
+
+  const handleSaveModalSave = async (
+    filename: string,
+    loopCount: number,
+    fadeoutDuration: number,
+  ) => {
     // Filter only selected tracks
     const selectedTracks = tracks.filter((track) => track.selected);
 
@@ -268,6 +337,9 @@ export const MainScreen: React.FC = () => {
       console.log(
         `[MainScreen] Starting mix for ${selectedTracks.length} selected tracks...`,
       );
+      console.log(
+        `[MainScreen] Loop count: ${loopCount}, Fadeout: ${fadeoutDuration}ms`,
+      );
 
       // Get FFmpeg service
       const ffmpegService = getFFmpegService();
@@ -282,9 +354,11 @@ export const MainScreen: React.FC = () => {
         volume: track.volume,
       }));
 
-      // Mix tracks
+      // Mix tracks with loop and fadeout options
       const result = await ffmpegService.mix({
         tracks: mixTracks,
+        loopCount,
+        fadeoutDuration,
       });
 
       setIsLoading(false);
@@ -346,12 +420,8 @@ export const MainScreen: React.FC = () => {
     try {
       await audioServiceRef.current.playTrack(trackId);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, isPlaying: true } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { isPlaying: true });
 
       console.log(`[MainScreen] Playing track: ${trackId}`);
     } catch (error) {
@@ -370,12 +440,8 @@ export const MainScreen: React.FC = () => {
     try {
       await audioServiceRef.current.pauseTrack(trackId);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, isPlaying: false } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { isPlaying: false });
 
       console.log(`[MainScreen] Paused track: ${trackId}`);
     } catch (error) {
@@ -391,23 +457,31 @@ export const MainScreen: React.FC = () => {
       return;
     }
 
+    // Check if this is the master track (first track)
+    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+
+    // If deleting master track, show confirmation (this will clear all tracks)
+    if (isMasterTrack) {
+      setPendingDeletion(trackId);
+      setDeleteConfirmationVisible(true);
+      return;
+    }
+
+    // Otherwise, delete immediately
+    await performDelete(trackId);
+  };
+
+  const performDelete = async (trackId: string) => {
+    if (!audioServiceRef.current) {
+      return;
+    }
+
     try {
       // Unload and delete track
       await audioServiceRef.current.unloadTrack(trackId);
 
-      setTracks((prevTracks) => {
-        const newTracks = prevTracks.filter((track) => track.id !== trackId);
-
-        // Reset base loop duration if all tracks are deleted
-        if (newTracks.length === 0) {
-          setBaseLoopDuration(null);
-          console.log(
-            "[MainScreen] All tracks deleted, base loop duration reset",
-          );
-        }
-
-        return newTracks;
-      });
+      // Remove track from store (store handles master track deletion logic)
+      removeTrack(trackId);
 
       console.log(`[MainScreen] Deleted track: ${trackId}`);
     } catch (error) {
@@ -418,6 +492,19 @@ export const MainScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (pendingDeletion) {
+      await performDelete(pendingDeletion);
+      setPendingDeletion(null);
+    }
+    setDeleteConfirmationVisible(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setPendingDeletion(null);
+    setDeleteConfirmationVisible(false);
+  };
+
   const handleVolumeChange = async (trackId: string, volume: number) => {
     if (!audioServiceRef.current) {
       return;
@@ -426,12 +513,8 @@ export const MainScreen: React.FC = () => {
     try {
       await audioServiceRef.current.setTrackVolume(trackId, volume);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, volume } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { volume });
 
       console.log(
         `[MainScreen] Volume changed for track ${trackId}: ${volume}`,
@@ -446,15 +529,31 @@ export const MainScreen: React.FC = () => {
       return;
     }
 
+    // Check if this is the master track (first track) and if there are other tracks
+    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+    const hasOtherTracks = tracks.length > 1;
+
+    // If changing master track speed with other tracks present, show confirmation
+    if (isMasterTrack && hasOtherTracks) {
+      setPendingSpeedChange({ trackId, speed });
+      setSpeedConfirmationVisible(true);
+      return;
+    }
+
+    // Otherwise, apply speed change immediately
+    await applySpeedChange(trackId, speed);
+  };
+
+  const applySpeedChange = async (trackId: string, speed: number) => {
+    if (!audioServiceRef.current) {
+      return;
+    }
+
     try {
       await audioServiceRef.current.setTrackSpeed(trackId, speed);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, speed } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { speed });
 
       console.log(`[MainScreen] Speed changed for track ${trackId}: ${speed}`);
     } catch (error) {
@@ -462,15 +561,26 @@ export const MainScreen: React.FC = () => {
     }
   };
 
-  const handleSelect = (trackId: string) => {
-    setTracks((prevTracks) =>
-      prevTracks.map((track) => ({
-        ...track,
-        selected: track.id === trackId ? !track.selected : track.selected,
-      })),
-    );
+  const handleSpeedChangeConfirm = () => {
+    if (pendingSpeedChange) {
+      applySpeedChange(pendingSpeedChange.trackId, pendingSpeedChange.speed);
+      setPendingSpeedChange(null);
+    }
+    setSpeedConfirmationVisible(false);
+  };
 
-    console.log(`[MainScreen] Toggled selection for track ${trackId}`);
+  const handleSpeedChangeCancel = () => {
+    setPendingSpeedChange(null);
+    setSpeedConfirmationVisible(false);
+  };
+
+  const handleSelect = (trackId: string) => {
+    const track = tracks.find((t) => t.id === trackId);
+    if (track) {
+      // Toggle selection in store
+      updateTrack(trackId, { selected: !track.selected });
+      console.log(`[MainScreen] Toggled selection for track ${trackId}`);
+    }
   };
 
   return (
@@ -484,14 +594,28 @@ export const MainScreen: React.FC = () => {
           accessibilityLabel="Recording controls"
         >
           <ActionButton
-            label={isRecording ? "Recording..." : "Record"}
+            label={
+              isRecording
+                ? "Recording..."
+                : hasMasterTrack()
+                  ? "Record Overdub"
+                  : "Record First Loop"
+            }
             icon="microphone"
             onPress={handleRecord}
             disabled={isRecording || isLoading}
             accessibilityLabel={
-              isRecording ? "Recording in progress" : "Record audio"
+              isRecording
+                ? "Recording in progress"
+                : hasMasterTrack()
+                  ? "Record overdub track"
+                  : "Record first loop track"
             }
-            accessibilityHint="Start recording a new audio track"
+            accessibilityHint={
+              hasMasterTrack()
+                ? "Record a new track that will auto-stop at the loop boundary"
+                : "Record your first track to set the master loop length"
+            }
           />
           <ActionButton
             label="Stop"
@@ -499,6 +623,16 @@ export const MainScreen: React.FC = () => {
             onPress={handleStop}
             disabled={!isRecording || isLoading}
             accessibilityHint="Stop recording and save track"
+          />
+          <LoopModeToggle />
+          <IconButton
+            icon="cog"
+            size={32}
+            iconColor="#FFFFFF"
+            onPress={handleSettings}
+            testID="settings-button"
+            accessibilityLabel="Settings"
+            accessibilityHint="Open settings screen"
           />
           <IconButton
             icon="help-circle"
@@ -509,6 +643,15 @@ export const MainScreen: React.FC = () => {
             accessibilityHint="Show help information"
           />
         </Surface>
+
+        {/* Recording Progress Indicator */}
+        {isRecording && (
+          <RecordingProgressIndicator
+            isFirstTrack={!hasMasterTrack()}
+            recordingDuration={recordingDuration}
+            loopDuration={getMasterLoopDuration()}
+          />
+        )}
 
         {/* Middle Section - Track List */}
         <View style={styles.trackListContainer}>
@@ -558,6 +701,30 @@ export const MainScreen: React.FC = () => {
         <HelpModal
           visible={helpModalVisible}
           onDismiss={handleHelpModalDismiss}
+        />
+
+        {/* Speed Change Confirmation Dialog */}
+        <ConfirmationDialog
+          visible={speedConfirmationVisible}
+          title="Change Master Loop Speed?"
+          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Continue?"
+          onConfirm={handleSpeedChangeConfirm}
+          onCancel={handleSpeedChangeCancel}
+          confirmLabel="Change Speed"
+          cancelLabel="Cancel"
+          destructive={false}
+        />
+
+        {/* Master Track Deletion Confirmation Dialog */}
+        <ConfirmationDialog
+          visible={deleteConfirmationVisible}
+          title="Delete Master Track?"
+          message="This track sets the loop length. Deleting it will clear all tracks and start fresh. This cannot be undone."
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+          confirmLabel="Delete All Tracks"
+          cancelLabel="Cancel"
+          destructive={true}
         />
 
         {/* Loading Indicator */}

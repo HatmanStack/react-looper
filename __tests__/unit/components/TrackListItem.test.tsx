@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { TrackListItem } from "../../../src/components/TrackListItem";
+import { useTrackStore } from "../../../src/store/useTrackStore";
 import type { Track } from "../../../src/types";
 
 const mockTrack: Track = {
@@ -14,7 +15,17 @@ const mockTrack: Track = {
   createdAt: Date.now(),
 };
 
+const createMockTrack = (overrides: Partial<Track> = {}): Track => ({
+  ...mockTrack,
+  ...overrides,
+});
+
 describe("TrackListItem", () => {
+  beforeEach(() => {
+    // Clear store before each test
+    useTrackStore.setState({ tracks: [] });
+  });
+
   it("renders track name", () => {
     const { getByText } = render(<TrackListItem track={mockTrack} />);
     expect(getByText("Test Track")).toBeTruthy();
@@ -101,5 +112,76 @@ describe("TrackListItem", () => {
 
     fireEvent(speedSlider, "onValueChange", 82); // 82 / 41 = 2.0
     expect(mockOnSpeedChange).toHaveBeenCalledWith("track-1", 2.0);
+  });
+
+  describe("Master Track Styling", () => {
+    it("applies master track styling when track is first", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+        createMockTrack({ id: "track-2", name: "Track 2" }),
+      ];
+
+      // Set tracks in store
+      useTrackStore.setState({ tracks });
+
+      const { getByTestId } = render(<TrackListItem track={tracks[0]} />);
+
+      const container = getByTestId("track-list-item-track-1");
+
+      // Verify master track styles applied
+      expect(container.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            borderWidth: 3,
+            borderColor: "#3F51B5", // Primary color
+          }),
+        ]),
+      );
+    });
+
+    it("does not apply master track styling to non-master tracks", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+        createMockTrack({ id: "track-2", name: "Track 2" }),
+      ];
+
+      useTrackStore.setState({ tracks });
+
+      const { getByTestId } = render(<TrackListItem track={tracks[1]} />);
+
+      const container = getByTestId("track-list-item-track-2");
+
+      // Verify standard styling (border width should not be 3)
+      const styles = Array.isArray(container.props.style)
+        ? container.props.style
+        : [container.props.style];
+      const hasMasterBorder = styles.some(
+        (style) => style?.borderWidth === 3,
+      );
+      expect(hasMasterBorder).toBe(false);
+    });
+
+    it("includes accessibility label for master track", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+      ];
+      useTrackStore.setState({ tracks });
+
+      const { getByLabelText } = render(<TrackListItem track={tracks[0]} />);
+
+      expect(getByLabelText(/Master loop track/i)).toBeTruthy();
+    });
+
+    it("does not include master accessibility label for non-master tracks", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+        createMockTrack({ id: "track-2", name: "Track 2" }),
+      ];
+      useTrackStore.setState({ tracks });
+
+      const { queryByLabelText } = render(<TrackListItem track={tracks[1]} />);
+
+      expect(queryByLabelText(/Master loop track/i)).toBeNull();
+    });
   });
 });

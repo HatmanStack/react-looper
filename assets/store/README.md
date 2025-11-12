@@ -39,6 +39,7 @@ assets/store/
 Required sizes for different devices:
 
 **Phone (Required)**:
+
 - Min: 320px
 - Max: 3840px
 - Recommended: 1080x1920 (portrait) or 1920x1080 (landscape)
@@ -46,9 +47,11 @@ Required sizes for different devices:
 - Quantity: 2-8 screenshots
 
 **7-inch Tablet (Optional)**:
+
 - Same requirements as phone
 
 **10-inch Tablet (Optional)**:
+
 - Same requirements as phone
 
 ### Promo Video (Optional)
@@ -68,24 +71,28 @@ Required sizes for different devices:
 ### Screenshots
 
 **iPhone 6.7" (iPhone 14/15 Pro Max)**:
+
 - Size: 1290x2796 pixels (portrait) or 2796x1290 (landscape)
 - Format: JPG or PNG
 - Quantity: 1-10 screenshots
 - **Required**
 
 **iPhone 6.5" (iPhone 11 Pro Max, iPhone XS Max)**:
+
 - Size: 1242x2688 pixels (portrait) or 2688x1242 (landscape)
 - Format: JPG or PNG
 - Quantity: 1-10 screenshots
 - Required if 6.7" not provided
 
 **iPhone 5.5" (iPhone 8 Plus)**:
+
 - Size: 1242x2208 pixels (portrait) or 2208x1242 (landscape)
 - Format: JPG or PNG
 - Quantity: 1-10 screenshots
 - Required for older devices
 
 **iPad Pro 12.9" (Optional)**:
+
 - Size: 2048x2732 pixels (portrait) or 2732x2048 (landscape)
 - Format: JPG or PNG
 - Quantity: 1-10 screenshots
@@ -102,6 +109,7 @@ Required sizes for different devices:
 ### Icons
 
 Required sizes (already configured in `public/manifest.json`):
+
 - 72x72
 - 96x96
 - 128x128
@@ -116,11 +124,13 @@ All PNG format with transparency support.
 ### Screenshots
 
 **Desktop**:
+
 - Size: 1920x1080 pixels
 - Format: PNG or JPG
 - Purpose: Shown in browser install prompts
 
 **Mobile**:
+
 - Size: 750x1334 pixels
 - Format: PNG or JPG
 - Purpose: Shown in mobile browsers
@@ -252,6 +262,7 @@ done
 Before submission, ensure you have:
 
 ### Android (Google Play)
+
 - [ ] 512x512 app icon
 - [ ] 1024x500 feature graphic
 - [ ] 2-8 phone screenshots (1080x1920)
@@ -261,6 +272,7 @@ Before submission, ensure you have:
 - [ ] Support email
 
 ### iOS (App Store)
+
 - [ ] 1024x1024 app icon
 - [ ] 6.7" iPhone screenshots (1290x2796) - 1-10 images
 - [ ] 5.5" iPhone screenshots (1242x2208) - 1-10 images
@@ -270,6 +282,7 @@ Before submission, ensure you have:
 - [ ] Support URL
 
 ### Web (PWA)
+
 - [ ] PWA icons (72px to 512px)
 - [ ] Desktop screenshot (1920x1080)
 - [ ] Mobile screenshot (750x1334)

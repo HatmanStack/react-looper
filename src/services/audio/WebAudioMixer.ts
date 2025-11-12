@@ -9,6 +9,8 @@ import { BaseAudioMixer } from "./BaseAudioMixer";
 import { MixerTrackInput, MixingOptions } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
+import { logger } from "../../utils/logger";
+import { useSettingsStore } from "../../store/useSettingsStore";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
@@ -37,71 +39,155 @@ export class WebAudioMixer extends BaseAudioMixer {
     }
 
     try {
-      console.log(`[WebAudioMixer] Mixing ${tracks.length} tracks...`);
+      logger.log(`[WebAudioMixer] Mixing ${tracks.length} tracks...`);
 
       // Load all audio buffers
       const audioBuffers = await Promise.all(
         tracks.map((track) => this.loadAudioBuffer(track.uri)),
       );
 
-      // Find the longest duration
-      const maxDuration = Math.max(
-        ...audioBuffers.map((buffer) => buffer.duration),
-      );
       const sampleRate = audioBuffers[0].sampleRate;
 
-      console.log(
-        `[WebAudioMixer] Max duration: ${maxDuration}s, Sample rate: ${sampleRate}Hz`,
+      // Calculate total export duration
+      const loopCount = options?.loopCount || 1;
+      const fadeoutDuration = (options?.fadeoutDuration || 0) / 1000; // Convert ms to seconds
+
+      // For loop repetition, use the longest speed-adjusted track duration as master loop
+      const masterLoopDuration = Math.max(
+        ...audioBuffers.map((buffer, i) => buffer.duration / tracks[i].speed),
+      );
+
+      const totalDuration = masterLoopDuration * loopCount + fadeoutDuration;
+
+      logger.log(
+        `[WebAudioMixer] Master loop: ${masterLoopDuration.toFixed(2)}s, Loops: ${loopCount}, Fadeout: ${fadeoutDuration.toFixed(2)}s, Total: ${totalDuration.toFixed(2)}s`,
       );
 
       // Create offline context for rendering
       const offlineContext = new OfflineAudioContext({
         numberOfChannels: 2,
-        length: maxDuration * sampleRate,
+        length: Math.ceil(totalDuration * sampleRate),
         sampleRate,
       });
+
+      // Create master gain node for fadeout
+      const masterGain = offlineContext.createGain();
+      masterGain.gain.value = 1.0;
+      masterGain.connect(offlineContext.destination);
+
+      // Read crossfade duration from settings
+      const crossfadeDurationMs = useSettingsStore.getState().loopCrossfadeDuration;
+      const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
+
+      logger.log(`[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`);
 
       // Create and connect source nodes for each track
       for (let i = 0; i < tracks.length; i++) {
         const track = tracks[i];
         const buffer = audioBuffers[i];
 
-        // Create source node
-        const source = offlineContext.createBufferSource();
-        source.buffer = buffer;
+        // Calculate speed-adjusted duration for this track
+        const trackDuration = buffer.duration / track.speed;
 
-        // Apply speed (playback rate)
-        source.playbackRate.value = track.speed;
-
-        // Create gain node for volume
+        // Create volume gain node
         const gainNode = offlineContext.createGain();
         const scaledVolume = this.scaleVolume(track.volume);
         gainNode.gain.value = scaledVolume;
+        gainNode.connect(masterGain);
 
-        // Connect: source -> gain -> destination
-        source.connect(gainNode);
-        gainNode.connect(offlineContext.destination);
+        // Apply crossfade at loop boundaries if enabled and track needs to loop
+        const needsLooping = loopCount > 1 || trackDuration < masterLoopDuration * loopCount;
+        const canCrossfade = crossfadeDuration > 0 && needsLooping && trackDuration > crossfadeDuration * 2;
 
-        // Start playback
-        source.start(0);
+        if (canCrossfade) {
+          // Manual looping with crossfade
+          const repetitionsNeeded = Math.ceil((masterLoopDuration * loopCount) / trackDuration);
 
-        console.log(
-          `[WebAudioMixer] Track ${i + 1}: speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)})`,
+          for (let rep = 0; rep < repetitionsNeeded; rep++) {
+            const startTime = rep * trackDuration;
+            if (startTime >= totalDuration) break;
+
+            // Create source for this repetition
+            const source = offlineContext.createBufferSource();
+            source.buffer = buffer;
+            source.playbackRate.value = track.speed;
+
+            // Create gain for fade-in/fade-out
+            const fadeGain = offlineContext.createGain();
+            source.connect(fadeGain);
+            fadeGain.connect(gainNode);
+
+            // Calculate actual play duration (may be shorter for last rep)
+            const playDuration = Math.min(trackDuration, totalDuration - startTime);
+
+            // Apply fade-in at start of each rep (except first)
+            if (rep > 0 && crossfadeDuration < playDuration) {
+              fadeGain.gain.setValueAtTime(0.0, startTime);
+              fadeGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeDuration);
+            } else {
+              fadeGain.gain.setValueAtTime(1.0, startTime);
+            }
+
+            // Apply fade-out at end of each rep (except last)
+            const nextRepStartTime = startTime + trackDuration;
+            if (nextRepStartTime < totalDuration && crossfadeDuration < playDuration) {
+              const fadeOutStart = startTime + trackDuration - crossfadeDuration;
+              fadeGain.gain.setValueAtTime(1.0, fadeOutStart);
+              fadeGain.gain.linearRampToValueAtTime(0.0, nextRepStartTime);
+            }
+
+            // Start and stop source
+            source.start(startTime);
+            source.stop(Math.min(startTime + playDuration, totalDuration));
+          }
+
+          logger.log(
+            `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), crossfade=${crossfadeDurationMs}ms`,
+          );
+        } else {
+          // Simple looping without crossfade (original behavior)
+          const source = offlineContext.createBufferSource();
+          source.buffer = buffer;
+          source.loop = needsLooping;
+          source.playbackRate.value = track.speed;
+
+          source.connect(gainNode);
+
+          source.start(0);
+          source.stop(totalDuration);
+
+          logger.log(
+            `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), loops=${source.loop}`,
+          );
+        }
+      }
+
+      // Apply fadeout to master gain if specified
+      if (fadeoutDuration > 0) {
+        const fadeoutStartTime = totalDuration - fadeoutDuration;
+        logger.log(
+          `[WebAudioMixer] Applying fadeout from ${fadeoutStartTime.toFixed(2)}s to ${totalDuration.toFixed(2)}s`,
         );
+
+        // Set initial gain value
+        masterGain.gain.setValueAtTime(1.0, fadeoutStartTime);
+
+        // Linear ramp to 0
+        masterGain.gain.linearRampToValueAtTime(0.0, totalDuration);
       }
 
       // Render the mixed audio
-      console.log("[WebAudioMixer] Rendering mixed audio...");
+      logger.log("[WebAudioMixer] Rendering mixed audio...");
       const renderedBuffer = await offlineContext.startRendering();
 
-      console.log(
-        `[WebAudioMixer] Rendered ${renderedBuffer.duration}s of audio at ${renderedBuffer.sampleRate}Hz`,
+      logger.log(
+        `[WebAudioMixer] Rendered ${renderedBuffer.duration.toFixed(2)}s of audio at ${renderedBuffer.sampleRate}Hz`,
       );
 
       // Convert to WAV blob
       const wavBlob = this.audioBufferToWav(renderedBuffer);
 
-      console.log(
+      logger.log(
         `[WebAudioMixer] Mix complete, output size: ${wavBlob.size} bytes`,
       );
 
@@ -111,7 +197,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       // Return dummy path (actual blob accessed via getBlob())
       return "blob://mixed-audio.wav";
     } catch (error) {
-      console.error("[WebAudioMixer] Mixing failed:", error);
+      logger.error("[WebAudioMixer] Mixing failed:", error);
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix audio: ${(error as Error).message}`,
@@ -229,7 +315,7 @@ export class WebAudioMixer extends BaseAudioMixer {
   protected async _cancel(): Promise<void> {
     // Web Audio API's OfflineAudioContext.startRendering() cannot be cancelled
     // Once started, it must complete
-    console.log("[WebAudioMixer] Cancel requested but not supported");
+    logger.log("[WebAudioMixer] Cancel requested but not supported");
   }
 
   /**

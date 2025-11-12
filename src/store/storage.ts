@@ -1,15 +1,13 @@
 /**
  * Platform-agnostic storage adapter for Zustand persistence
  *
- * NOTE: Currently unused since persist middleware was removed to avoid import.meta errors on web.
- * See: react-vocabulary/TS_RENDER.md for details
- *
  * Provides a unified interface for storage across web and native platforms.
  * - Web: Uses localStorage
  * - Native: Uses AsyncStorage (when installed)
  */
 
 import { Platform } from "react-native";
+import { logger } from "../utils/logger";
 
 // Define StateStorage interface locally to avoid importing zustand/middleware
 interface StateStorage {
@@ -29,7 +27,7 @@ export function createStorage(): StateStorage {
         try {
           return localStorage.getItem(name);
         } catch (error) {
-          console.error(
+          logger.error(
             "[Storage] Failed to get item from localStorage:",
             error,
           );
@@ -40,14 +38,14 @@ export function createStorage(): StateStorage {
         try {
           localStorage.setItem(name, value);
         } catch (error) {
-          console.error("[Storage] Failed to set item in localStorage:", error);
+          logger.error("[Storage] Failed to set item in localStorage:", error);
         }
       },
       removeItem: async (name: string): Promise<void> => {
         try {
           localStorage.removeItem(name);
         } catch (error) {
-          console.error(
+          logger.error(
             "[Storage] Failed to remove item from localStorage:",
             error,
           );
@@ -70,7 +68,7 @@ export function createStorage(): StateStorage {
         try {
           return await AsyncStorage.getItem(name);
         } catch (error) {
-          console.error(
+          logger.error(
             "[Storage] Failed to get item from AsyncStorage:",
             error,
           );
@@ -81,14 +79,14 @@ export function createStorage(): StateStorage {
         try {
           await AsyncStorage.setItem(name, value);
         } catch (error) {
-          console.error("[Storage] Failed to set item in AsyncStorage:", error);
+          logger.error("[Storage] Failed to set item in AsyncStorage:", error);
         }
       },
       removeItem: async (name: string): Promise<void> => {
         try {
           await AsyncStorage.removeItem(name);
         } catch (error) {
-          console.error(
+          logger.error(
             "[Storage] Failed to remove item from AsyncStorage:",
             error,
           );
@@ -97,7 +95,7 @@ export function createStorage(): StateStorage {
     };
   } catch (error) {
     // AsyncStorage not available - use in-memory storage as fallback
-    console.warn(
+    logger.warn(
       "[Storage] AsyncStorage not available, using in-memory storage",
     );
 
