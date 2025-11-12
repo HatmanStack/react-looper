@@ -301,10 +301,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         `[MainScreen] Loop count: ${loopCount}, Fadeout: ${fadeoutDuration}ms`,
       );
 
-      // TODO (Phase 4, Task 5): Pass loopCount and fadeoutDuration to mixer
-      // Currently using FFmpegService which doesn't support these options yet
-      // Will be implemented in Task 5 when integrating with WebAudioMixer
-
       // Get FFmpeg service
       const ffmpegService = getFFmpegService();
 
@@ -318,10 +314,11 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         volume: track.volume,
       }));
 
-      // Mix tracks
+      // Mix tracks with loop and fadeout options
       const result = await ffmpegService.mix({
         tracks: mixTracks,
-        // TODO: Add loopCount and fadeoutDuration once mixer interface is updated
+        loopCount,
+        fadeoutDuration,
       });
 
       setIsLoading(false);

@@ -54,7 +54,7 @@ export class FFmpegService implements IFFmpegService {
    * Mix multiple audio tracks into a single output
    */
   public async mix(options: MixOptions): Promise<Blob> {
-    const { tracks, onProgress } = options;
+    const { tracks, onProgress, loopCount, fadeoutDuration } = options;
 
     if (!tracks || tracks.length === 0) {
       throw new AudioError(
@@ -67,6 +67,12 @@ export class FFmpegService implements IFFmpegService {
     console.log(
       `[FFmpegService.web] Mixing ${tracks.length} tracks using Web Audio API...`,
     );
+    if (loopCount && loopCount > 1) {
+      console.log(`[FFmpegService.web] Loop count: ${loopCount}`);
+    }
+    if (fadeoutDuration && fadeoutDuration > 0) {
+      console.log(`[FFmpegService.web] Fadeout: ${fadeoutDuration}ms`);
+    }
 
     try {
       // Simulate progress updates for UI
@@ -74,8 +80,11 @@ export class FFmpegService implements IFFmpegService {
         onProgress({ ratio: 0.1, time: 0, duration: 0 });
       }
 
-      // Use WebAudioMixer to mix tracks (outputPath is ignored on web)
-      await this.mixer.mixTracks(tracks, "output.wav");
+      // Use WebAudioMixer to mix tracks with loop and fadeout options
+      await this.mixer.mixTracks(tracks, "output.wav", {
+        loopCount,
+        fadeoutDuration,
+      });
 
       if (onProgress) {
         onProgress({ ratio: 0.9, time: 0, duration: 0 });
