@@ -9,6 +9,7 @@ import { BaseAudioMixer } from "./BaseAudioMixer";
 import { MixerTrackInput, MixingOptions } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
+import { useSettingsStore } from "../../store/useSettingsStore";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
@@ -73,9 +74,11 @@ export class WebAudioMixer extends BaseAudioMixer {
       masterGain.gain.value = 1.0;
       masterGain.connect(offlineContext.destination);
 
-      // TODO (Phase 4, Task 6): Apply crossfade from settings when looping tracks
-      // const crossfadeDuration = useSettingsStore.getState().loopCrossfadeDuration;
-      // Apply crossfade at loop boundaries if crossfadeDuration > 0
+      // Read crossfade duration from settings
+      const crossfadeDurationMs = useSettingsStore.getState().loopCrossfadeDuration;
+      const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
+
+      console.log(`[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`);
 
       // Create and connect source nodes for each track
       for (let i = 0; i < tracks.length; i++) {
@@ -85,30 +88,77 @@ export class WebAudioMixer extends BaseAudioMixer {
         // Calculate speed-adjusted duration for this track
         const trackDuration = buffer.duration / track.speed;
 
-        // Create source node with looping enabled
-        const source = offlineContext.createBufferSource();
-        source.buffer = buffer;
-        source.loop = loopCount > 1 || trackDuration < masterLoopDuration * loopCount;
-
-        // Apply speed (playback rate)
-        source.playbackRate.value = track.speed;
-
-        // Create gain node for volume
+        // Create volume gain node
         const gainNode = offlineContext.createGain();
         const scaledVolume = this.scaleVolume(track.volume);
         gainNode.gain.value = scaledVolume;
-
-        // Connect: source -> gain -> master gain -> destination
-        source.connect(gainNode);
         gainNode.connect(masterGain);
 
-        // Start playback and stop at total duration
-        source.start(0);
-        source.stop(totalDuration);
+        // Apply crossfade at loop boundaries if enabled and track needs to loop
+        const needsLooping = loopCount > 1 || trackDuration < masterLoopDuration * loopCount;
+        const canCrossfade = crossfadeDuration > 0 && needsLooping && trackDuration > crossfadeDuration * 2;
 
-        console.log(
-          `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), loops=${source.loop}`,
-        );
+        if (canCrossfade) {
+          // Manual looping with crossfade
+          const repetitionsNeeded = Math.ceil((masterLoopDuration * loopCount) / trackDuration);
+
+          for (let rep = 0; rep < repetitionsNeeded; rep++) {
+            const startTime = rep * trackDuration;
+            if (startTime >= totalDuration) break;
+
+            // Create source for this repetition
+            const source = offlineContext.createBufferSource();
+            source.buffer = buffer;
+            source.playbackRate.value = track.speed;
+
+            // Create gain for fade-in/fade-out
+            const fadeGain = offlineContext.createGain();
+            source.connect(fadeGain);
+            fadeGain.connect(gainNode);
+
+            // Calculate actual play duration (may be shorter for last rep)
+            const playDuration = Math.min(trackDuration, totalDuration - startTime);
+
+            // Apply fade-in at start of each rep (except first)
+            if (rep > 0 && crossfadeDuration < playDuration) {
+              fadeGain.gain.setValueAtTime(0.0, startTime);
+              fadeGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeDuration);
+            } else {
+              fadeGain.gain.setValueAtTime(1.0, startTime);
+            }
+
+            // Apply fade-out at end of each rep (except last)
+            const nextRepStartTime = startTime + trackDuration;
+            if (nextRepStartTime < totalDuration && crossfadeDuration < playDuration) {
+              const fadeOutStart = startTime + trackDuration - crossfadeDuration;
+              fadeGain.gain.setValueAtTime(1.0, fadeOutStart);
+              fadeGain.gain.linearRampToValueAtTime(0.0, nextRepStartTime);
+            }
+
+            // Start and stop source
+            source.start(startTime);
+            source.stop(Math.min(startTime + playDuration, totalDuration));
+          }
+
+          console.log(
+            `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), crossfade=${crossfadeDurationMs}ms`,
+          );
+        } else {
+          // Simple looping without crossfade (original behavior)
+          const source = offlineContext.createBufferSource();
+          source.buffer = buffer;
+          source.loop = needsLooping;
+          source.playbackRate.value = track.speed;
+
+          source.connect(gainNode);
+
+          source.start(0);
+          source.stop(totalDuration);
+
+          console.log(
+            `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), loops=${source.loop}`,
+          );
+        }
       }
 
       // Apply fadeout to master gain if specified

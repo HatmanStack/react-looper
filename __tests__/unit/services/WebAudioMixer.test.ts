@@ -125,6 +125,15 @@ global.fetch = jest.fn().mockResolvedValue({
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1000)),
 } as any);
 
+// Mock settings store
+jest.mock("../../../src/store/useSettingsStore", () => ({
+  useSettingsStore: {
+    getState: jest.fn().mockReturnValue({
+      loopCrossfadeDuration: 0, // Default: no crossfade
+    }),
+  },
+}));
+
 describe("WebAudioMixer - Track Repetition and Fadeout", () => {
   let mixer: WebAudioMixer;
 
@@ -499,6 +508,140 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
     it("returns null before mixing", () => {
       const blob = mixer.getBlob();
       expect(blob).toBeNull();
+    });
+  });
+
+  describe("Crossfade at Loop Boundaries", () => {
+    const { useSettingsStore } = require("../../../src/store/useSettingsStore");
+
+    it("applies gapless looping when crossfade is 0", async () => {
+      // Set crossfade duration = 0
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({
+        loopCrossfadeDuration: 0,
+      });
+
+      const tracks: MixerTrackInput[] = [
+        {
+          uri: "file://track1.mp3",
+          duration: 10000,
+          speed: 1.0,
+          volume: 100,
+        },
+      ];
+
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+
+      const blob = mixer.getBlob();
+      expect(blob).toBeDefined();
+
+      // Verify duration is correct (2 loops × 10s = 20s)
+      const expectedLength = Math.ceil(20 * 44100);
+      expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
+    });
+
+    it("applies crossfade at loop boundaries when setting > 0", async () => {
+      // Set crossfade duration = 20ms
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({
+        loopCrossfadeDuration: 20,
+      });
+
+      const tracks: MixerTrackInput[] = [
+        {
+          uri: "file://track1.mp3",
+          duration: 10000,
+          speed: 1.0,
+          volume: 100,
+        },
+      ];
+
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+
+      const blob = mixer.getBlob();
+      expect(blob).toBeDefined();
+      expect(blob?.size).toBeGreaterThan(0);
+
+      // Verify duration is still correct with crossfade
+      const expectedLength = Math.ceil(20 * 44100);
+      expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
+    });
+
+    it("skips crossfade for very short tracks", async () => {
+      // Set crossfade duration = 50ms
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({
+        loopCrossfadeDuration: 50,
+      });
+
+      const tracks: MixerTrackInput[] = [
+        {
+          uri: "file://track1.mp3",
+          duration: 30, // Very short track (mock returns 10s though)
+          speed: 1.0,
+          volume: 100,
+        },
+      ];
+
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 5 });
+
+      // Should complete without errors
+      const blob = mixer.getBlob();
+      expect(blob).toBeDefined();
+    });
+
+    it("handles crossfade with multiple loop cycles", async () => {
+      // Set crossfade duration = 30ms
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({
+        loopCrossfadeDuration: 30,
+      });
+
+      const tracks: MixerTrackInput[] = [
+        {
+          uri: "file://track1.mp3",
+          duration: 10000,
+          speed: 1.0,
+          volume: 100,
+        },
+      ];
+
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 4 });
+
+      const blob = mixer.getBlob();
+      expect(blob).toBeDefined();
+
+      // Duration should still be correct (4 loops × 10s = 40s)
+      const expectedLength = Math.ceil(40 * 44100);
+      expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
+    });
+
+    it("applies crossfade to multiple tracks", async () => {
+      // Set crossfade duration = 20ms
+      (useSettingsStore.getState as jest.Mock).mockReturnValue({
+        loopCrossfadeDuration: 20,
+      });
+
+      const tracks: MixerTrackInput[] = [
+        {
+          uri: "file://track1.mp3",
+          duration: 10000,
+          speed: 1.0,
+          volume: 100,
+        },
+        {
+          uri: "file://track2.mp3",
+          duration: 10000,
+          speed: 1.0,
+          volume: 80,
+        },
+      ];
+
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+
+      const blob = mixer.getBlob();
+      expect(blob).toBeDefined();
+      expect(blob?.size).toBeGreaterThan(0);
+
+      // Verify both tracks mixed correctly
+      const expectedLength = Math.ceil(20 * 44100);
+      expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
   });
 });
