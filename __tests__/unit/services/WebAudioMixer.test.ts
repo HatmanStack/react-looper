@@ -10,6 +10,11 @@ import type { MixerTrackInput } from "../../../src/types/audio";
 // Mock audio files
 const mockAudioData = new Float32Array(44100); // 1 second at 44.1kHz
 
+// Save original globals before mocking
+const _origAudioContext = (global as any).AudioContext;
+const _origOfflineAudioContext = (global as any).OfflineAudioContext;
+const _origFetch = global.fetch;
+
 // Mock AudioContext and related APIs
 class MockAudioBuffer {
   duration: number;
@@ -142,6 +147,13 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
     jest.clearAllMocks();
     lastOfflineContext = null;
     gainNodes.length = 0; // Clear gain nodes array
+  });
+
+  afterAll(() => {
+    // Restore original globals
+    (global as any).AudioContext = _origAudioContext;
+    (global as any).OfflineAudioContext = _origOfflineAudioContext;
+    global.fetch = _origFetch;
   });
 
   describe("Single Loop (Baseline)", () => {
