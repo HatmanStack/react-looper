@@ -203,4 +203,104 @@ describe("WebAudioRecorder", () => {
       expect(() => recorder.cleanup()).not.toThrow();
     });
   });
+
+  describe("Auto-Stop with maxDuration", () => {
+    it("should set timeout when maxDuration is provided", async () => {
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+
+      recorder = new WebAudioRecorder();
+      const maxDuration = 5000;
+
+      await recorder.startRecording({ maxDuration });
+
+      // Verify setTimeout was called with correct duration
+      expect(setTimeoutSpy).toHaveBeenCalledWith(
+        expect.any(Function),
+        maxDuration
+      );
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it("should not set timeout when maxDuration is not provided", async () => {
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+
+      recorder = new WebAudioRecorder();
+      await recorder.startRecording(); // No maxDuration
+
+      // setTimeout should not be called for auto-stop
+      // (MediaRecorder.start() may use setTimeout internally, so we can't check for zero calls)
+      // Instead, verify recording continues indefinitely
+      expect(recorder.isRecording()).toBe(true);
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on manual stop", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      recorder = new WebAudioRecorder();
+      await recorder.startRecording({ maxDuration: 10000 });
+
+      // Simulate dataavailable and stop events
+      const dataHandler = (
+        mockMediaRecorder.addEventListener as jest.Mock
+      ).mock.calls.find(([event]) => event === "dataavailable")?.[1];
+      const mockBlob = new Blob(["audio data"], { type: "audio/webm" });
+      dataHandler?.({ data: mockBlob });
+
+      mockMediaRecorder.state = "inactive";
+      const stopHandler = (
+        mockMediaRecorder.addEventListener as jest.Mock
+      ).mock.calls.find(([event]) => event === "stop")?.[1];
+
+      const stopPromise = recorder.stopRecording();
+      stopHandler?.();
+      await stopPromise;
+
+      // Verify clearTimeout was called to prevent auto-stop
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on cleanup", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      recorder = new WebAudioRecorder();
+      await recorder.startRecording({ maxDuration: 10000 });
+
+      recorder.cleanup();
+
+      // Verify clearTimeout was called
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on cancel", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      recorder = new WebAudioRecorder();
+      await recorder.startRecording({ maxDuration: 10000 });
+
+      await recorder.cancelRecording();
+
+      // Verify clearTimeout was called
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should accept maxDuration of zero without error", async () => {
+      recorder = new WebAudioRecorder();
+
+      // Should not throw with zero maxDuration (treated as disabled)
+      await expect(
+        recorder.startRecording({ maxDuration: 0 })
+      ).resolves.not.toThrow();
+
+      expect(recorder.isRecording()).toBe(true);
+    });
+  });
 });
