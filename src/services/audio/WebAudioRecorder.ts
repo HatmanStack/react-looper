@@ -17,6 +17,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private mediaStream: MediaStream | null = null;
+  private autoStopTimer: NodeJS.Timeout | null = null;
 
   /**
    * Start recording implementation for web
@@ -66,6 +67,19 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Request data every 100ms for better progress tracking
       this.mediaRecorder.start(100);
 
+      // Set up auto-stop timer if maxDuration is specified
+      if (options?.maxDuration && options.maxDuration > 0) {
+        console.log(
+          `[WebAudioRecorder] Auto-stop timer set for ${options.maxDuration}ms`,
+        );
+        this.autoStopTimer = setTimeout(() => {
+          console.log("[WebAudioRecorder] Auto-stopping recording at maxDuration");
+          this.stopRecording().catch((error) => {
+            console.error("[WebAudioRecorder] Auto-stop failed:", error);
+          });
+        }, options.maxDuration);
+      }
+
       console.log(
         `[WebAudioRecorder] Recording started with MIME type: ${mimeType}`,
       );
@@ -106,6 +120,13 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    * Stop recording and return audio blob URL
    */
   protected async _stopRecording(): Promise<string> {
+    // Clear auto-stop timer if it exists
+    if (this.autoStopTimer) {
+      clearTimeout(this.autoStopTimer);
+      this.autoStopTimer = null;
+      console.log("[WebAudioRecorder] Auto-stop timer cleared");
+    }
+
     if (!this.mediaRecorder) {
       throw new AudioError(
         AudioErrorCode.RECORDING_FAILED,
@@ -171,6 +192,13 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    */
   protected async _cancelRecording(): Promise<void> {
     console.log("[WebAudioRecorder] Cancelling recording");
+
+    // Clear auto-stop timer if it exists
+    if (this.autoStopTimer) {
+      clearTimeout(this.autoStopTimer);
+      this.autoStopTimer = null;
+      console.log("[WebAudioRecorder] Auto-stop timer cleared (cancel)");
+    }
 
     if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
       this.mediaRecorder.stop();
@@ -238,6 +266,13 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    */
   protected async _cleanup(): Promise<void> {
     console.log("[WebAudioRecorder] Cleaning up resources");
+
+    // Clear auto-stop timer if it exists
+    if (this.autoStopTimer) {
+      clearTimeout(this.autoStopTimer);
+      this.autoStopTimer = null;
+      console.log("[WebAudioRecorder] Auto-stop timer cleared (cleanup)");
+    }
 
     // Stop and clear media recorder
     if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
