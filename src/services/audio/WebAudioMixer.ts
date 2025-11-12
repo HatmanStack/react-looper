@@ -61,6 +61,10 @@ export class WebAudioMixer extends BaseAudioMixer {
         sampleRate,
       });
 
+      // TODO (Phase 4): Apply crossfade from settings when looping tracks
+      // const crossfadeDuration = useSettingsStore.getState().loopCrossfadeDuration;
+      // Apply crossfade at loop boundaries if crossfadeDuration > 0
+
       // Create and connect source nodes for each track
       for (let i = 0; i < tracks.length; i++) {
         const track = tracks[i];
