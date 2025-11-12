@@ -5,7 +5,7 @@
  */
 
 import { WebAudioMixer } from "../../../src/services/audio/WebAudioMixer";
-import type { MixerTrackInput } from "../../../src/services/audio/BaseAudioMixer";
+import type { MixerTrackInput } from "../../../src/types/audio";
 
 // Mock audio files
 const mockAudioData = new Float32Array(44100); // 1 second at 44.1kHz
