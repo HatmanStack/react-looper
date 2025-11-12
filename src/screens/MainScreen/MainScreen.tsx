@@ -20,6 +20,7 @@ import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
 import { LoopModeToggle } from "@components/LoopModeToggle";
+import { RecordingProgressIndicator } from "@components/RecordingProgressIndicator";
 import type { Track } from "../../types";
 import { styles } from "./MainScreen.styles";
 import { initializeAudioServices } from "../../services/audio/initialize";
@@ -52,8 +53,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0); // Current recording duration in ms
   const audioServiceRef = useRef<AudioService | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // For updating recording duration
 
   // Confirmation dialog state for master track speed changes
   const [speedConfirmationVisible, setSpeedConfirmationVisible] =
@@ -87,6 +90,9 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       }
       if (recordingTimerRef.current) {
         clearTimeout(recordingTimerRef.current);
+      }
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
       }
     };
   }, []);
@@ -144,6 +150,16 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       }
 
       setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start interval to update recording duration display
+      recordingIntervalRef.current = setInterval(() => {
+        if (audioServiceRef.current) {
+          const duration = audioServiceRef.current.getRecordingDuration();
+          setRecordingDuration(duration);
+        }
+      }, 100); // Update every 100ms for smooth progress
+
       console.log("[MainScreen] Recording started successfully");
     } catch (error) {
       console.error("[MainScreen] Recording failed:", error);
@@ -169,10 +185,17 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       recordingTimerRef.current = null;
     }
 
+    // Clear the recording duration update interval
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
     try {
       setIsLoading(true);
       const uri = await audioServiceRef.current.stopRecording();
       setIsRecording(false);
+      setRecordingDuration(0);
 
       const recordingDuration = audioServiceRef.current.getRecordingDuration();
 
@@ -571,14 +594,28 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
           accessibilityLabel="Recording controls"
         >
           <ActionButton
-            label={isRecording ? "Recording..." : "Record"}
+            label={
+              isRecording
+                ? "Recording..."
+                : hasMasterTrack()
+                  ? "Record Overdub"
+                  : "Record First Loop"
+            }
             icon="microphone"
             onPress={handleRecord}
             disabled={isRecording || isLoading}
             accessibilityLabel={
-              isRecording ? "Recording in progress" : "Record audio"
+              isRecording
+                ? "Recording in progress"
+                : hasMasterTrack()
+                  ? "Record overdub track"
+                  : "Record first loop track"
             }
-            accessibilityHint="Start recording a new audio track"
+            accessibilityHint={
+              hasMasterTrack()
+                ? "Record a new track that will auto-stop at the loop boundary"
+                : "Record your first track to set the master loop length"
+            }
           />
           <ActionButton
             label="Stop"
@@ -606,6 +643,15 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
             accessibilityHint="Show help information"
           />
         </Surface>
+
+        {/* Recording Progress Indicator */}
+        {isRecording && (
+          <RecordingProgressIndicator
+            isFirstTrack={!hasMasterTrack()}
+            recordingDuration={recordingDuration}
+            loopDuration={getMasterLoopDuration()}
+          />
+        )}
 
         {/* Middle Section - Track List */}
         <View style={styles.trackListContainer}>
