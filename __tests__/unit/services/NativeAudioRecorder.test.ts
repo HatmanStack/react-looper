@@ -194,4 +194,95 @@ describe("NativeAudioRecorder", () => {
       expect(Audio.Recording).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("Auto-Stop with maxDuration", () => {
+    beforeEach(() => {
+      (Audio.requestPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: "granted",
+        granted: true,
+      });
+    });
+
+    it("should set timeout when maxDuration is provided", async () => {
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+
+      const maxDuration = 5000;
+      await recorder.startRecording({ maxDuration });
+
+      // Verify setTimeout was called with correct duration
+      expect(setTimeoutSpy).toHaveBeenCalledWith(
+        expect.any(Function),
+        maxDuration
+      );
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it("should not set timeout when maxDuration is not provided", async () => {
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout");
+
+      await recorder.startRecording(); // No maxDuration
+
+      // Verify recording continues indefinitely
+      expect(recorder.isRecording()).toBe(true);
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on manual stop", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      await recorder.startRecording({ maxDuration: 10000 });
+      await recorder.stopRecording();
+
+      // Verify clearTimeout was called to prevent auto-stop
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on cleanup", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      await recorder.startRecording({ maxDuration: 10000 });
+      await recorder.cleanup();
+
+      // Verify clearTimeout was called
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should clear timeout on cancel", async () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+
+      await recorder.startRecording({ maxDuration: 10000 });
+      await recorder.cancelRecording();
+
+      // Verify clearTimeout was called
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it("should accept maxDuration of zero without error", async () => {
+      // Should not throw with zero maxDuration (treated as disabled)
+      await expect(
+        recorder.startRecording({ maxDuration: 0 })
+      ).resolves.not.toThrow();
+
+      expect(recorder.isRecording()).toBe(true);
+    });
+
+    it("should handle very short maxDuration", async () => {
+      const maxDuration = 100; // Very short - 100ms
+
+      // Should not throw with very short duration
+      await expect(
+        recorder.startRecording({ maxDuration })
+      ).resolves.not.toThrow();
+
+      expect(recorder.isRecording()).toBe(true);
+    });
+  });
 });
