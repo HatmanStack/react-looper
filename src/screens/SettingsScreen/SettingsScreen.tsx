@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Linking } from "react-native";
 import {
   Text,
   Switch,
@@ -15,6 +15,7 @@ import {
   Divider,
   SegmentedButtons,
   Appbar,
+  List,
 } from "react-native-paper";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../App";
@@ -24,6 +25,9 @@ import { ConfirmationDialog } from "@components/ConfirmationDialog";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import type { AudioFormat, QualityLevel } from "../../store/useSettingsStore";
 import { styles } from "./SettingsScreen.styles";
+
+// Import version from package.json
+const packageJson = require("../../../package.json");
 
 interface SettingsScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList, "Settings">;
@@ -49,6 +53,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // Confirmation dialog state
   const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
 
+  // Help section expand/collapse state
+  const [looperHelpExpanded, setLooperHelpExpanded] = useState(false);
+  const [loopModeHelpExpanded, setLoopModeHelpExpanded] = useState(false);
+
   // Handle back navigation
   const handleBack = () => {
     navigation.goBack();
@@ -62,6 +70,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleResetCancel = () => {
     setResetConfirmVisible(false);
+  };
+
+  const handleGitHubLink = () => {
+    Linking.openURL("https://github.com/anthropics/react-looper");
   };
 
   return (
@@ -342,6 +354,71 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             textColor="#FF5252"
           >
             Reset to Defaults
+          </Button>
+        </Surface>
+
+        {/* Help & Info Section */}
+        <Surface style={styles.section} elevation={0}>
+          <Text style={styles.sectionTitle}>Help & Info</Text>
+
+          {/* App Version */}
+          <View style={styles.settingItem}>
+            <Text style={styles.settingLabel}>Version</Text>
+            <Text style={styles.versionText}>{packageJson.version}</Text>
+          </View>
+
+          <Divider style={styles.divider} />
+
+          {/* Expandable Help: How Master Loop Works */}
+          <List.Accordion
+            title="How Master Loop Works"
+            titleStyle={styles.helpAccordionTitle}
+            expanded={looperHelpExpanded}
+            onPress={() => setLooperHelpExpanded(!looperHelpExpanded)}
+            style={styles.helpAccordion}
+          >
+            <Text style={styles.helpText}>
+              The first track you record or import becomes the master loop. Its
+              speed-adjusted duration sets the loop length for your entire
+              session.
+              {"\n\n"}
+              All subsequent tracks will automatically loop to match this
+              duration, enabling you to create complex, layered musical loops
+              with different length phrases that interlock naturally.
+            </Text>
+          </List.Accordion>
+
+          {/* Expandable Help: What is Loop Mode? */}
+          <List.Accordion
+            title="What is Loop Mode?"
+            titleStyle={styles.helpAccordionTitle}
+            expanded={loopModeHelpExpanded}
+            onPress={() => setLoopModeHelpExpanded(!loopModeHelpExpanded)}
+            style={styles.helpAccordion}
+          >
+            <Text style={styles.helpText}>
+              Loop Mode controls how tracks play during preview:
+              {"\n\n"}
+              • ON: Tracks loop continuously during playback (matches export
+              behavior)
+              {"\n"}
+              • OFF: Tracks play once then stop (inspection mode)
+              {"\n\n"}
+              You can toggle this anytime using the loop button on the main
+              screen.
+            </Text>
+          </List.Accordion>
+
+          <Divider style={styles.divider} />
+
+          {/* GitHub Link */}
+          <Button
+            mode="text"
+            onPress={handleGitHubLink}
+            style={styles.linkButton}
+            icon="github"
+          >
+            View on GitHub
           </Button>
         </Surface>
 

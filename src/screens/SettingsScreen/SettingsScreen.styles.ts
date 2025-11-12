@@ -92,6 +92,29 @@ export const styles = StyleSheet.create({
     marginTop: getSpacing("sm"),
     borderColor: "#FF5252",
   },
+  versionText: {
+    fontSize: 14,
+    color: "#CCCCCC",
+  },
+  helpAccordion: {
+    backgroundColor: "transparent",
+    paddingHorizontal: 0,
+  },
+  helpAccordionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  helpText: {
+    fontSize: 14,
+    color: "#CCCCCC",
+    lineHeight: 20,
+    paddingHorizontal: getSpacing("sm"),
+    paddingVertical: getSpacing("sm"),
+  },
+  linkButton: {
+    marginTop: getSpacing("sm"),
+  },
   bottomPadding: {
     height: getSpacing("xl"),
   },
