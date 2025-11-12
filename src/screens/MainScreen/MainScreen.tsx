@@ -29,6 +29,7 @@ import { AudioError } from "../../services/audio/AudioError";
 import { getFileImporter } from "../../services/audio/FileImporterFactory";
 import { getAudioMetadata } from "../../utils/audioUtils";
 import { getFFmpegService } from "../../services/ffmpeg/FFmpegService";
+import { useTrackStore } from "../../store/useTrackStore";
 
 // Initialize audio services for current platform
 initializeAudioServices();
@@ -38,12 +39,19 @@ type MainScreenProps = {
 };
 
 export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
-  const [tracks, setTracks] = useState<Track[]>([]);
+  // Use track store instead of local state
+  const tracks = useTrackStore((state) => state.tracks);
+  const addTrack = useTrackStore((state) => state.addTrack);
+  const removeTrack = useTrackStore((state) => state.removeTrack);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const getMasterLoopDuration = useTrackStore((state) => state.getMasterLoopDuration);
+  const hasMasterTrack = useTrackStore((state) => state.hasMasterTrack);
+  const isMasterTrack = useTrackStore((state) => state.isMasterTrack);
+
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [baseLoopDuration, setBaseLoopDuration] = useState<number | null>(null); // Duration in ms
   const audioServiceRef = useRef<AudioService | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -108,24 +116,35 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     try {
       console.log("[MainScreen] Starting recording...");
       setIsLoading(true);
-      await audioServiceRef.current.startRecording();
-      setIsRecording(true);
-      console.log("[MainScreen] Recording started successfully");
 
-      // If this isn't the first track, set up auto-stop timer
-      if (baseLoopDuration !== null) {
-        const targetDuration = calculateQuantizedDuration(baseLoopDuration);
-        console.log(
-          `[MainScreen] Auto-stop timer set for ${targetDuration}ms (base: ${baseLoopDuration}ms)`,
-        );
+      // Detect recording context: first track or subsequent
+      const masterLoopDuration = getMasterLoopDuration();
+      const isFirstTrackRecording = !hasMasterTrack();
 
+      console.log(`[MainScreen] Recording context: ${isFirstTrackRecording ? "First track (master)" : "Subsequent track (overdub)"}`);
+      console.log(`[MainScreen] Master loop duration: ${masterLoopDuration}ms`);
+
+      // Start recording with maxDuration for subsequent tracks
+      if (!isFirstTrackRecording) {
+        const targetDuration = calculateQuantizedDuration(masterLoopDuration);
+        console.log(`[MainScreen] Auto-stop duration set: ${targetDuration}ms`);
+
+        await audioServiceRef.current.startRecording({
+          maxDuration: targetDuration,
+        });
+
+        // Set up auto-stop timer as backup
         recordingTimerRef.current = setTimeout(() => {
-          console.log(
-            "[MainScreen] Auto-stopping recording at quantized duration",
-          );
+          console.log("[MainScreen] Auto-stopping recording at loop boundary");
           handleStop();
         }, targetDuration);
+      } else {
+        // First track - no auto-stop
+        await audioServiceRef.current.startRecording();
       }
+
+      setIsRecording(true);
+      console.log("[MainScreen] Recording started successfully");
     } catch (error) {
       console.error("[MainScreen] Recording failed:", error);
       if (error instanceof AudioError) {
@@ -157,13 +176,9 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       const recordingDuration = audioServiceRef.current.getRecordingDuration();
 
-      // If this is the first track, set it as the base loop duration
-      if (baseLoopDuration === null) {
-        setBaseLoopDuration(recordingDuration);
-        console.log(
-          `[MainScreen] Base loop duration set to ${recordingDuration}ms`,
-        );
-      }
+      console.log(
+        `[MainScreen] Recording stopped, duration: ${recordingDuration}ms`,
+      );
 
       // Create new track
       const newTrack: Track = {
@@ -185,7 +200,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         loop: true,
       });
 
-      setTracks((prevTracks) => [...prevTracks, newTrack]);
+      // Add track to store
+      addTrack(newTrack);
       console.log(
         "[MainScreen] Recording stopped and track added:",
         newTrack.name,
@@ -241,7 +257,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         loop: true,
       });
 
-      setTracks((prevTracks) => [...prevTracks, newTrack]);
+      // Add track to store
+      addTrack(newTrack);
       console.log("[MainScreen] Imported track added:", newTrack.name);
     } catch (error) {
       console.error("[MainScreen] Import failed:", error);
@@ -380,12 +397,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     try {
       await audioServiceRef.current.playTrack(trackId);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, isPlaying: true } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { isPlaying: true });
 
       console.log(`[MainScreen] Playing track: ${trackId}`);
     } catch (error) {
@@ -404,12 +417,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     try {
       await audioServiceRef.current.pauseTrack(trackId);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, isPlaying: false } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { isPlaying: false });
 
       console.log(`[MainScreen] Paused track: ${trackId}`);
     } catch (error) {
@@ -448,19 +457,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       // Unload and delete track
       await audioServiceRef.current.unloadTrack(trackId);
 
-      setTracks((prevTracks) => {
-        const newTracks = prevTracks.filter((track) => track.id !== trackId);
-
-        // Reset base loop duration if all tracks are deleted
-        if (newTracks.length === 0) {
-          setBaseLoopDuration(null);
-          console.log(
-            "[MainScreen] All tracks deleted, base loop duration reset",
-          );
-        }
-
-        return newTracks;
-      });
+      // Remove track from store (store handles master track deletion logic)
+      removeTrack(trackId);
 
       console.log(`[MainScreen] Deleted track: ${trackId}`);
     } catch (error) {
@@ -492,12 +490,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     try {
       await audioServiceRef.current.setTrackVolume(trackId, volume);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, volume } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { volume });
 
       console.log(
         `[MainScreen] Volume changed for track ${trackId}: ${volume}`,
@@ -535,12 +529,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     try {
       await audioServiceRef.current.setTrackSpeed(trackId, speed);
 
-      // Update track state
-      setTracks((prevTracks) =>
-        prevTracks.map((track) =>
-          track.id === trackId ? { ...track, speed } : track,
-        ),
-      );
+      // Update track state in store
+      updateTrack(trackId, { speed });
 
       console.log(`[MainScreen] Speed changed for track ${trackId}: ${speed}`);
     } catch (error) {
@@ -562,14 +552,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   };
 
   const handleSelect = (trackId: string) => {
-    setTracks((prevTracks) =>
-      prevTracks.map((track) => ({
-        ...track,
-        selected: track.id === trackId ? !track.selected : track.selected,
-      })),
-    );
-
-    console.log(`[MainScreen] Toggled selection for track ${trackId}`);
+    const track = tracks.find((t) => t.id === trackId);
+    if (track) {
+      // Toggle selection in store
+      updateTrack(trackId, { selected: !track.selected });
+      console.log(`[MainScreen] Toggled selection for track ${trackId}`);
+    }
   };
 
   return (
