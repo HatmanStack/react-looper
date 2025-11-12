@@ -2,12 +2,12 @@
  * Settings Store
  *
  * Manages user settings for looping, export, and recording preferences.
- * NOTE: Persistence is currently disabled to avoid import.meta errors on web.
- * See: react-vocabulary/TS_RENDER.md for details
- * TODO: Re-implement persistence when issue is resolved
+ * Includes persistence across app restarts using platform-specific storage.
  */
 
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { createStorage } from "./storage";
 
 /**
  * Audio format options for export and recording
@@ -121,6 +121,7 @@ const DEFAULT_SETTINGS: SettingsState = {
  * Settings Store
  *
  * Manages persistent user settings for looping, export, and recording.
+ * Settings are automatically saved to platform-specific storage and loaded on app start.
  *
  * @example
  * // Update loop count
@@ -132,23 +133,42 @@ const DEFAULT_SETTINGS: SettingsState = {
  * // Access settings
  * const loopMode = useSettingsStore((state) => state.defaultLoopMode);
  */
-export const useSettingsStore = create<SettingsStore>()((set) => ({
-  // Initialize with default values
-  ...DEFAULT_SETTINGS,
-
-  // Update partial settings (merge semantics)
-  updateSettings: (updates: Partial<SettingsState>) =>
-    set((state) => ({
-      ...state,
-      ...updates,
-    })),
-
-  // Reset all settings to defaults
-  resetToDefaults: () =>
-    set({
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set) => ({
+      // Initialize with default values
       ...DEFAULT_SETTINGS,
+
+      // Update partial settings (merge semantics)
+      updateSettings: (updates: Partial<SettingsState>) =>
+        set((state) => ({
+          ...state,
+          ...updates,
+        })),
+
+      // Reset all settings to defaults
+      resetToDefaults: () =>
+        set({
+          ...DEFAULT_SETTINGS,
+        }),
     }),
-}));
+    {
+      name: "settings-storage", // Storage key
+      storage: createJSONStorage(() => createStorage()),
+      // Only persist the state values, not the actions
+      partialize: (state) => ({
+        loopCrossfadeDuration: state.loopCrossfadeDuration,
+        defaultLoopMode: state.defaultLoopMode,
+        defaultLoopCount: state.defaultLoopCount,
+        defaultFadeout: state.defaultFadeout,
+        exportFormat: state.exportFormat,
+        exportQuality: state.exportQuality,
+        recordingFormat: state.recordingFormat,
+        recordingQuality: state.recordingQuality,
+      }),
+    },
+  ),
+);
 
 /**
  * Helper to get current settings snapshot
