@@ -9,6 +9,7 @@ import { BaseAudioMixer } from "./BaseAudioMixer";
 import { MixerTrackInput, MixingOptions } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
+import { logger } from "../../utils/logger";
 import { useSettingsStore } from "../../store/useSettingsStore";
 
 export class WebAudioMixer extends BaseAudioMixer {
@@ -38,7 +39,7 @@ export class WebAudioMixer extends BaseAudioMixer {
     }
 
     try {
-      console.log(`[WebAudioMixer] Mixing ${tracks.length} tracks...`);
+      logger.log(`[WebAudioMixer] Mixing ${tracks.length} tracks...`);
 
       // Load all audio buffers
       const audioBuffers = await Promise.all(
@@ -58,7 +59,7 @@ export class WebAudioMixer extends BaseAudioMixer {
 
       const totalDuration = masterLoopDuration * loopCount + fadeoutDuration;
 
-      console.log(
+      logger.log(
         `[WebAudioMixer] Master loop: ${masterLoopDuration.toFixed(2)}s, Loops: ${loopCount}, Fadeout: ${fadeoutDuration.toFixed(2)}s, Total: ${totalDuration.toFixed(2)}s`,
       );
 
@@ -78,7 +79,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       const crossfadeDurationMs = useSettingsStore.getState().loopCrossfadeDuration;
       const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
 
-      console.log(`[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`);
+      logger.log(`[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`);
 
       // Create and connect source nodes for each track
       for (let i = 0; i < tracks.length; i++) {
@@ -140,7 +141,7 @@ export class WebAudioMixer extends BaseAudioMixer {
             source.stop(Math.min(startTime + playDuration, totalDuration));
           }
 
-          console.log(
+          logger.log(
             `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), crossfade=${crossfadeDurationMs}ms`,
           );
         } else {
@@ -155,7 +156,7 @@ export class WebAudioMixer extends BaseAudioMixer {
           source.start(0);
           source.stop(totalDuration);
 
-          console.log(
+          logger.log(
             `[WebAudioMixer] Track ${i + 1}: duration=${trackDuration.toFixed(2)}s, speed=${track.speed}, volume=${track.volume} (scaled=${scaledVolume.toFixed(3)}), loops=${source.loop}`,
           );
         }
@@ -164,7 +165,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       // Apply fadeout to master gain if specified
       if (fadeoutDuration > 0) {
         const fadeoutStartTime = totalDuration - fadeoutDuration;
-        console.log(
+        logger.log(
           `[WebAudioMixer] Applying fadeout from ${fadeoutStartTime.toFixed(2)}s to ${totalDuration.toFixed(2)}s`,
         );
 
@@ -176,17 +177,17 @@ export class WebAudioMixer extends BaseAudioMixer {
       }
 
       // Render the mixed audio
-      console.log("[WebAudioMixer] Rendering mixed audio...");
+      logger.log("[WebAudioMixer] Rendering mixed audio...");
       const renderedBuffer = await offlineContext.startRendering();
 
-      console.log(
+      logger.log(
         `[WebAudioMixer] Rendered ${renderedBuffer.duration.toFixed(2)}s of audio at ${renderedBuffer.sampleRate}Hz`,
       );
 
       // Convert to WAV blob
       const wavBlob = this.audioBufferToWav(renderedBuffer);
 
-      console.log(
+      logger.log(
         `[WebAudioMixer] Mix complete, output size: ${wavBlob.size} bytes`,
       );
 
@@ -196,7 +197,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       // Return dummy path (actual blob accessed via getBlob())
       return "blob://mixed-audio.wav";
     } catch (error) {
-      console.error("[WebAudioMixer] Mixing failed:", error);
+      logger.error("[WebAudioMixer] Mixing failed:", error);
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix audio: ${(error as Error).message}`,
@@ -314,7 +315,7 @@ export class WebAudioMixer extends BaseAudioMixer {
   protected async _cancel(): Promise<void> {
     // Web Audio API's OfflineAudioContext.startRendering() cannot be cancelled
     // Once started, it must complete
-    console.log("[WebAudioMixer] Cancel requested but not supported");
+    logger.log("[WebAudioMixer] Cancel requested but not supported");
   }
 
   /**

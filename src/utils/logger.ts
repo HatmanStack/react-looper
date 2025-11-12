@@ -17,8 +17,17 @@ export interface ILogger {
  * Platform-specific versions will extend or replace this
  */
 export class Logger implements ILogger {
+  private isDevelopment: boolean;
+
+  constructor() {
+    // Enable debug logs in development, disable in production
+    this.isDevelopment = __DEV__;
+  }
+
   log(message: string, ...args: unknown[]): void {
-    console.log(`[LOG] ${message}`, ...args);
+    if (this.isDevelopment) {
+      console.log(`[LOG] ${message}`, ...args);
+    }
   }
 
   warn(message: string, ...args: unknown[]): void {
@@ -30,7 +39,9 @@ export class Logger implements ILogger {
   }
 
   info(message: string, ...args: unknown[]): void {
-    console.info(`[INFO] ${message}`, ...args);
+    if (this.isDevelopment) {
+      console.info(`[INFO] ${message}`, ...args);
+    }
   }
 }
 
