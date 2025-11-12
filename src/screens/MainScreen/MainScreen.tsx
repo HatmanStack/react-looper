@@ -277,7 +277,11 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     navigation.navigate("Settings");
   };
 
-  const handleSaveModalSave = async (filename: string) => {
+  const handleSaveModalSave = async (
+    filename: string,
+    loopCount: number,
+    fadeoutDuration: number,
+  ) => {
     // Filter only selected tracks
     const selectedTracks = tracks.filter((track) => track.selected);
 
@@ -293,6 +297,13 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       console.log(
         `[MainScreen] Starting mix for ${selectedTracks.length} selected tracks...`,
       );
+      console.log(
+        `[MainScreen] Loop count: ${loopCount}, Fadeout: ${fadeoutDuration}ms`,
+      );
+
+      // TODO (Phase 4, Task 5): Pass loopCount and fadeoutDuration to mixer
+      // Currently using FFmpegService which doesn't support these options yet
+      // Will be implemented in Task 5 when integrating with WebAudioMixer
 
       // Get FFmpeg service
       const ffmpegService = getFFmpegService();
@@ -310,6 +321,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
       // Mix tracks
       const result = await ffmpegService.mix({
         tracks: mixTracks,
+        // TODO: Add loopCount and fadeoutDuration once mixer interface is updated
       });
 
       setIsLoading(false);
