@@ -46,6 +46,9 @@ export const MainScreen: React.FC = () => {
   const responsive = useResponsive();
   const styles = getStyles(responsive);
 
+  // Use icon-only buttons on small screens
+  const useIconOnly = !responsive.isDesktop;
+
   // Use track store instead of local state
   const tracks = useTrackStore((state) => state.tracks);
   const addTrack = useTrackStore((state) => state.addTrack);
@@ -582,16 +585,11 @@ export const MainScreen: React.FC = () => {
           accessibilityLabel="Main controls"
         >
           <ActionButton
-            label={
-              isRecording
-                ? "Recording..."
-                : hasMasterTrack()
-                  ? "Record Overdub"
-                  : "Record First Loop"
-            }
+            label="Record"
             icon="microphone"
             onPress={handleRecord}
             disabled={isRecording || isLoading}
+            iconOnly={useIconOnly}
             accessibilityLabel={
               isRecording
                 ? "Recording in progress"
@@ -610,6 +608,7 @@ export const MainScreen: React.FC = () => {
             icon="stop"
             onPress={handleStop}
             disabled={!isRecording || isLoading}
+            iconOnly={useIconOnly}
             accessibilityHint="Stop recording and save track"
           />
           <ActionButton
@@ -617,6 +616,7 @@ export const MainScreen: React.FC = () => {
             icon="file-music"
             onPress={handleImport}
             disabled={isLoading}
+            iconOnly={useIconOnly}
             accessibilityHint="Import an audio file from device storage"
           />
           <ActionButton
@@ -624,6 +624,7 @@ export const MainScreen: React.FC = () => {
             icon="content-save"
             onPress={handleSave}
             disabled={tracks.length === 0 || isLoading}
+            iconOnly={useIconOnly}
             accessibilityHint="Mix and save all tracks to a single audio file"
           />
           <Menu

@@ -43,12 +43,13 @@ export const getStyles = (responsive: {
     ],
     topControls: {
       flexDirection: "row" as const,
-      justifyContent: "space-around" as const,
+      justifyContent: "space-evenly" as const,
       alignItems: "center" as const,
       paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("sm"),
       paddingVertical: getSpacing("md"),
       backgroundColor: "transparent",
-      gap: isLargeScreen ? 16 : 8,
+      gap: isLargeScreen ? 16 : 4,
+      flexWrap: "nowrap" as const,
     },
     trackListContainer: [
       staticStyles.trackListContainerBase,
