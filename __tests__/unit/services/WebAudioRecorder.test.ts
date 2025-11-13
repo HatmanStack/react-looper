@@ -216,7 +216,7 @@ describe("WebAudioRecorder", () => {
       // Verify setTimeout was called with correct duration
       expect(setTimeoutSpy).toHaveBeenCalledWith(
         expect.any(Function),
-        maxDuration
+        maxDuration,
       );
 
       setTimeoutSpy.mockRestore();
@@ -297,7 +297,7 @@ describe("WebAudioRecorder", () => {
 
       // Should not throw with zero maxDuration (treated as disabled)
       await expect(
-        recorder.startRecording({ maxDuration: 0 })
+        recorder.startRecording({ maxDuration: 0 }),
       ).resolves.not.toThrow();
 
       expect(recorder.isRecording()).toBe(true);

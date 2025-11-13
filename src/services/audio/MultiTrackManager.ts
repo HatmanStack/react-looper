@@ -22,9 +22,6 @@ export class MultiTrackManager {
   public addTrack(player: BaseAudioPlayer): string {
     const trackId = this.generateTrackId();
     this.tracks.set(trackId, player);
-    console.log(
-      `[MultiTrackManager] Added track ${trackId} (total: ${this.tracks.size})`,
-    );
     return trackId;
   }
 
@@ -43,9 +40,6 @@ export class MultiTrackManager {
       // Sync new track to current position
       await player.setPosition(currentPosition);
       await player.play();
-      console.log(
-        `[MultiTrackManager] Track ${trackId} synced to position ${currentPosition}ms`,
-      );
     }
 
     return trackId;
@@ -57,9 +51,6 @@ export class MultiTrackManager {
   public removeTrack(trackId: string): void {
     if (this.tracks.has(trackId)) {
       this.tracks.delete(trackId);
-      console.log(
-        `[MultiTrackManager] Removed track ${trackId} (remaining: ${this.tracks.size})`,
-      );
     }
   }
 
@@ -75,7 +66,6 @@ export class MultiTrackManager {
    */
   public clearAllTracks(): void {
     this.tracks.clear();
-    console.log("[MultiTrackManager] Cleared all tracks");
   }
 
   /**
@@ -89,8 +79,6 @@ export class MultiTrackManager {
    * Play all tracks simultaneously
    */
   public async playAll(): Promise<void> {
-    console.log(`[MultiTrackManager] Playing all tracks (${this.tracks.size})`);
-
     const playPromises = Array.from(this.tracks.values()).map(
       async (player) => {
         try {
@@ -109,8 +97,6 @@ export class MultiTrackManager {
    * Pause all tracks simultaneously
    */
   public async pauseAll(): Promise<void> {
-    console.log(`[MultiTrackManager] Pausing all tracks (${this.tracks.size})`);
-
     const pausePromises = Array.from(this.tracks.values()).map(
       async (player) => {
         try {
@@ -128,10 +114,6 @@ export class MultiTrackManager {
    * Stop all tracks simultaneously
    */
   public async stopAll(): Promise<void> {
-    console.log(
-      `[MultiTrackManager] Stopping all tracks (${this.tracks.size})`,
-    );
-
     const stopPromises = Array.from(this.tracks.values()).map(
       async (player) => {
         try {
@@ -176,10 +158,6 @@ export class MultiTrackManager {
    * Set playback position on all tracks
    */
   public async setPosition(position: number): Promise<void> {
-    console.log(
-      `[MultiTrackManager] Setting position to ${position}ms on all tracks`,
-    );
-
     const setPositionPromises = Array.from(this.tracks.values()).map(
       async (player) => {
         try {
@@ -218,12 +196,6 @@ export class MultiTrackManager {
    */
   public async resyncTracks(): Promise<void> {
     const averagePosition = await this.getPosition();
-    const drift = await this.getDrift();
-
-    console.log(
-      `[MultiTrackManager] Resyncing tracks (drift: ${drift}ms) to position ${averagePosition}ms`,
-    );
-
     await this.setPosition(averagePosition);
   }
 

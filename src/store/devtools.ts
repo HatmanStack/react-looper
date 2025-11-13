@@ -48,7 +48,7 @@ export function enableStateLogging() {
 
   // Subscribe to UI store changes
   useUIStore.subscribe((state, prevState) => {
-    const changes: Record<string, any> = {};
+    const changes: Record<string, unknown> = {};
 
     if (state.saveModalVisible !== prevState.saveModalVisible) {
       changes.saveModalVisible = state.saveModalVisible;
@@ -96,7 +96,7 @@ export function exportState() {
 /**
  * Import state (for testing/debugging)
  */
-export function importState(stateSnapshot: any) {
+export function importState(stateSnapshot: unknown) {
   if (!isDevelopment) {
     console.warn("[DevTools] State import only available in development");
     return;

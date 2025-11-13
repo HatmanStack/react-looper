@@ -18,7 +18,7 @@ export interface IFileManager {
    * @throws {AudioError} if save operation fails
    */
   saveAudioFile(
-    data: any,
+    data: Blob | ArrayBuffer | string,
     filename: string,
     format: AudioFormat,
   ): Promise<string>;

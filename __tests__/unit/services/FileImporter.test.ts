@@ -3,7 +3,6 @@
  */
 
 import { NativeFileImporter } from "../../../src/services/audio/NativeFileImporter";
-import { WebFileImporter } from "../../../src/services/audio/WebFileImporter";
 import { AudioError } from "../../../src/services/audio/AudioError";
 import * as DocumentPicker from "expo-document-picker";
 
@@ -75,12 +74,10 @@ describe("NativeFileImporter", () => {
 });
 
 describe("WebFileImporter", () => {
-  let importer: WebFileImporter;
   let mockInput: HTMLInputElement;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    importer = new WebFileImporter();
 
     // Mock file input element
     mockInput = document.createElement("input");

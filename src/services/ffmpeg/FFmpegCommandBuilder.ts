@@ -5,7 +5,7 @@
  * Shared between web and native platforms.
  */
 
-import type { MixTrack } from "./types";
+import type { MixTrack } from "./exportTypes";
 
 export interface FFmpegCommandOptions {
   inputFiles: string[];

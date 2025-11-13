@@ -132,7 +132,7 @@ describe("TrackListItem", () => {
       expect(container.props.style).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            borderWidth: 3,
+            borderWidth: 5,
             borderColor: "#3F51B5", // Primary color
           }),
         ]),
@@ -151,20 +151,16 @@ describe("TrackListItem", () => {
 
       const container = getByTestId("track-list-item-track-2");
 
-      // Verify standard styling (border width should not be 3)
+      // Verify standard styling (border width should not be 5)
       const styles = Array.isArray(container.props.style)
         ? container.props.style
         : [container.props.style];
-      const hasMasterBorder = styles.some(
-        (style) => style?.borderWidth === 3,
-      );
+      const hasMasterBorder = styles.some((style) => style?.borderWidth === 5);
       expect(hasMasterBorder).toBe(false);
     });
 
     it("includes accessibility label for master track", () => {
-      const tracks = [
-        createMockTrack({ id: "track-1", name: "Master Track" }),
-      ];
+      const tracks = [createMockTrack({ id: "track-1", name: "Master Track" })];
       useTrackStore.setState({ tracks });
 
       const { getByLabelText } = render(<TrackListItem track={tracks[0]} />);

@@ -41,7 +41,9 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
           `[NativeAudioRecorder] Auto-stop timer set for ${options.maxDuration}ms`,
         );
         this.autoStopTimer = setTimeout(() => {
-          console.log("[NativeAudioRecorder] Auto-stopping recording at maxDuration");
+          console.log(
+            "[NativeAudioRecorder] Auto-stopping recording at maxDuration",
+          );
           this.stopRecording().catch((error) => {
             console.error("[NativeAudioRecorder] Auto-stop failed:", error);
           });

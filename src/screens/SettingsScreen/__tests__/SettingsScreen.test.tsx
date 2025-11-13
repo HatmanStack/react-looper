@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PaperProvider } from "react-native-paper";
 import { SettingsScreen } from "../SettingsScreen";
@@ -143,9 +143,7 @@ describe("SettingsScreen", () => {
       fireEvent.press(getByText("Reset to Defaults"));
 
       // Verify confirmation dialog appears
-      expect(
-        queryByText(/reset all settings to default values/i),
-      ).toBeTruthy();
+      expect(queryByText(/reset all settings to default values/i)).toBeTruthy();
     });
 
     it("does not reset when cancelled", () => {

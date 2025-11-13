@@ -59,9 +59,11 @@ export function createStorage(): StateStorage {
   // For now, we'll provide a fallback in-memory storage for testing
   try {
     // Try to load AsyncStorage
-
-    const AsyncStorage =
-      require("@react-native-async-storage/async-storage").default;
+    // Dynamic import to avoid bundler issues when AsyncStorage is not available
+    const AsyncStorageModule = await import(
+      "@react-native-async-storage/async-storage"
+    );
+    const AsyncStorage = AsyncStorageModule.default;
 
     return {
       getItem: async (name: string): Promise<string | null> => {
@@ -93,7 +95,7 @@ export function createStorage(): StateStorage {
         }
       },
     };
-  } catch (error) {
+  } catch {
     // AsyncStorage not available - use in-memory storage as fallback
     logger.warn(
       "[Storage] AsyncStorage not available, using in-memory storage",

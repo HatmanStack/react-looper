@@ -261,8 +261,9 @@ describe("useAppLifecycle - Web Platform", () => {
     renderHook(() => useAppLifecycle({ onBackground, onActive }));
 
     // Get the visibilitychange callback
-    const visibilityCallback = (document.addEventListener as jest.Mock).mock
-      .calls.find(([event]) => event === "visibilitychange")?.[1];
+    const visibilityCallback = (
+      document.addEventListener as jest.Mock
+    ).mock.calls.find(([event]) => event === "visibilitychange")?.[1];
 
     // Simulate document becoming hidden
     (document as any).hidden = true;
@@ -283,8 +284,9 @@ describe("useAppLifecycle - Web Platform", () => {
     renderHook(() => useAppLifecycle({ onBackground, onActive }));
 
     // Get the visibilitychange callback
-    const visibilityCallback = (document.addEventListener as jest.Mock).mock
-      .calls.find(([event]) => event === "visibilitychange")?.[1];
+    const visibilityCallback = (
+      document.addEventListener as jest.Mock
+    ).mock.calls.find(([event]) => event === "visibilitychange")?.[1];
 
     // Simulate document becoming visible
     (document as any).hidden = false;
@@ -303,8 +305,9 @@ describe("useAppLifecycle - Web Platform", () => {
     renderHook(() => useAppLifecycle({ onBackground }));
 
     // Get the beforeunload callback
-    const beforeunloadCallback = (window.addEventListener as jest.Mock).mock
-      .calls.find(([event]) => event === "beforeunload")?.[1];
+    const beforeunloadCallback = (
+      window.addEventListener as jest.Mock
+    ).mock.calls.find(([event]) => event === "beforeunload")?.[1];
 
     // Simulate beforeunload event
     beforeunloadCallback();
@@ -337,8 +340,9 @@ describe("useAppLifecycle - Web Platform", () => {
 
     renderHook(() => useAppLifecycle({ onChange }));
 
-    const visibilityCallback = (document.addEventListener as jest.Mock).mock
-      .calls.find(([event]) => event === "visibilitychange")?.[1];
+    const visibilityCallback = (
+      document.addEventListener as jest.Mock
+    ).mock.calls.find(([event]) => event === "visibilitychange")?.[1];
 
     // Active -> Background (hidden)
     (document as any).hidden = true;

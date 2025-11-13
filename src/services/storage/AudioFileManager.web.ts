@@ -323,7 +323,7 @@ export class WebAudioFileManager extends AudioFileManager {
         availableSpace = estimate.quota
           ? estimate.quota - (estimate.usage || 0)
           : undefined;
-      } catch (error) {
+      } catch {
         console.warn("[WebAudioFileManager] Storage estimate not available");
       }
     }

@@ -32,15 +32,6 @@ export const PLATFORM_CONFIG = {
   }),
 
   /**
-   * Maximum number of simultaneous tracks
-   * Web may have lower limits due to browser constraints
-   */
-  MAX_TRACKS: Platform.select({
-    web: 10,
-    default: 20,
-  }),
-
-  /**
    * Audio sample rate
    */
   AUDIO_SAMPLE_RATE: 44100,

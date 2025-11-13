@@ -14,13 +14,13 @@ import {
 import * as FileSystem from "expo-file-system";
 import { AudioError } from "../audio/AudioError";
 import { AudioErrorCode } from "../../types/audio";
-import type { MixOptions, MixingProgress, IFFmpegService } from "./types";
+import type { MixOptions, IAudioExportService } from "./exportTypes";
 import { FFmpegCommandBuilder } from "./FFmpegCommandBuilder";
 
 /**
  * Native FFmpeg Service using ffmpeg-kit-react-native
  */
-export class FFmpegService implements IFFmpegService {
+export class FFmpegService implements IAudioExportService {
   private currentSessionId: number | null = null;
   private totalDuration: number = 0;
 
@@ -62,7 +62,8 @@ export class FFmpegService implements IFFmpegService {
     try {
       // Prepare output path
       const cacheDir =
-        (FileSystem as any).cacheDirectory || FileSystem.documentDirectory;
+        (FileSystem.cacheDirectory as string | null) ||
+        FileSystem.documentDirectory;
       const outputPath = `${cacheDir}mixed_${Date.now()}.mp3`;
 
       // Convert file URIs to absolute paths
@@ -204,7 +205,7 @@ export class FFmpegService implements IFFmpegService {
 // Export singleton instance
 let ffmpegServiceInstance: FFmpegService | null = null;
 
-export function getFFmpegService(): FFmpegService {
+export function getAudioExportService(): FFmpegService {
   if (!ffmpegServiceInstance) {
     ffmpegServiceInstance = new FFmpegService();
   }

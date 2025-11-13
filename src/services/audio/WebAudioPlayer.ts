@@ -170,7 +170,8 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.disconnect();
       this.sourceNode = null;
     } catch (error) {
-      // Ignore if already stopped
+      // Ignore errors if already stopped
+      console.warn("[WebAudioPlayer] Stop error:", error);
     }
 
     // Reset position
@@ -318,7 +319,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       try {
         this.sourceNode.stop();
         this.sourceNode.disconnect();
-      } catch (e) {
+      } catch {
         // Ignore if already stopped
       }
       this.sourceNode = null;

@@ -7,11 +7,7 @@
 
 import { IFileManager, FileInfo } from "../interfaces/IFileManager";
 import { AudioFormat } from "../../../types/audio";
-import {
-  generateMockUri,
-  getMockFileSize,
-  MOCK_AUDIO_URIS,
-} from "../../../mocks/mockAudioData";
+import { getMockFileSize, MOCK_AUDIO_URIS } from "../../../mocks/mockAudioData";
 
 export class MockFileManager implements IFileManager {
   // In-memory "file system"
@@ -45,7 +41,7 @@ export class MockFileManager implements IFileManager {
    * Save audio file (mock implementation)
    */
   async saveAudioFile(
-    data: any,
+    data: Blob | ArrayBuffer | string,
     filename: string,
     format: AudioFormat,
   ): Promise<string> {
@@ -291,5 +287,5 @@ interface MockFile {
   size: number;
   createdAt: number;
   modifiedAt: number;
-  data: any;
+  data: Blob | ArrayBuffer | string | Uint8Array;
 }

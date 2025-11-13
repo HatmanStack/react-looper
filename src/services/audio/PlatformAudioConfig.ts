@@ -96,7 +96,7 @@ const WEB_CONFIG: AudioConfig = {
   channels: 2, // Stereo
   bufferSize: 4096,
   targetLatency: 100, // ms - web has higher latency
-  maxConcurrentPlayers: 5, // Limit due to browser constraints
+  maxConcurrentPlayers: 10, // Limit due to browser constraints
   hardwareAcceleration: false, // WebAssembly FFmpeg is slower
   performanceMultiplier: 5.0, // Web mixing is ~5x slower
   maxRecordingDuration: 600000, // 10 minutes (browser memory limits)

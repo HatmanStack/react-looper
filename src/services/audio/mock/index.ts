@@ -4,6 +4,9 @@
  * Export all mock implementations for development and testing.
  */
 
+import { Platform } from "react-native";
+import { registerAudioServices } from "../AudioServiceFactory";
+
 export { MockAudioRecorder } from "./MockAudioRecorder";
 export { MockAudioPlayer } from "./MockAudioPlayer";
 export { MockAudioMixer } from "./MockAudioMixer";
@@ -24,19 +27,22 @@ export { MockFileManager } from "./MockFileManager";
  * }
  * ```
  */
-export function registerMockServices(): void {
-  const { registerAudioServices } = require("../AudioServiceFactory");
-  const MockAudioRecorder = require("./MockAudioRecorder").MockAudioRecorder;
-  const MockAudioPlayer = require("./MockAudioPlayer").MockAudioPlayer;
-  const MockAudioMixer = require("./MockAudioMixer").MockAudioMixer;
-  const MockFileManager = require("./MockFileManager").MockFileManager;
-  const { Platform } = require("react-native");
+export async function registerMockServices(): Promise<void> {
+  // Dynamic imports to avoid circular dependencies
+  const { MockAudioRecorder: RecorderClass } = await import(
+    "./MockAudioRecorder"
+  );
+  const { MockAudioPlayer: PlayerClass } = await import("./MockAudioPlayer");
+  const { MockAudioMixer: MixerClass } = await import("./MockAudioMixer");
+  const { MockFileManager: FileManagerClass } = await import(
+    "./MockFileManager"
+  );
 
   const mockServices = {
-    recorder: MockAudioRecorder,
-    player: MockAudioPlayer,
-    mixer: MockAudioMixer,
-    fileManager: MockFileManager,
+    recorder: RecorderClass,
+    player: PlayerClass,
+    mixer: MixerClass,
+    fileManager: FileManagerClass,
   };
 
   // Register for current platform

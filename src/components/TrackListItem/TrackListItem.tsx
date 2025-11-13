@@ -39,19 +39,20 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
 }) => {
   // Check if this track is the master track (first track in store)
   const isMaster = useTrackStore((state) => state.isMasterTrack(track.id));
+  // Get master loop duration for progress bar sync
+  const masterLoopDuration = useTrackStore((state) =>
+    state.getMasterLoopDuration(),
+  );
 
   const handlePlay = () => {
-    console.log(`Play track: ${track.id}`);
     onPlay?.(track.id);
   };
 
   const handlePause = () => {
-    console.log(`Pause track: ${track.id}`);
     onPause?.(track.id);
   };
 
   const handleDelete = () => {
-    console.log(`Delete track: ${track.id}`);
     onDelete?.(track.id);
   };
 
@@ -64,14 +65,14 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
   };
 
   const handleSelect = () => {
-    console.log(`Select track: ${track.id}`);
     onSelect?.(track.id);
   };
 
-  // Build container styles with master track styling if applicable
+  // Build container styles with master and/or selected track styling
   const containerStyles = [
     styles.container,
-    isMaster && styles.masterTrackContainer,
+    track.selected && styles.selectedTrackContainer,
+    isMaster && styles.masterTrackContainer, // Master takes precedence (applied last)
   ];
 
   // Build accessibility label
@@ -157,10 +158,11 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
           />
         </View>
 
-        {/* Playback Progress Bar */}
+        {/* Playback Progress Bar - synced to master loop */}
         <TrackProgressBar
           trackId={track.id}
-          duration={track.duration / track.speed}
+          masterLoopDuration={masterLoopDuration}
+          speed={track.speed}
           isPlaying={track.isPlaying}
         />
       </View>

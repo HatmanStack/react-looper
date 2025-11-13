@@ -48,7 +48,7 @@ function formatDuration(ms: number): string {
 function getProgressColor(progress: number): string {
   if (progress >= 0.95) {
     return "#D32F2F"; // Error red
-  } else if (progress >= 0.80) {
+  } else if (progress >= 0.8) {
     return "#F57C00"; // Warning orange
   } else {
     return "#3F51B5"; // Primary blue

@@ -19,7 +19,7 @@ import type {
  * @returns Migration result with migrated state
  */
 export function runMigrations<TState>(
-  persistedData: any,
+  persistedData: unknown,
   config: MigrationConfig<TState>,
 ): MigrationResult<TState> {
   const errors: string[] = [];
@@ -49,7 +49,6 @@ export function runMigrations<TState>(
 
     // Run migrations sequentially
     let currentState = versionedState.state;
-    let currentVersion = fromVersion;
 
     console.log(`[Migration] Migrating from v${fromVersion} to v${toVersion}`);
 
@@ -60,7 +59,6 @@ export function runMigrations<TState>(
         try {
           console.log(`[Migration] Running migration to v${version}`);
           currentState = migration(currentState);
-          currentVersion = version;
         } catch (error) {
           const errorMsg = `Failed to migrate to v${version}: ${error}`;
           console.error(`[Migration] ${errorMsg}`);

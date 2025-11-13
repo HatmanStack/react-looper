@@ -22,27 +22,29 @@ interface TrackStoreState {
 /**
  * Validate track store state
  */
-function validateTrackState(state: any): boolean {
+function validateTrackState(state: unknown): boolean {
   if (!state || typeof state !== "object") {
     return false;
   }
 
-  if (!Array.isArray(state.tracks)) {
+  const stateObj = state as Record<string, unknown>;
+  if (!Array.isArray(stateObj.tracks)) {
     return false;
   }
 
   // Validate each track has required fields
-  return state.tracks.every(
-    (track: any) =>
+  return stateObj.tracks.every(
+    (track: unknown) =>
       track &&
-      typeof track.id === "string" &&
-      typeof track.name === "string" &&
-      typeof track.uri === "string" &&
-      typeof track.duration === "number" &&
-      typeof track.speed === "number" &&
-      typeof track.volume === "number" &&
-      typeof track.isPlaying === "boolean" &&
-      typeof track.createdAt === "number",
+      typeof track === "object" &&
+      typeof (track as Record<string, unknown>).id === "string" &&
+      typeof (track as Record<string, unknown>).name === "string" &&
+      typeof (track as Record<string, unknown>).uri === "string" &&
+      typeof (track as Record<string, unknown>).duration === "number" &&
+      typeof (track as Record<string, unknown>).speed === "number" &&
+      typeof (track as Record<string, unknown>).volume === "number" &&
+      typeof (track as Record<string, unknown>).isPlaying === "boolean" &&
+      typeof (track as Record<string, unknown>).createdAt === "number",
   );
 }
 
@@ -54,20 +56,22 @@ export const trackMigrationConfig: MigrationConfig<TrackStoreState> = {
 
   migrations: {
     // Version 1: Initial schema (no migration needed, just establish baseline)
-    1: (state: any) => {
+    1: (state: unknown) => {
+      const stateObj = state as Record<string, unknown>;
       // Ensure state has tracks array
-      if (!state || !Array.isArray(state.tracks)) {
+      if (!state || !Array.isArray(stateObj.tracks)) {
         return { tracks: [] };
       }
 
       // Clean up any invalid tracks
-      const validTracks = state.tracks.filter((track: any) => {
+      const validTracks = stateObj.tracks.filter((track: unknown) => {
+        const trackObj = track as Record<string, unknown>;
         return (
           track &&
-          track.id &&
-          track.uri &&
-          typeof track.speed === "number" &&
-          typeof track.volume === "number"
+          trackObj.id &&
+          trackObj.uri &&
+          typeof trackObj.speed === "number" &&
+          typeof trackObj.volume === "number"
         );
       });
 
@@ -97,37 +101,43 @@ export const trackMigrationConfig: MigrationConfig<TrackStoreState> = {
  * @param state - Old state with potentially 'selected' property
  * @returns Migrated state without 'selected' property
  */
-export function migration_v2_removeSelected(state: any): TrackStoreState {
+export function migration_v2_removeSelected(state: unknown): TrackStoreState {
   // Handle empty or invalid state
   if (!state || typeof state !== "object") {
     return { tracks: [] };
   }
 
+  const stateObj = state as Record<string, unknown>;
   // Handle missing or invalid tracks array
-  if (!Array.isArray(state.tracks)) {
+  if (!Array.isArray(stateObj.tracks)) {
     return { tracks: [] };
   }
 
   // Process each track: remove 'selected' and validate
-  const migratedTracks = state.tracks
-    .map((track: any) => {
+  const migratedTracks = stateObj.tracks
+    .map((track: unknown) => {
       if (!track || typeof track !== "object") {
         return null;
       }
 
       // Destructure to remove 'selected' property
-      const { selected, ...trackWithoutSelected } = track;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { selected, ...trackWithoutSelected } = track as Record<
+        string,
+        unknown
+      > & { selected?: unknown };
 
       return trackWithoutSelected;
     })
-    .filter((track: any) => {
+    .filter((track: unknown): track is Track => {
       // Filter out null entries and validate required fields
+      const trackObj = track as Record<string, unknown>;
       return (
-        track &&
-        typeof track.id === "string" &&
-        typeof track.uri === "string" &&
-        typeof track.speed === "number" &&
-        typeof track.volume === "number"
+        track !== null &&
+        typeof trackObj.id === "string" &&
+        typeof trackObj.uri === "string" &&
+        typeof trackObj.speed === "number" &&
+        typeof trackObj.volume === "number"
       );
     });
 
