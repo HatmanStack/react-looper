@@ -4,9 +4,7 @@
  * Helpers for responsive design across different screen sizes
  */
 
-import { Dimensions } from "react-native";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+import { Dimensions, useWindowDimensions } from "react-native";
 
 /**
  * Breakpoints following Material Design guidelines
@@ -20,43 +18,55 @@ export const BREAKPOINTS = {
 } as const;
 
 /**
- * Get current breakpoint
+ * Get screen width (reactive - call within component)
  */
-export function getCurrentBreakpoint(): keyof typeof BREAKPOINTS {
-  if (SCREEN_WIDTH >= BREAKPOINTS.xl) return "xl";
-  if (SCREEN_WIDTH >= BREAKPOINTS.lg) return "lg";
-  if (SCREEN_WIDTH >= BREAKPOINTS.md) return "md";
-  if (SCREEN_WIDTH >= BREAKPOINTS.sm) return "sm";
+function getScreenWidth(): number {
+  return Dimensions.get("window").width;
+}
+
+/**
+ * Get current breakpoint based on given width
+ */
+export function getCurrentBreakpoint(width?: number): keyof typeof BREAKPOINTS {
+  const screenWidth = width ?? getScreenWidth();
+  if (screenWidth >= BREAKPOINTS.xl) return "xl";
+  if (screenWidth >= BREAKPOINTS.lg) return "lg";
+  if (screenWidth >= BREAKPOINTS.md) return "md";
+  if (screenWidth >= BREAKPOINTS.sm) return "sm";
   return "xs";
 }
 
 /**
  * Check if screen is tablet or larger
  */
-export function isTablet(): boolean {
-  return SCREEN_WIDTH >= BREAKPOINTS.sm;
+export function isTablet(width?: number): boolean {
+  const screenWidth = width ?? getScreenWidth();
+  return screenWidth >= BREAKPOINTS.sm;
 }
 
 /**
  * Check if screen is desktop or larger
  */
-export function isDesktop(): boolean {
-  return SCREEN_WIDTH >= BREAKPOINTS.md;
+export function isDesktop(width?: number): boolean {
+  const screenWidth = width ?? getScreenWidth();
+  return screenWidth >= BREAKPOINTS.md;
 }
 
 /**
  * Check if screen is large desktop
  */
-export function isLargeDesktop(): boolean {
-  return SCREEN_WIDTH >= BREAKPOINTS.lg;
+export function isLargeDesktop(width?: number): boolean {
+  const screenWidth = width ?? getScreenWidth();
+  return screenWidth >= BREAKPOINTS.lg;
 }
 
 /**
  * Get max content width for centered layouts
  * Optimized for audio looper UI - keeps controls readable and compact
  */
-export function getMaxContentWidth(): number {
-  const breakpoint = getCurrentBreakpoint();
+export function getMaxContentWidth(width?: number): number {
+  const screenWidth = width ?? getScreenWidth();
+  const breakpoint = getCurrentBreakpoint(screenWidth);
 
   switch (breakpoint) {
     case "xl":
@@ -68,14 +78,14 @@ export function getMaxContentWidth(): number {
     case "sm":
       return 600; // Reduced from 720
     default:
-      return SCREEN_WIDTH;
+      return screenWidth;
   }
 }
 
 /**
  * Get responsive spacing
  */
-export function getSpacing(size: "xs" | "sm" | "md" | "lg" | "xl"): number {
+export function getSpacing(size: "xs" | "sm" | "md" | "lg" | "xl", width?: number): number {
   const baseSpacing = {
     xs: 4,
     sm: 8,
@@ -85,14 +95,14 @@ export function getSpacing(size: "xs" | "sm" | "md" | "lg" | "xl"): number {
   };
 
   // Scale up spacing on larger screens
-  const multiplier = isDesktop() ? 1.5 : 1;
+  const multiplier = isDesktop(width) ? 1.5 : 1;
   return baseSpacing[size] * multiplier;
 }
 
 /**
  * Get responsive font size
  */
-export function getFontSize(size: "xs" | "sm" | "md" | "lg" | "xl"): number {
+export function getFontSize(size: "xs" | "sm" | "md" | "lg" | "xl", width?: number): number {
   const baseFontSize = {
     xs: 12,
     sm: 14,
@@ -102,7 +112,7 @@ export function getFontSize(size: "xs" | "sm" | "md" | "lg" | "xl"): number {
   };
 
   // Slightly scale up fonts on larger screens
-  const multiplier = isDesktop() ? 1.1 : 1;
+  const multiplier = isDesktop(width) ? 1.1 : 1;
   return baseFontSize[size] * multiplier;
 }
 
@@ -117,8 +127,8 @@ export function responsive<T>(values: {
   lg?: T;
   xl?: T;
   default: T;
-}): T {
-  const breakpoint = getCurrentBreakpoint();
+}, width?: number): T {
+  const breakpoint = getCurrentBreakpoint(width);
 
   return values[breakpoint] ?? values.default;
 }
@@ -126,7 +136,7 @@ export function responsive<T>(values: {
 /**
  * Get number of columns for grid layouts
  */
-export function getGridColumns(): number {
+export function getGridColumns(width?: number): number {
   return responsive({
     xs: 1,
     sm: 2,
@@ -134,10 +144,25 @@ export function getGridColumns(): number {
     lg: 3,
     xl: 4,
     default: 1,
-  });
+  }, width);
 }
 
-export const screenDimensions = {
-  width: SCREEN_WIDTH,
-  height: SCREEN_HEIGHT,
-};
+/**
+ * Hook to get reactive window dimensions
+ * Use this in components to get dimensions that update on resize
+ */
+export function useResponsive() {
+  const { width, height } = useWindowDimensions();
+
+  return {
+    width,
+    height,
+    breakpoint: getCurrentBreakpoint(width),
+    isTablet: isTablet(width),
+    isDesktop: isDesktop(width),
+    isLargeDesktop: isLargeDesktop(width),
+    maxContentWidth: getMaxContentWidth(width),
+    getSpacing: (size: "xs" | "sm" | "md" | "lg" | "xl") => getSpacing(size, width),
+    getFontSize: (size: "xs" | "sm" | "md" | "lg" | "xl") => getFontSize(size, width),
+  };
+}

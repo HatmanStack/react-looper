@@ -23,7 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import type { AudioFormat, QualityLevel } from "../../store/useSettingsStore";
-import { styles } from "./SettingsScreen.styles";
+import { getStyles } from "./SettingsScreen.styles";
+import { useResponsive } from "../../utils/responsive";
 
 // Import version from package.json
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -31,6 +32,8 @@ const packageJson = require("../../../package.json");
 
 export const SettingsScreen: React.FC = () => {
   const router = useRouter();
+  const responsive = useResponsive();
+  const styles = getStyles(responsive);
   // Settings state from store
   const {
     loopCrossfadeDuration,

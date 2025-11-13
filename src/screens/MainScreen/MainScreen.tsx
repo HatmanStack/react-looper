@@ -24,7 +24,7 @@ import { HelpModal } from "@components/HelpModal";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
 import { RecordingProgressIndicator } from "@components/RecordingProgressIndicator";
 import type { Track } from "../../types";
-import { styles } from "./MainScreen.styles";
+import { getStyles } from "./MainScreen.styles";
 import { initializeAudioServices } from "../../services/audio/initialize";
 import { getAudioService } from "../../services/audio/AudioServiceFactory";
 import { AudioService } from "../../services/audio/AudioService";
@@ -36,12 +36,16 @@ import { getBitrate } from "../../services/ffmpeg/audioQuality";
 import { useTrackStore } from "../../store/useTrackStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import { usePlaybackStore } from "../../store/usePlaybackStore";
+import { useResponsive } from "../../utils/responsive";
 
 // Initialize audio services for current platform
 initializeAudioServices();
 
 export const MainScreen: React.FC = () => {
   const router = useRouter();
+  const responsive = useResponsive();
+  const styles = getStyles(responsive);
+
   // Use track store instead of local state
   const tracks = useTrackStore((state) => state.tracks);
   const addTrack = useTrackStore((state) => state.addTrack);
