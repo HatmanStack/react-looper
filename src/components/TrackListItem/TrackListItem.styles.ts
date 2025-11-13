@@ -19,6 +19,8 @@ export const styles = StyleSheet.create({
     marginHorizontal: 8,
     borderWidth: 2,
     borderColor: "transparent",
+    alignSelf: "center", // Center on large screens
+    width: "100%", // Fill available width up to max
   },
   masterTrackContainer: {
     borderWidth: 5, // Thicker border for master track

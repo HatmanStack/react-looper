@@ -53,19 +53,20 @@ export function isLargeDesktop(): boolean {
 
 /**
  * Get max content width for centered layouts
+ * Optimized for audio looper UI - keeps controls readable and compact
  */
 export function getMaxContentWidth(): number {
   const breakpoint = getCurrentBreakpoint();
 
   switch (breakpoint) {
     case "xl":
-      return 1400;
+      return 900; // Reduced from 1400 for better UX on large screens
     case "lg":
-      return 1200;
+      return 800; // Reduced from 1200
     case "md":
-      return 960;
+      return 720; // Reduced from 960
     case "sm":
-      return 720;
+      return 600; // Reduced from 720
     default:
       return SCREEN_WIDTH;
   }
