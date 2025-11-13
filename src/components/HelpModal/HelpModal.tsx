@@ -46,7 +46,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onDismiss }) => {
             <Text style={styles.sectionTitle}>🎵 Selecting Tracks</Text>
             <Text style={styles.text}>
               • Tap any track to select/deselect it{"\n"}• Selected tracks show
-              a red border on the left{"\n"}• New tracks are automatically
+              a blue border on the left{"\n"}• New tracks are automatically
               selected{"\n"}• You can select multiple tracks at once
             </Text>
           </View>
@@ -54,7 +54,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onDismiss }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>💾 Saving Your Mix</Text>
             <Text style={styles.text}>
-              • Only selected tracks (with red border) will be saved{"\n"}•
+              • Only selected tracks (with blue border) will be saved{"\n"}•
               Click Save to mix all selected tracks together{"\n"}• The mixed
               audio downloads as a WAV file{"\n"}• Speed and volume settings are
               applied to the mix
