@@ -6,6 +6,92 @@
 
 import { StyleSheet } from "react-native";
 
+// Static styles that don't change
+const staticStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#423939", // Match MainScreen background
+  },
+  header: {
+    backgroundColor: "#3F51B5", // Primary color
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#423939",
+  },
+  sectionBase: {
+    backgroundColor: "#5A4F4F", // Slightly lighter than background
+    borderRadius: 8,
+    alignSelf: "center",
+    width: "100%",
+  },
+  settingLabel: StyleSheet.create({
+    settingLabel: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#FFFFFF",
+      marginBottom: 4,
+    },
+  }).settingLabel,
+  settingDescription: StyleSheet.create({
+    settingDescription: {
+      fontSize: 13,
+      color: "#CCCCCC",
+    },
+  }).settingDescription,
+  settingRow: StyleSheet.create({
+    settingRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+  }).settingRow,
+  settingTextContainer: StyleSheet.create({
+    settingTextContainer: {
+      flex: 1,
+    },
+  }).settingTextContainer,
+  sliderContainer: StyleSheet.create({
+    sliderContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+  }).sliderContainer,
+  slider: StyleSheet.create({
+    slider: {
+      flex: 1,
+      height: 40,
+    },
+  }).slider,
+  sliderValue: StyleSheet.create({
+    sliderValue: {
+      fontSize: 14,
+      color: "#FFFFFF",
+      minWidth: 50,
+      textAlign: "right",
+    },
+  }).sliderValue,
+  versionText: StyleSheet.create({
+    versionText: {
+      fontSize: 14,
+      color: "#CCCCCC",
+    },
+  }).versionText,
+  helpAccordion: StyleSheet.create({
+    helpAccordion: {
+      backgroundColor: "transparent",
+      paddingHorizontal: 0,
+    },
+  }).helpAccordion,
+  helpAccordionTitle: StyleSheet.create({
+    helpAccordionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#FFFFFF",
+    },
+  }).helpAccordionTitle,
+});
+
 export const getStyles = (responsive: {
   maxContentWidth: number;
   isDesktop: boolean;
@@ -13,73 +99,46 @@ export const getStyles = (responsive: {
 }) => {
   const { maxContentWidth, isDesktop: isLargeScreen, getSpacing } = responsive;
 
-  return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: "#423939", // Match MainScreen background
-    },
-    header: {
-      backgroundColor: "#3F51B5", // Primary color
-    },
-    container: {
-      flex: 1,
-      backgroundColor: "#423939",
-    },
-    section: {
-      backgroundColor: "#5A4F4F", // Slightly lighter than background
-      marginHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("md"),
-      marginTop: getSpacing("md"),
-      paddingVertical: getSpacing("md"),
-      paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("md"),
-      borderRadius: 8,
-      maxWidth: isLargeScreen ? maxContentWidth : undefined,
-      alignSelf: "center",
-      width: "100%",
-    },
+  return {
+    safeArea: staticStyles.safeArea,
+    header: staticStyles.header,
+    container: staticStyles.container,
+    // Use inline styles for dynamic values
+    section: [
+      staticStyles.sectionBase,
+      {
+        marginHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("md"),
+        marginTop: getSpacing("md"),
+        paddingVertical: getSpacing("md"),
+        paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("md"),
+        maxWidth: isLargeScreen ? maxContentWidth : undefined,
+      }
+    ],
     sectionTitle: {
       fontSize: 18,
-      fontWeight: "bold",
+      fontWeight: "bold" as const,
       color: "#FFFFFF",
       marginBottom: getSpacing("md"),
     },
     settingItem: {
       marginVertical: getSpacing("sm"),
     },
-    settingRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    settingTextContainer: {
-      flex: 1,
-      marginRight: getSpacing("md"),
-    },
-    settingLabel: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: "#FFFFFF",
-      marginBottom: 4,
-    },
-    settingDescription: {
-      fontSize: 13,
-      color: "#CCCCCC",
-      marginBottom: getSpacing("sm"),
-    },
-    sliderContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: getSpacing("md"),
-    },
-    slider: {
-      flex: 1,
-      height: 40,
-    },
-    sliderValue: {
-      fontSize: 14,
-      color: "#FFFFFF",
-      minWidth: 50,
-      textAlign: "right",
-    },
+    settingRow: staticStyles.settingRow,
+    settingTextContainer: [
+      staticStyles.settingTextContainer,
+      { marginRight: getSpacing("md") }
+    ],
+    settingLabel: staticStyles.settingLabel,
+    settingDescription: [
+      staticStyles.settingDescription,
+      { marginBottom: getSpacing("sm") }
+    ],
+    sliderContainer: [
+      staticStyles.sliderContainer,
+      { gap: getSpacing("md") }
+    ],
+    slider: staticStyles.slider,
+    sliderValue: staticStyles.sliderValue,
     segmentedButtons: {
       marginTop: getSpacing("sm"),
     },
@@ -91,19 +150,9 @@ export const getStyles = (responsive: {
       marginTop: getSpacing("sm"),
       borderColor: "#FF5252",
     },
-    versionText: {
-      fontSize: 14,
-      color: "#CCCCCC",
-    },
-    helpAccordion: {
-      backgroundColor: "transparent",
-      paddingHorizontal: 0,
-    },
-    helpAccordionTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: "#FFFFFF",
-    },
+    versionText: staticStyles.versionText,
+    helpAccordion: staticStyles.helpAccordion,
+    helpAccordionTitle: staticStyles.helpAccordionTitle,
     helpText: {
       fontSize: 14,
       color: "#CCCCCC",
@@ -117,5 +166,5 @@ export const getStyles = (responsive: {
     bottomPadding: {
       height: getSpacing("xl"),
     },
-  });
+  };
 };

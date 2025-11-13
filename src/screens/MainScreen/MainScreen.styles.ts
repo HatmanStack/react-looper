@@ -9,6 +9,24 @@
 
 import { StyleSheet } from "react-native";
 
+// Static styles that don't change
+const staticStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#423939", // Match Android app background
+  },
+  containerBase: {
+    flex: 1,
+    backgroundColor: "#423939",
+    alignSelf: "center",
+    width: "100%",
+  },
+  trackListContainerBase: {
+    flex: 1,
+    backgroundColor: "#423939", // Match Android app background
+  },
+});
+
 export const getStyles = (responsive: {
   maxContentWidth: number;
   isDesktop: boolean;
@@ -16,31 +34,25 @@ export const getStyles = (responsive: {
 }) => {
   const { maxContentWidth, isDesktop: isLargeScreen, getSpacing } = responsive;
 
-  return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: "#423939", // Match Android app background
-    },
-    container: {
-      flex: 1,
-      backgroundColor: "#423939",
-      alignSelf: "center",
-      width: "100%",
-      maxWidth: isLargeScreen ? maxContentWidth : "100%",
-    },
+  return {
+    safeArea: staticStyles.safeArea,
+    // Use inline style for dynamic maxWidth to avoid StyleSheet caching
+    container: [
+      staticStyles.containerBase,
+      { maxWidth: isLargeScreen ? maxContentWidth : undefined }
+    ],
     topControls: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      alignItems: "center",
+      flexDirection: "row" as const,
+      justifyContent: "space-around" as const,
+      alignItems: "center" as const,
       paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("sm"),
       paddingVertical: getSpacing("md"),
       backgroundColor: "transparent",
       gap: isLargeScreen ? 16 : 8,
     },
-    trackListContainer: {
-      flex: 1,
-      backgroundColor: "#423939", // Match Android app background
-      paddingHorizontal: isLargeScreen ? getSpacing("md") : 0,
-    },
-  });
+    trackListContainer: [
+      staticStyles.trackListContainerBase,
+      { paddingHorizontal: isLargeScreen ? getSpacing("md") : 0 }
+    ],
+  };
 };
