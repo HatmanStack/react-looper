@@ -120,10 +120,6 @@ export class WebFileImporter {
       );
     }
 
-    console.log(
-      `[WebFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes`,
-    );
-
     return {
       uri: blobUrl,
       name: file.name,

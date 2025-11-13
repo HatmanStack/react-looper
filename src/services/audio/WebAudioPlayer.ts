@@ -42,16 +42,11 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       }
 
       // Fetch audio data
-      console.log(`[WebAudioPlayer] Loading audio from ${uri}`);
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();
 
       // Decode audio data
       this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-
-      console.log(
-        `[WebAudioPlayer] Loaded audio: ${this.audioBuffer.duration}s, ${this.audioBuffer.sampleRate}Hz`,
-      );
 
       // Create gain node for volume control
       this.gainNode = this.audioContext.createGain();
@@ -118,8 +113,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
       // Start position update timer
       this.startPositionUpdateTimer();
-
-      console.log(`[WebAudioPlayer] Playback started from ${offset}s`);
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
@@ -149,11 +142,8 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
       // Stop position updates
       this.stopPositionUpdateTimer();
-
-      console.log(`[WebAudioPlayer] Paused at ${this.pauseTime}s`);
     } catch (error) {
       // Ignore errors if already stopped
-      console.warn("[WebAudioPlayer] Pause error:", error);
     }
   }
 
@@ -171,7 +161,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode = null;
     } catch (error) {
       // Ignore errors if already stopped
-      console.warn("[WebAudioPlayer] Stop error:", error);
     }
 
     // Reset position
@@ -180,8 +169,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
     // Stop position updates
     this.stopPositionUpdateTimer();
-
-    console.log("[WebAudioPlayer] Stopped");
   }
 
   /**
@@ -191,7 +178,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     if (this.sourceNode) {
       this.sourceNode.playbackRate.value = speed;
     }
-    console.log(`[WebAudioPlayer] Speed set to ${speed}x`);
   }
 
   /**
@@ -199,7 +185,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
    */
   protected async _setVolume(volume: number): Promise<void> {
     this._applyVolumeToGainNode(volume);
-    console.log(`[WebAudioPlayer] Volume set to ${volume}`);
   }
 
   /**
@@ -231,7 +216,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     if (this.sourceNode) {
       this.sourceNode.loop = loop;
     }
-    console.log(`[WebAudioPlayer] Looping ${loop ? "enabled" : "disabled"}`);
   }
 
   /**
@@ -288,8 +272,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       // Just update pause position
       this.pauseTime = positionSeconds;
     }
-
-    console.log(`[WebAudioPlayer] Position set to ${positionSeconds}s`);
   }
 
   /**
@@ -337,8 +319,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     // Reset timers
     this.startTime = 0;
     this.pauseTime = 0;
-
-    console.log("[WebAudioPlayer] Unloaded");
   }
 
   /**

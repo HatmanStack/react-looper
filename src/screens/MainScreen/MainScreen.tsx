@@ -92,7 +92,6 @@ export const MainScreen: React.FC = () => {
     try {
       audioServiceRef.current = getAudioService();
     } catch (error) {
-      console.error("[MainScreen] Failed to initialize AudioService:", error);
       if (error instanceof AudioError) {
         Alert.alert("Error", error.userMessage);
       }
@@ -127,7 +126,6 @@ export const MainScreen: React.FC = () => {
 
   const handleRecord = async () => {
     if (!audioServiceRef.current) {
-      console.error("[MainScreen] Audio service not initialized");
       Alert.alert("Error", "Audio service not initialized");
       return;
     }
@@ -175,7 +173,6 @@ export const MainScreen: React.FC = () => {
         }
       }, 100); // Update every 100ms for smooth progress
     } catch (error) {
-      console.error("[MainScreen] Recording failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Recording Error", error.userMessage);
       } else {
@@ -235,7 +232,6 @@ export const MainScreen: React.FC = () => {
       // Add track to store
       addTrack(newTrack);
     } catch (error) {
-      console.error("[MainScreen] Stop recording failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Error", error.userMessage);
       } else {
@@ -285,7 +281,6 @@ export const MainScreen: React.FC = () => {
       // Add track to store
       addTrack(newTrack);
     } catch (error) {
-      console.error("[MainScreen] Import failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Import Error", error.userMessage);
       } else {
@@ -384,12 +379,6 @@ export const MainScreen: React.FC = () => {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error("[MainScreen] Mixing failed:", error);
-      console.error("[MainScreen] Error details:", {
-        message: (error as Error).message,
-        stack: (error as Error).stack,
-        error,
-      });
 
       if (error instanceof AudioError) {
         Alert.alert("Mixing Error", error.userMessage);
@@ -417,7 +406,6 @@ export const MainScreen: React.FC = () => {
       // Update track state in store
       updateTrack(trackId, { isPlaying: true });
     } catch (error) {
-      console.error("[MainScreen] Play failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Playback Error", error.userMessage);
       }
@@ -435,7 +423,6 @@ export const MainScreen: React.FC = () => {
       // Update track state in store
       updateTrack(trackId, { isPlaying: false });
     } catch (error) {
-      console.error("[MainScreen] Pause failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Playback Error", error.userMessage);
       }
@@ -490,7 +477,6 @@ export const MainScreen: React.FC = () => {
       // Remove track from store (store handles master track deletion logic)
       removeTrack(trackId);
     } catch (error) {
-      console.error("[MainScreen] Delete failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Delete Error", error.userMessage);
       }

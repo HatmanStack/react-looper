@@ -21,8 +21,4 @@ export function initializeWebAudioServices(): void {
     mixer: WebAudioMixer,
     fileManager: MockFileManager,
   });
-
-  console.log(
-    "[WebAudioServices] Initialized web audio services with Web Audio API",
-  );
 }

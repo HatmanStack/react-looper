@@ -31,10 +31,6 @@ export class MockFileManager implements IFileManager {
         data: new Uint8Array(0), // Empty data for mock
       });
     });
-
-    console.log(
-      `[MockFileManager] Initialized with ${this.files.size} mock files`,
-    );
   }
 
   /**
@@ -45,8 +41,6 @@ export class MockFileManager implements IFileManager {
     filename: string,
     format: AudioFormat,
   ): Promise<string> {
-    console.log("[MockFileManager] Saving audio file:", filename, format);
-
     await this.delay(100);
 
     const uri = `mock://audio/${filename}.${format}`;
@@ -62,7 +56,6 @@ export class MockFileManager implements IFileManager {
       data,
     });
 
-    console.log(`[MockFileManager] File saved: ${uri} (${size} bytes)`);
     return uri;
   }
 
@@ -70,17 +63,11 @@ export class MockFileManager implements IFileManager {
    * Delete audio file
    */
   async deleteAudioFile(uri: string): Promise<boolean> {
-    console.log("[MockFileManager] Deleting file:", uri);
-
     await this.delay(50);
 
     const existed = this.files.has(uri);
     this.files.delete(uri);
 
-    console.log(
-      `[MockFileManager] File ${existed ? "deleted" : "not found"}:`,
-      uri,
-    );
     return existed;
   }
 
@@ -88,13 +75,6 @@ export class MockFileManager implements IFileManager {
    * Copy to app storage
    */
   async copyToAppStorage(sourceUri: string, filename: string): Promise<string> {
-    console.log(
-      "[MockFileManager] Copying to app storage:",
-      sourceUri,
-      "->",
-      filename,
-    );
-
     await this.delay(150);
 
     const format = sourceUri.split(".").pop() || "mp3";
@@ -120,7 +100,6 @@ export class MockFileManager implements IFileManager {
       });
     }
 
-    console.log(`[MockFileManager] File copied: ${destUri}`);
     return destUri;
   }
 
@@ -131,19 +110,11 @@ export class MockFileManager implements IFileManager {
     uri: string,
     filename: string,
   ): Promise<string> {
-    console.log(
-      "[MockFileManager] Exporting to external storage:",
-      uri,
-      "->",
-      filename,
-    );
-
     await this.delay(200);
 
     const format = uri.split(".").pop() || "mp3";
     const exportUri = `mock://external/${filename}.${format}`;
 
-    console.log(`[MockFileManager] File exported: ${exportUri}`);
     return exportUri;
   }
 
@@ -197,15 +168,12 @@ export class MockFileManager implements IFileManager {
    * List all audio files
    */
   async listAudioFiles(): Promise<string[]> {
-    console.log("[MockFileManager] Listing audio files");
-
     await this.delay(50);
 
     const uris = Array.from(this.files.keys()).filter(
       (uri) => uri.startsWith("mock://audio/") && !uri.includes("/temp-"),
     );
 
-    console.log(`[MockFileManager] Found ${uris.length} audio files`);
     return uris;
   }
 
@@ -223,8 +191,6 @@ export class MockFileManager implements IFileManager {
    * Clean up temporary files
    */
   async cleanupTempFiles(): Promise<void> {
-    console.log("[MockFileManager] Cleaning up temporary files");
-
     await this.delay(100);
 
     // Remove files with "temp" in the URI
@@ -235,10 +201,6 @@ export class MockFileManager implements IFileManager {
     tempFiles.forEach((uri) => {
       this.files.delete(uri);
     });
-
-    console.log(
-      `[MockFileManager] Cleaned up ${tempFiles.length} temporary files`,
-    );
   }
 
   /**

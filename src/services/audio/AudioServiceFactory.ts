@@ -46,7 +46,6 @@ class ServiceRegistry {
    */
   registerWebServices(services: PlatformServices): void {
     this.webServices = services;
-    console.log("[AudioServiceFactory] Web services registered");
   }
 
   /**
@@ -54,7 +53,6 @@ class ServiceRegistry {
    */
   registerNativeServices(services: PlatformServices): void {
     this.nativeServices = services;
-    console.log("[AudioServiceFactory] Native services registered");
   }
 
   /**
@@ -116,9 +114,6 @@ class AudioServiceFactoryClass {
 
     // Reset instance if services are re-registered
     if (this.audioServiceInstance) {
-      console.log(
-        "[AudioServiceFactory] Services re-registered, resetting instance",
-      );
       this.audioServiceInstance = null;
       this.isInitialized = false;
     }
@@ -163,10 +158,6 @@ class AudioServiceFactoryClass {
       };
 
       const audioService = new AudioService(serviceConfig);
-
-      console.log(
-        `[AudioServiceFactory] Created AudioService for ${getPlatformName()}`,
-      );
 
       return audioService;
     } catch (error) {
@@ -216,7 +207,6 @@ class AudioServiceFactoryClass {
    */
   public async cleanup(): Promise<void> {
     if (this.audioServiceInstance) {
-      console.log("[AudioServiceFactory] Cleaning up AudioService");
       await this.audioServiceInstance.cleanup();
       this.audioServiceInstance = null;
       this.isInitialized = false;
