@@ -40,7 +40,6 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
         icon={icon}
         onPress={onPress}
         disabled={disabled}
-        mode={mode}
         style={[styles.iconButton, style]}
         iconColor={disabled ? "#999" : "#FFFFFF"}
         containerColor={disabled ? "#555" : "#3F51B5"}
