@@ -8,7 +8,7 @@
  * Migration function type
  * Takes old state and returns migrated state
  */
-export type MigrationFn<TState = any> = (state: TState) => TState;
+export type MigrationFn<TState = unknown> = (state: TState) => TState;
 
 /**
  * Version history entry
@@ -22,7 +22,7 @@ export interface VersionHistoryEntry {
 /**
  * Versioned state wrapper
  */
-export interface VersionedState<TState = any> {
+export interface VersionedState<TState = unknown> {
   version: number;
   state: TState;
   versionHistory?: VersionHistoryEntry[];
@@ -31,7 +31,7 @@ export interface VersionedState<TState = any> {
 /**
  * Migration configuration
  */
-export interface MigrationConfig<TState = any> {
+export interface MigrationConfig<TState = unknown> {
   /**
    * Current version number
    */
@@ -57,7 +57,7 @@ export interface MigrationConfig<TState = any> {
 /**
  * Migration result
  */
-export interface MigrationResult<TState = any> {
+export interface MigrationResult<TState = unknown> {
   success: boolean;
   state: TState;
   fromVersion?: number;

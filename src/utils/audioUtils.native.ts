@@ -8,7 +8,8 @@ import { Audio } from "expo-av";
 import { AudioError } from "../services/audio/AudioError";
 import { AudioErrorCode } from "../types/audio";
 
-export * from "./audioUtils";
+// Re-export shared utility functions (avoiding circular dependency with platform resolution)
+export * from "./audioUtils.shared";
 
 export interface AudioMetadata {
   duration: number; // in milliseconds
@@ -59,7 +60,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
     if (sound) {
       try {
         await sound.unloadAsync();
-      } catch (_unloadError) {
+      } catch {
         // Ignore unload errors
       }
     }
@@ -83,7 +84,7 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
   try {
     await getAudioMetadata(uri);
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 }

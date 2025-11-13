@@ -7,9 +7,6 @@
 import { WebAudioMixer } from "../../../src/services/audio/WebAudioMixer";
 import type { MixerTrackInput } from "../../../src/types/audio";
 
-// Mock audio files
-const mockAudioData = new Float32Array(44100); // 1 second at 44.1kHz
-
 // Save original globals before mocking
 const _origAudioContext = (global as any).AudioContext;
 const _origOfflineAudioContext = (global as any).OfflineAudioContext;
@@ -22,7 +19,11 @@ class MockAudioBuffer {
   numberOfChannels: number;
   length: number;
 
-  constructor(options: { length: number; numberOfChannels: number; sampleRate: number }) {
+  constructor(options: {
+    length: number;
+    numberOfChannels: number;
+    sampleRate: number;
+  }) {
     this.length = options.length;
     this.numberOfChannels = options.numberOfChannels;
     this.sampleRate = options.sampleRate;
@@ -82,35 +83,41 @@ class MockGainNode {
 // Track the last created context for testing
 let lastOfflineContext: any = null;
 
-const MockOfflineAudioContext = jest.fn().mockImplementation((options: {
-  numberOfChannels: number;
-  length: number;
-  sampleRate: number;
-}) => {
-  const context = {
-    sampleRate: options.sampleRate,
-    length: options.length,
-    destination: {},
-    createBufferSource: jest.fn().mockReturnValue(new MockAudioBufferSourceNode()),
-    createGain: jest.fn().mockReturnValue(new MockGainNode()),
-    startRendering: jest.fn().mockResolvedValue(
-      new MockAudioBuffer({
-        length: options.length,
-        numberOfChannels: 2,
+const MockOfflineAudioContext = jest
+  .fn()
+  .mockImplementation(
+    (options: {
+      numberOfChannels: number;
+      length: number;
+      sampleRate: number;
+    }) => {
+      const context = {
         sampleRate: options.sampleRate,
-      })
-    ),
-    decodeAudioData: jest.fn().mockResolvedValue(
-      new MockAudioBuffer({
-        length: 44100,
-        numberOfChannels: 2,
-        sampleRate: 44100,
-      })
-    ),
-  };
-  lastOfflineContext = context;
-  return context;
-});
+        length: options.length,
+        destination: {},
+        createBufferSource: jest
+          .fn()
+          .mockReturnValue(new MockAudioBufferSourceNode()),
+        createGain: jest.fn().mockReturnValue(new MockGainNode()),
+        startRendering: jest.fn().mockResolvedValue(
+          new MockAudioBuffer({
+            length: options.length,
+            numberOfChannels: 2,
+            sampleRate: options.sampleRate,
+          }),
+        ),
+        decodeAudioData: jest.fn().mockResolvedValue(
+          new MockAudioBuffer({
+            length: 44100,
+            numberOfChannels: 2,
+            sampleRate: 44100,
+          }),
+        ),
+      };
+      lastOfflineContext = context;
+      return context;
+    },
+  );
 
 // Mock AudioContext globally
 (global as any).AudioContext = jest.fn().mockImplementation(() => ({
@@ -119,7 +126,7 @@ const MockOfflineAudioContext = jest.fn().mockImplementation((options: {
       length: 44100 * 10, // 10 seconds
       numberOfChannels: 2,
       sampleRate: 44100,
-    })
+    }),
   ),
 }));
 
@@ -200,7 +207,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 1, fadeoutDuration: 0 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 1,
+        fadeoutDuration: 0,
+      });
 
       // Verify OfflineAudioContext was created with correct length
       expect(MockOfflineAudioContext).toHaveBeenCalled();
@@ -307,7 +317,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       });
 
       // Total duration should be 10s + 2s = 12s
-      
+
       const expectedLength = Math.ceil(12 * 44100);
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
@@ -333,7 +343,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       expect(masterGainNode.gain.setValueAtTime).toHaveBeenCalled();
       expect(masterGainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
         0.0,
-        expect.any(Number)
+        expect.any(Number),
       );
     });
 
@@ -356,7 +366,9 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       expect(gainNodes.length).toBeGreaterThan(0);
       const masterGainNode = gainNodes[0];
       // setValueAtTime might still be called for initial gain, but linearRampToValueAtTime should not ramp to 0
-      const rampCalls = (masterGainNode.gain.linearRampToValueAtTime as jest.Mock).mock.calls;
+      const rampCalls = (
+        masterGainNode.gain.linearRampToValueAtTime as jest.Mock
+      ).mock.calls;
       const fadeoutCalls = rampCalls.filter((call: any[]) => call[0] === 0.0);
       expect(fadeoutCalls.length).toBe(0);
     });
@@ -374,7 +386,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       await mixer.mixTracks(tracks, "output.wav", { loopCount: 1 });
 
       // Duration should be just the loop, no extra fadeout time
-      
+
       const expectedLength = Math.ceil(10 * 44100);
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
@@ -397,7 +409,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       });
 
       // Total: 4 loops × 10s + 2s fadeout = 42s
-      
+
       const expectedLength = Math.ceil(42 * 44100);
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
 
@@ -406,7 +418,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       const masterGainNode = gainNodes[0];
       expect(masterGainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
         0.0,
-        expect.any(Number)
+        expect.any(Number),
       );
     });
 
@@ -426,7 +438,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       });
 
       // Total: 6 loops × 10s + 3.5s fadeout = 63.5s
-      
+
       const expectedLength = Math.ceil(63.5 * 44100);
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
@@ -446,7 +458,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
 
       // Master loop is 20s (speed-adjusted), 2 loops = 40s
-      
+
       const expectedLength = Math.ceil(40 * 44100);
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
@@ -492,9 +504,9 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
 
     // TODO: Fix test - error is thrown but not caught properly by Jest
     it.skip("throws error when no tracks provided", async () => {
-      await expect(
-        mixer.mixTracks([], "output.wav")
-      ).rejects.toThrow("No tracks provided");
+      await expect(mixer.mixTracks([], "output.wav")).rejects.toThrow(
+        "No tracks provided",
+      );
     });
   });
 

@@ -1,17 +1,20 @@
 /**
  * MainScreen Component
  *
- * Main screen layout for the Looper app with three sections:
- * - Top controls: Record and Stop buttons
+ * Main screen layout for the Looper app:
+ * - Top controls: Record, Stop, Import, Save, and Menu (Loop mode, Settings, Help)
  * - Middle section: Track list with FlatList
- * - Bottom controls: Import Audio and Save buttons
  */
 
 import React, { useState, useEffect, useRef } from "react";
 import { View } from "react-native";
-import { Surface, ActivityIndicator, IconButton } from "react-native-paper";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../../App";
+import {
+  Surface,
+  ActivityIndicator,
+  IconButton,
+  Menu,
+} from "react-native-paper";
+import { useRouter } from "expo-router";
 import { Alert } from "../../utils/alert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TrackList } from "@components/TrackList";
@@ -19,7 +22,6 @@ import { ActionButton } from "@components/ActionButton";
 import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
-import { LoopModeToggle } from "@components/LoopModeToggle";
 import { RecordingProgressIndicator } from "@components/RecordingProgressIndicator";
 import type { Track } from "../../types";
 import { styles } from "./MainScreen.styles";
@@ -29,28 +31,42 @@ import { AudioService } from "../../services/audio/AudioService";
 import { AudioError } from "../../services/audio/AudioError";
 import { getFileImporter } from "../../services/audio/FileImporterFactory";
 import { getAudioMetadata } from "../../utils/audioUtils";
-import { getFFmpegService } from "../../services/ffmpeg/FFmpegService";
+import { getAudioExportService } from "../../services/ffmpeg/AudioExportService";
+import { getBitrate } from "../../services/ffmpeg/audioQuality";
 import { useTrackStore } from "../../store/useTrackStore";
+import { useSettingsStore } from "../../store/useSettingsStore";
+import { usePlaybackStore } from "../../store/usePlaybackStore";
 
 // Initialize audio services for current platform
 initializeAudioServices();
 
-type MainScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, "Main">;
-};
-
-export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
+export const MainScreen: React.FC = () => {
+  const router = useRouter();
   // Use track store instead of local state
   const tracks = useTrackStore((state) => state.tracks);
   const addTrack = useTrackStore((state) => state.addTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const updateTrack = useTrackStore((state) => state.updateTrack);
-  const getMasterLoopDuration = useTrackStore((state) => state.getMasterLoopDuration);
+  const getMasterLoopDuration = useTrackStore(
+    (state) => state.getMasterLoopDuration,
+  );
   const hasMasterTrack = useTrackStore((state) => state.hasMasterTrack);
-  const isMasterTrack = useTrackStore((state) => state.isMasterTrack);
+
+  // Get export settings
+  const exportFormat = useSettingsStore((state) => state.exportFormat);
+  const exportQuality = useSettingsStore((state) => state.exportQuality);
+
+  // Get recording settings
+  const recordingFormat = useSettingsStore((state) => state.recordingFormat);
+  const recordingQuality = useSettingsStore((state) => state.recordingQuality);
+
+  // Get loop mode state
+  const loopMode = usePlaybackStore((state) => state.loopMode);
+  const toggleLoopMode = usePlaybackStore((state) => state.toggleLoopMode);
 
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0); // Current recording duration in ms
@@ -75,7 +91,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   useEffect(() => {
     try {
       audioServiceRef.current = getAudioService();
-      console.log("[MainScreen] AudioService initialized");
     } catch (error) {
       console.error("[MainScreen] Failed to initialize AudioService:", error);
       if (error instanceof AudioError) {
@@ -111,8 +126,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   };
 
   const handleRecord = async () => {
-    console.log("[MainScreen] handleRecord called");
-
     if (!audioServiceRef.current) {
       console.error("[MainScreen] Audio service not initialized");
       Alert.alert("Error", "Audio service not initialized");
@@ -120,33 +133,35 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     }
 
     try {
-      console.log("[MainScreen] Starting recording...");
       setIsLoading(true);
 
       // Detect recording context: first track or subsequent
       const masterLoopDuration = getMasterLoopDuration();
       const isFirstTrackRecording = !hasMasterTrack();
 
-      console.log(`[MainScreen] Recording context: ${isFirstTrackRecording ? "First track (master)" : "Subsequent track (overdub)"}`);
-      console.log(`[MainScreen] Master loop duration: ${masterLoopDuration}ms`);
+      // Convert quality level to bitrate
+      const bitRate = getBitrate(recordingFormat, recordingQuality);
 
       // Start recording with maxDuration for subsequent tracks
       if (!isFirstTrackRecording) {
         const targetDuration = calculateQuantizedDuration(masterLoopDuration);
-        console.log(`[MainScreen] Auto-stop duration set: ${targetDuration}ms`);
 
         await audioServiceRef.current.startRecording({
           maxDuration: targetDuration,
+          format: recordingFormat as import("../../types/audio").AudioFormat,
+          bitRate,
         });
 
         // Set up auto-stop timer as backup
         recordingTimerRef.current = setTimeout(() => {
-          console.log("[MainScreen] Auto-stopping recording at loop boundary");
           handleStop();
         }, targetDuration);
       } else {
         // First track - no auto-stop
-        await audioServiceRef.current.startRecording();
+        await audioServiceRef.current.startRecording({
+          format: recordingFormat as import("../../types/audio").AudioFormat,
+          bitRate,
+        });
       }
 
       setIsRecording(true);
@@ -159,8 +174,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
           setRecordingDuration(duration);
         }
       }, 100); // Update every 100ms for smooth progress
-
-      console.log("[MainScreen] Recording started successfully");
     } catch (error) {
       console.error("[MainScreen] Recording failed:", error);
       if (error instanceof AudioError) {
@@ -199,10 +212,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       const recordingDuration = audioServiceRef.current.getRecordingDuration();
 
-      console.log(
-        `[MainScreen] Recording stopped, duration: ${recordingDuration}ms`,
-      );
-
       // Create new track
       const newTrack: Track = {
         id: `track-${Date.now()}`,
@@ -225,10 +234,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Add track to store
       addTrack(newTrack);
-      console.log(
-        "[MainScreen] Recording stopped and track added:",
-        newTrack.name,
-      );
     } catch (error) {
       console.error("[MainScreen] Stop recording failed:", error);
       if (error instanceof AudioError) {
@@ -249,13 +254,10 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
     try {
       setIsLoading(true);
-      console.log("[MainScreen] Starting file import...");
 
       // Get the file importer for current platform
       const fileImporter = getFileImporter();
       const importedFile = await fileImporter.pickAudioFile();
-
-      console.log("[MainScreen] File imported:", importedFile.name);
 
       // Get audio metadata
       const metadata = await getAudioMetadata(importedFile.uri);
@@ -282,14 +284,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Add track to store
       addTrack(newTrack);
-      console.log("[MainScreen] Imported track added:", newTrack.name);
     } catch (error) {
       console.error("[MainScreen] Import failed:", error);
       if (error instanceof AudioError) {
         Alert.alert("Import Error", error.userMessage);
       } else {
         // User cancelled
-        console.log("[MainScreen] Import cancelled by user");
       }
     } finally {
       setIsLoading(false);
@@ -297,7 +297,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   };
 
   const handleSave = () => {
-    console.log("Save button pressed");
     setSaveModalVisible(true);
   };
 
@@ -314,7 +313,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   };
 
   const handleSettings = () => {
-    navigation.navigate("Settings");
+    router.push("/settings");
   };
 
   const handleSaveModalSave = async (
@@ -334,18 +333,11 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      console.log(
-        `[MainScreen] Starting mix for ${selectedTracks.length} selected tracks...`,
-      );
-      console.log(
-        `[MainScreen] Loop count: ${loopCount}, Fadeout: ${fadeoutDuration}ms`,
-      );
-
       // Get FFmpeg service
-      const ffmpegService = getFFmpegService();
+      const audioExportService = getAudioExportService();
 
       // Ensure FFmpeg is loaded (especially important for web)
-      await ffmpegService.load();
+      await audioExportService.load();
 
       // Prepare tracks for mixing
       const mixTracks = selectedTracks.map((track) => ({
@@ -354,38 +346,41 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         volume: track.volume,
       }));
 
-      // Mix tracks with loop and fadeout options
-      const result = await ffmpegService.mix({
+      // Mix tracks with loop, fadeout, format, and quality options
+      const result = await audioExportService.mix({
         tracks: mixTracks,
         loopCount,
         fadeoutDuration,
+        format: exportFormat,
+        quality: exportQuality,
       });
 
       setIsLoading(false);
-
-      console.log("[MainScreen] Mixing complete");
 
       // Handle the result (Blob for web, URI for native)
       if (typeof result === "string") {
         // Native: result is a file URI
         Alert.alert(
           "Success",
-          `Mixed audio saved successfully!\n\nFile: ${filename}.mp3\n\nLocation: ${result}`,
+          `Mixed audio saved successfully!\n\nFile: ${filename}.${exportFormat}\n\nLocation: ${result}`,
           [{ text: "OK" }],
         );
       } else {
-        // Web: result is a Blob (WAV format from Web Audio API)
+        // Web: result is a Blob with format from settings
         // Create download link
         const url = URL.createObjectURL(result);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `${filename}.wav`;
+        link.download = `${filename}.${exportFormat}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        Alert.alert("Success", `Mixed audio downloaded as ${filename}.wav`);
+        Alert.alert(
+          "Success",
+          `Mixed audio downloaded as ${filename}.${exportFormat} (${exportQuality} quality)`,
+        );
       }
     } catch (error) {
       setIsLoading(false);
@@ -413,7 +408,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     // Check if track is already playing
     const track = tracks.find((t) => t.id === trackId);
     if (track?.isPlaying) {
-      console.log(`[MainScreen] Track ${trackId} is already playing, ignoring`);
       return;
     }
 
@@ -422,8 +416,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Update track state in store
       updateTrack(trackId, { isPlaying: true });
-
-      console.log(`[MainScreen] Playing track: ${trackId}`);
     } catch (error) {
       console.error("[MainScreen] Play failed:", error);
       if (error instanceof AudioError) {
@@ -442,8 +434,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Update track state in store
       updateTrack(trackId, { isPlaying: false });
-
-      console.log(`[MainScreen] Paused track: ${trackId}`);
     } catch (error) {
       console.error("[MainScreen] Pause failed:", error);
       if (error instanceof AudioError) {
@@ -477,13 +467,28 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     }
 
     try {
-      // Unload and delete track
-      await audioServiceRef.current.unloadTrack(trackId);
+      // Check if this is the master track (first track)
+      const isMaster = tracks.length > 0 && tracks[0].id === trackId;
+
+      if (isMaster) {
+        // If deleting master track, unload ALL tracks since store will clear all
+        for (const track of tracks) {
+          try {
+            await audioServiceRef.current.unloadTrack(track.id);
+          } catch (error) {
+            console.error(
+              `[MainScreen] Failed to unload track ${track.id}:`,
+              error,
+            );
+          }
+        }
+      } else {
+        // Otherwise, just unload this specific track
+        await audioServiceRef.current.unloadTrack(trackId);
+      }
 
       // Remove track from store (store handles master track deletion logic)
       removeTrack(trackId);
-
-      console.log(`[MainScreen] Deleted track: ${trackId}`);
     } catch (error) {
       console.error("[MainScreen] Delete failed:", error);
       if (error instanceof AudioError) {
@@ -515,10 +520,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Update track state in store
       updateTrack(trackId, { volume });
-
-      console.log(
-        `[MainScreen] Volume changed for track ${trackId}: ${volume}`,
-      );
     } catch (error) {
       console.error("[MainScreen] Volume change failed:", error);
     }
@@ -554,8 +555,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
 
       // Update track state in store
       updateTrack(trackId, { speed });
-
-      console.log(`[MainScreen] Speed changed for track ${trackId}: ${speed}`);
     } catch (error) {
       console.error("[MainScreen] Speed change failed:", error);
     }
@@ -579,7 +578,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
     if (track) {
       // Toggle selection in store
       updateTrack(trackId, { selected: !track.selected });
-      console.log(`[MainScreen] Toggled selection for track ${trackId}`);
     }
   };
 
@@ -591,7 +589,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
           style={styles.topControls}
           elevation={0}
           accessibilityRole="toolbar"
-          accessibilityLabel="Recording controls"
+          accessibilityLabel="Main controls"
         >
           <ActionButton
             label={
@@ -624,24 +622,59 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
             disabled={!isRecording || isLoading}
             accessibilityHint="Stop recording and save track"
           />
-          <LoopModeToggle />
-          <IconButton
-            icon="cog"
-            size={32}
-            iconColor="#FFFFFF"
-            onPress={handleSettings}
-            testID="settings-button"
-            accessibilityLabel="Settings"
-            accessibilityHint="Open settings screen"
+          <ActionButton
+            label="Import"
+            icon="file-music"
+            onPress={handleImport}
+            disabled={isLoading}
+            accessibilityHint="Import an audio file from device storage"
           />
-          <IconButton
-            icon="help-circle"
-            size={32}
-            iconColor="#FFFFFF"
-            onPress={handleHelp}
-            accessibilityLabel="Help"
-            accessibilityHint="Show help information"
+          <ActionButton
+            label="Save"
+            icon="content-save"
+            onPress={handleSave}
+            disabled={tracks.length === 0 || isLoading}
+            accessibilityHint="Mix and save all tracks to a single audio file"
           />
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
+                size={32}
+                iconColor="#FFFFFF"
+                onPress={() => setMenuVisible(true)}
+                accessibilityLabel="More options"
+                accessibilityHint="Open menu for loop mode, settings, and help"
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                toggleLoopMode();
+                setMenuVisible(false);
+              }}
+              title={loopMode ? "Loop Mode: On" : "Loop Mode: Off"}
+              leadingIcon={loopMode ? "repeat" : "repeat-off"}
+            />
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                handleSettings();
+              }}
+              title="Settings"
+              leadingIcon="cog"
+            />
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                handleHelp();
+              }}
+              title="Help"
+              leadingIcon="help-circle"
+            />
+          </Menu>
         </Surface>
 
         {/* Recording Progress Indicator */}
@@ -665,29 +698,6 @@ export const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
             onSelect={handleSelect}
           />
         </View>
-
-        {/* Bottom Controls */}
-        <Surface
-          style={styles.bottomControls}
-          elevation={0}
-          accessibilityRole="toolbar"
-          accessibilityLabel="File controls"
-        >
-          <ActionButton
-            label="Import Audio"
-            icon="file-music"
-            onPress={handleImport}
-            disabled={isLoading}
-            accessibilityHint="Import an audio file from device storage"
-          />
-          <ActionButton
-            label="Save"
-            icon="content-save"
-            onPress={handleSave}
-            disabled={tracks.length === 0 || isLoading}
-            accessibilityHint="Mix and save all tracks to a single audio file"
-          />
-        </Surface>
 
         {/* Save Modal */}
         <SaveModal

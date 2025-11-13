@@ -20,17 +20,19 @@ jest.mock("../../../src/store/useSettingsStore", () => ({
 jest.mock("../../../src/store/useTrackStore", () => ({
   useTrackStore: jest.fn((selector) => {
     const state = {
-      tracks: [{
-        id: "track-1",
-        name: "Test Track",
-        uri: "file://test.wav",
-        duration: 10000,
-        speed: 1.0,
-        volume: 100,
-        isPlaying: false,
-        selected: true,
-        createdAt: Date.now(),
-      }],
+      tracks: [
+        {
+          id: "track-1",
+          name: "Test Track",
+          uri: "file://test.wav",
+          duration: 10000,
+          speed: 1.0,
+          volume: 100,
+          isPlaying: false,
+          selected: true,
+          createdAt: Date.now(),
+        },
+      ],
     };
     return selector ? selector(state) : state;
   }),
@@ -43,11 +45,7 @@ const renderWithProvider = (component: React.ReactElement) => {
 describe("SaveModal", () => {
   it("renders when visible is true", () => {
     const { getByText } = renderWithProvider(
-      <SaveModal
-        visible={true}
-        onDismiss={() => {}}
-        onSave={() => {}}
-      />,
+      <SaveModal visible={true} onDismiss={() => {}} onSave={() => {}} />,
     );
     expect(getByText("Cancel")).toBeTruthy();
     expect(getByText("Export")).toBeTruthy();

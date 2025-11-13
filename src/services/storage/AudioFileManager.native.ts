@@ -319,7 +319,7 @@ export class NativeAudioFileManager extends AudioFileManager {
     try {
       totalSpace = Paths.totalDiskSpace;
       availableSpace = Paths.availableDiskSpace;
-    } catch (error) {
+    } catch {
       console.warn("[NativeAudioFileManager] Could not get disk space info");
     }
 

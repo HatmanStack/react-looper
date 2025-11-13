@@ -20,8 +20,6 @@ describe("Playback Store - Settings Integration", () => {
 
     // Create new playback store state (simulating app restart)
     // Note: In actual implementation, this would be the initial store creation
-    const playbackState = usePlaybackStore.getState();
-
     // Verify loop mode matches settings (may need to reset to pick up new default)
     usePlaybackStore.getState().reset();
     expect(usePlaybackStore.getState().loopMode).toBe(false);

@@ -76,10 +76,13 @@ export class WebAudioMixer extends BaseAudioMixer {
       masterGain.connect(offlineContext.destination);
 
       // Read crossfade duration from settings
-      const crossfadeDurationMs = useSettingsStore.getState().loopCrossfadeDuration;
+      const crossfadeDurationMs =
+        useSettingsStore.getState().loopCrossfadeDuration;
       const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
 
-      logger.log(`[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`);
+      logger.log(
+        `[WebAudioMixer] Crossfade duration: ${crossfadeDurationMs}ms`,
+      );
 
       // Create and connect source nodes for each track
       for (let i = 0; i < tracks.length; i++) {
@@ -96,12 +99,18 @@ export class WebAudioMixer extends BaseAudioMixer {
         gainNode.connect(masterGain);
 
         // Apply crossfade at loop boundaries if enabled and track needs to loop
-        const needsLooping = loopCount > 1 || trackDuration < masterLoopDuration * loopCount;
-        const canCrossfade = crossfadeDuration > 0 && needsLooping && trackDuration > crossfadeDuration * 2;
+        const needsLooping =
+          loopCount > 1 || trackDuration < masterLoopDuration * loopCount;
+        const canCrossfade =
+          crossfadeDuration > 0 &&
+          needsLooping &&
+          trackDuration > crossfadeDuration * 2;
 
         if (canCrossfade) {
           // Manual looping with crossfade
-          const repetitionsNeeded = Math.ceil((masterLoopDuration * loopCount) / trackDuration);
+          const repetitionsNeeded = Math.ceil(
+            (masterLoopDuration * loopCount) / trackDuration,
+          );
 
           for (let rep = 0; rep < repetitionsNeeded; rep++) {
             const startTime = rep * trackDuration;
@@ -118,20 +127,30 @@ export class WebAudioMixer extends BaseAudioMixer {
             fadeGain.connect(gainNode);
 
             // Calculate actual play duration (may be shorter for last rep)
-            const playDuration = Math.min(trackDuration, totalDuration - startTime);
+            const playDuration = Math.min(
+              trackDuration,
+              totalDuration - startTime,
+            );
 
             // Apply fade-in at start of each rep (except first)
             if (rep > 0 && crossfadeDuration < playDuration) {
               fadeGain.gain.setValueAtTime(0.0, startTime);
-              fadeGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeDuration);
+              fadeGain.gain.linearRampToValueAtTime(
+                1.0,
+                startTime + crossfadeDuration,
+              );
             } else {
               fadeGain.gain.setValueAtTime(1.0, startTime);
             }
 
             // Apply fade-out at end of each rep (except last)
             const nextRepStartTime = startTime + trackDuration;
-            if (nextRepStartTime < totalDuration && crossfadeDuration < playDuration) {
-              const fadeOutStart = startTime + trackDuration - crossfadeDuration;
+            if (
+              nextRepStartTime < totalDuration &&
+              crossfadeDuration < playDuration
+            ) {
+              const fadeOutStart =
+                startTime + trackDuration - crossfadeDuration;
               fadeGain.gain.setValueAtTime(1.0, fadeOutStart);
               fadeGain.gain.linearRampToValueAtTime(0.0, nextRepStartTime);
             }

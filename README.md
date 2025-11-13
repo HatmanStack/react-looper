@@ -31,6 +31,29 @@ A cross-platform audio mixing application that lets you record, import, and mix 
 * 💾 **High-Quality Export** - Mix and export your creation as a high-quality MP3.
 * 🌐 **Cross-Platform** - Runs on Web, Android, and iOS from a single TypeScript codebase.
 * 📴 **Works Offline** - All processing, including FFmpeg mixing, happens locally.
+* 🎛️ **Configurable Quality** - Customize recording and export quality (low/medium/high) and format (MP3/WAV/M4A).
+
+---
+
+## 🔧 Recent Improvements
+
+### Export Functionality (v1.1.0)
+- **Fixed MP3/WAV Export**: Completely rewrote `convertToMP3()` to use official lamejs API
+  - Now uses `lamejs.WavHeader.readHeader()` for reliable WAV parsing
+  - Switched from `number[]` arrays to `Int16Array.subarray()` for proper audio data handling
+  - Eliminated type conversion errors that caused corrupted audio files
+  - Added diagnostic logging for troubleshooting export issues
+
+### Recording Settings Integration
+- **Wired Up Recording Quality**: Recording format and quality settings now actually affect recordings
+  - Format setting controls output file type (MP3/WAV/M4A)
+  - Quality setting controls bitrate: High (192kbps), Medium (128kbps), Low (96kbps)
+  - Settings are automatically applied when recording starts
+  - Uses `getBitrate()` utility to convert quality levels to platform-specific bitrates
+
+### Code Quality
+- Fixed 43 ESLint errors (replaced `any` with `unknown`, removed unused variables, converted `require()` to dynamic imports)
+- All changes maintain 0 TypeScript/ESLint errors (198 intentional console.log warnings)
 
 ---
 
@@ -39,8 +62,9 @@ A cross-platform audio mixing application that lets you record, import, and mix 
 * **Core:** React Native, Expo, TypeScript
 * **State Management:** Zustand
 * **UI:** React Native Paper (Material Design 3)
-* **Audio Processing:** FFmpeg (`@ffmpeg/ffmpeg` for Web, `ffmpeg-kit-react-native` for Mobile)
+* **Audio Processing:** Web Audio API, lamejs (MP3 encoding)
 * **Audio Playback:** `expo-av` (Native), Web Audio API
+* **Format Conversion:** lamejs for browser-based MP3 encoding
 * **Testing:** Jest & React Native Testing Library
 
 ---

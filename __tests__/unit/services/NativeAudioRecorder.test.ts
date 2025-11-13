@@ -212,7 +212,7 @@ describe("NativeAudioRecorder", () => {
       // Verify setTimeout was called with correct duration
       expect(setTimeoutSpy).toHaveBeenCalledWith(
         expect.any(Function),
-        maxDuration
+        maxDuration,
       );
 
       setTimeoutSpy.mockRestore();
@@ -268,7 +268,7 @@ describe("NativeAudioRecorder", () => {
     it("should accept maxDuration of zero without error", async () => {
       // Should not throw with zero maxDuration (treated as disabled)
       await expect(
-        recorder.startRecording({ maxDuration: 0 })
+        recorder.startRecording({ maxDuration: 0 }),
       ).resolves.not.toThrow();
 
       expect(recorder.isRecording()).toBe(true);
@@ -279,7 +279,7 @@ describe("NativeAudioRecorder", () => {
 
       // Should not throw with very short duration
       await expect(
-        recorder.startRecording({ maxDuration })
+        recorder.startRecording({ maxDuration }),
       ).resolves.not.toThrow();
 
       expect(recorder.isRecording()).toBe(true);

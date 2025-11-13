@@ -17,8 +17,7 @@ import {
   Appbar,
   List,
 } from "react-native-paper";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../../App";
+import { useRouter } from "expo-router";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
@@ -27,15 +26,11 @@ import type { AudioFormat, QualityLevel } from "../../store/useSettingsStore";
 import { styles } from "./SettingsScreen.styles";
 
 // Import version from package.json
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJson = require("../../../package.json");
 
-interface SettingsScreenProps {
-  navigation: NativeStackNavigationProp<RootStackParamList, "Settings">;
-}
-
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({
-  navigation,
-}) => {
+export const SettingsScreen: React.FC = () => {
+  const router = useRouter();
   // Settings state from store
   const {
     loopCrossfadeDuration,
@@ -59,7 +54,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // Handle back navigation
   const handleBack = () => {
-    navigation.goBack();
+    router.back();
   };
 
   // Handle reset confirmation
@@ -398,11 +393,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           >
             <Text style={styles.helpText}>
               Loop Mode controls how tracks play during preview:
-              {"\n\n"}
-              • ON: Tracks loop continuously during playback (matches export
-              behavior)
-              {"\n"}
-              • OFF: Tracks play once then stop (inspection mode)
+              {"\n\n"}• ON: Tracks loop continuously during playback (matches
+              export behavior)
+              {"\n"}• OFF: Tracks play once then stop (inspection mode)
               {"\n\n"}
               You can toggle this anytime using the loop button on the main
               screen.

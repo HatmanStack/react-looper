@@ -21,9 +21,13 @@ export const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   masterTrackContainer: {
-    borderWidth: 3,
-    borderColor: "#3F51B5", // Primary color
+    borderWidth: 5, // Thicker border for master track
+    borderColor: "#3F51B5", // Primary color (blue)
     backgroundColor: "rgba(63, 81, 181, 0.1)", // Subtle primary tint
+  },
+  selectedTrackContainer: {
+    borderWidth: 2, // Thinner border for selected tracks
+    borderColor: "#3F51B5", // Blue highlight for selected tracks (same as master)
   },
   trackName: {
     color: "#E1E1E1",

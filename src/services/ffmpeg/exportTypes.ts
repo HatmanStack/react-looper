@@ -1,6 +1,13 @@
 /**
- * Shared types for FFmpeg Service (all platforms)
+ * Shared types for Audio Export Service (all platforms)
+ *
+ * Platform implementations:
+ * - Web: Uses Web Audio API + lamejs for mixing and MP3 encoding
+ * - Native: Uses FFmpeg via ffmpeg-kit-react-native
  */
+
+export type AudioFormat = "mp3" | "wav" | "m4a";
+export type QualityLevel = "low" | "medium" | "high";
 
 export interface MixingProgress {
   ratio: number; // 0-1
@@ -30,21 +37,33 @@ export interface MixOptions {
    * Default: 0 (no fadeout)
    */
   fadeoutDuration?: number;
+
+  /**
+   * Output audio format
+   * Default: "wav"
+   */
+  format?: AudioFormat;
+
+  /**
+   * Output quality level
+   * Default: "high"
+   */
+  quality?: QualityLevel;
 }
 
-export interface IFFmpegService {
+export interface IAudioExportService {
   /**
-   * Load FFmpeg (may be async for web WASM loading)
+   * Load/initialize the service (may be async for platform-specific setup)
    */
   load(onProgress?: (ratio: number) => void): Promise<void>;
 
   /**
-   * Check if FFmpeg is ready to use
+   * Check if the service is ready to use
    */
   isReady(): boolean;
 
   /**
-   * Mix multiple audio tracks
+   * Mix multiple audio tracks and export to specified format
    * @returns Blob (web) or file URI (native)
    */
   mix(options: MixOptions): Promise<Blob | string>;

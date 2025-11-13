@@ -155,16 +155,12 @@ describe("TrackListItem", () => {
       const styles = Array.isArray(container.props.style)
         ? container.props.style
         : [container.props.style];
-      const hasMasterBorder = styles.some(
-        (style) => style?.borderWidth === 3,
-      );
+      const hasMasterBorder = styles.some((style) => style?.borderWidth === 3);
       expect(hasMasterBorder).toBe(false);
     });
 
     it("includes accessibility label for master track", () => {
-      const tracks = [
-        createMockTrack({ id: "track-1", name: "Master Track" }),
-      ];
+      const tracks = [createMockTrack({ id: "track-1", name: "Master Track" })];
       useTrackStore.setState({ tracks });
 
       const { getByLabelText } = render(<TrackListItem track={tracks[0]} />);

@@ -169,7 +169,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.stop();
       this.sourceNode.disconnect();
       this.sourceNode = null;
-    } catch (error) {
+    } catch {
       // Ignore if already stopped
     }
 
@@ -318,7 +318,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       try {
         this.sourceNode.stop();
         this.sourceNode.disconnect();
-      } catch (e) {
+      } catch {
         // Ignore if already stopped
       }
       this.sourceNode = null;

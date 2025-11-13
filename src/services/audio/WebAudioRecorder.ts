@@ -74,7 +74,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
           `[WebAudioRecorder] Auto-stop timer set for ${options.maxDuration}ms`,
         );
         this.autoStopTimer = setTimeout(() => {
-          logger.log("[WebAudioRecorder] Auto-stopping recording at maxDuration");
+          logger.log(
+            "[WebAudioRecorder] Auto-stopping recording at maxDuration",
+          );
           this.stopRecording().catch((error) => {
             logger.error("[WebAudioRecorder] Auto-stop failed:", error);
           });
@@ -220,9 +222,10 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Try permissions API first (not supported in all browsers)
       if ("permissions" in navigator) {
         try {
+          // @ts-expect-error - microphone permission is not in TypeScript's PermissionName type yet
           const result = await navigator.permissions.query({
             name: "microphone",
-          } as any);
+          });
 
           if (result.state === "granted") {
             return true;

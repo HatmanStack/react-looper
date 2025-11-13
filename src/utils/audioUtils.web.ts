@@ -7,16 +7,8 @@
 import { AudioError } from "../services/audio/AudioError";
 import { AudioErrorCode } from "../types/audio";
 
-// Re-export utility functions from base file (avoiding circular dependency)
-export {
-  getFileExtension,
-  generateUniqueFilename,
-  sanitizeFilename,
-  formatDuration,
-  formatFileSize,
-  isBlobUrl,
-  isFileUri,
-} from "./audioUtils";
+// Re-export shared utility functions (avoiding circular dependency with platform resolution)
+export * from "./audioUtils.shared";
 
 export interface AudioMetadata {
   duration: number; // in milliseconds
@@ -80,7 +72,7 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
   try {
     await getAudioMetadata(uri);
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 }

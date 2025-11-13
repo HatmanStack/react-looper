@@ -38,15 +38,6 @@ export const styles = StyleSheet.create({
     backgroundColor: "transparent",
     gap: isLargeScreen ? 16 : 8,
   },
-  bottomControls: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("sm"),
-    paddingVertical: getSpacing("md"),
-    backgroundColor: "transparent",
-    gap: isLargeScreen ? 16 : 8,
-  },
   trackListContainer: {
     flex: 1,
     backgroundColor: "#423939", // Match Android app background

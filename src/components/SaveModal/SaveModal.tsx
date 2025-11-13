@@ -83,10 +83,13 @@ export const SaveModal: React.FC<SaveModalProps> = ({
       // Set loop count preset or custom
       const loopCountStr = String(defaultLoopCount);
       if (["1", "2", "4", "8"].includes(loopCountStr)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoopCountPreset(loopCountStr);
+
         setCustomLoopCount("");
       } else {
         setLoopCountPreset("custom");
+
         setCustomLoopCount(loopCountStr);
       }
 

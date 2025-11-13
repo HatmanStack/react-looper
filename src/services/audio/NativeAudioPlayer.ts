@@ -25,7 +25,10 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
   /**
    * Load audio file from URI
    */
-  protected async _load(uri: string, options?: PlaybackOptions): Promise<void> {
+  protected async _load(
+    uri: string,
+    _options?: PlaybackOptions,
+  ): Promise<void> {
     try {
       console.log(`[NativeAudioPlayer] Loading audio from ${uri}`);
 
