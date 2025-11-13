@@ -169,8 +169,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.stop();
       this.sourceNode.disconnect();
       this.sourceNode = null;
-    } catch {
-      // Ignore if already stopped
+    } catch (error) {
+      // Ignore errors if already stopped
+      console.warn("[WebAudioPlayer] Stop error:", error);
     }
 
     // Reset position

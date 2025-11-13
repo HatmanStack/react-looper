@@ -72,7 +72,8 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
   try {
     await getAudioMetadata(uri);
     return true;
-  } catch {
+  } catch (error) {
+    console.debug("[audioUtils.web] Audio validation failed:", error);
     return false;
   }
 }

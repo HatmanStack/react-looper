@@ -7,10 +7,26 @@
 
 /**
  * Extract file extension from URI
+ * Handles query parameters and fragments correctly (e.g., "file.mp3?token=abc" → "mp3")
  */
 export function getFileExtension(uri: string): string {
-  const parts = uri.split(".");
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : "";
+  if (!uri) return "";
+
+  // Strip query parameters and fragments
+  const cleanUri = uri.split("?")[0].split("#")[0];
+
+  // Extract filename from path (handle both / and \ separators)
+  const pathParts = cleanUri.split(/[/\\]/);
+  const filename = pathParts[pathParts.length - 1];
+
+  // Handle filenames starting with dot (e.g., ".gitignore")
+  if (filename.startsWith(".") && !filename.includes(".", 1)) {
+    return "";
+  }
+
+  // Extract extension
+  const dotIndex = filename.lastIndexOf(".");
+  return dotIndex > 0 ? filename.substring(dotIndex + 1).toLowerCase() : "";
 }
 
 /**
