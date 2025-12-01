@@ -142,7 +142,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
       // Stop position updates
       this.stopPositionUpdateTimer();
-    } catch (error) {
+    } catch {
       // Ignore errors if already stopped
     }
   }
@@ -159,7 +159,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.stop();
       this.sourceNode.disconnect();
       this.sourceNode = null;
-    } catch (error) {
+    } catch {
       // Ignore errors if already stopped
     }
 

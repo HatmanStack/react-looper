@@ -16,5 +16,11 @@
       "@constants/*": ["src/constants/*"],
       "@theme/*": ["src/theme/*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "e2e",
+    "**/__tests__",
+    "config/playwright.config.ts"
+  ]
 }

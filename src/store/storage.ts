@@ -3,10 +3,11 @@
  *
  * Provides a unified interface for storage across web and native platforms.
  * - Web: Uses localStorage
- * - Native: Uses AsyncStorage (when installed)
+ * - Native: Uses AsyncStorage from @react-native-async-storage/async-storage
  */
 
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logger } from "../utils/logger";
 
 // Define StateStorage interface locally to avoid importing zustand/middleware
@@ -55,66 +56,33 @@ export function createStorage(): StateStorage {
   }
 
   // Native platform: use AsyncStorage
-  // Note: AsyncStorage should be installed separately
-  // For now, we'll provide a fallback in-memory storage for testing
-  try {
-    // Try to load AsyncStorage
-    // Dynamic import to avoid bundler issues when AsyncStorage is not available
-    const AsyncStorageModule = await import(
-      "@react-native-async-storage/async-storage"
-    );
-    const AsyncStorage = AsyncStorageModule.default;
-
-    return {
-      getItem: async (name: string): Promise<string | null> => {
-        try {
-          return await AsyncStorage.getItem(name);
-        } catch (error) {
-          logger.error(
-            "[Storage] Failed to get item from AsyncStorage:",
-            error,
-          );
-          return null;
-        }
-      },
-      setItem: async (name: string, value: string): Promise<void> => {
-        try {
-          await AsyncStorage.setItem(name, value);
-        } catch (error) {
-          logger.error("[Storage] Failed to set item in AsyncStorage:", error);
-        }
-      },
-      removeItem: async (name: string): Promise<void> => {
-        try {
-          await AsyncStorage.removeItem(name);
-        } catch (error) {
-          logger.error(
-            "[Storage] Failed to remove item from AsyncStorage:",
-            error,
-          );
-        }
-      },
-    };
-  } catch {
-    // AsyncStorage not available - use in-memory storage as fallback
-    logger.warn(
-      "[Storage] AsyncStorage not available, using in-memory storage",
-    );
-
-    const memoryStorage: Record<string, string> = {};
-
-    return {
-      getItem: async (name: string): Promise<string | null> => {
-        return memoryStorage[name] || null;
-      },
-      setItem: async (name: string, value: string): Promise<void> => {
-        memoryStorage[name] = value;
-      },
-      removeItem: async (name: string): Promise<void> => {
-        delete memoryStorage[name];
-      },
-    };
-  }
+  return {
+    getItem: async (name: string): Promise<string | null> => {
+      try {
+        return await AsyncStorage.getItem(name);
+      } catch (error) {
+        logger.error("[Storage] Failed to get item from AsyncStorage:", error);
+        return null;
+      }
+    },
+    setItem: async (name: string, value: string): Promise<void> => {
+      try {
+        await AsyncStorage.setItem(name, value);
+      } catch (error) {
+        logger.error("[Storage] Failed to set item in AsyncStorage:", error);
+      }
+    },
+    removeItem: async (name: string): Promise<void> => {
+      try {
+        await AsyncStorage.removeItem(name);
+      } catch (error) {
+        logger.error(
+          "[Storage] Failed to remove item from AsyncStorage:",
+          error,
+        );
+      }
+    },
+  };
 }
 
 /**

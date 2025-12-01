@@ -10,8 +10,9 @@ import {
   FFmpegKitConfig,
   ReturnCode,
   Statistics,
+  StatisticsCallback,
 } from "ffmpeg-kit-react-native";
-import * as FileSystem from "expo-file-system";
+import { Paths, File } from "expo-file-system";
 import { AudioError } from "../audio/AudioError";
 import { AudioErrorCode } from "../../types/audio";
 import type { MixOptions, IAudioExportService } from "./exportTypes";
@@ -60,11 +61,9 @@ export class FFmpegService implements IAudioExportService {
     this.log(`Mixing ${tracks.length} tracks...`);
 
     try {
-      // Prepare output path
-      const cacheDir =
-        (FileSystem.cacheDirectory as string | null) ||
-        FileSystem.documentDirectory;
-      const outputPath = `${cacheDir}mixed_${Date.now()}.mp3`;
+      // Prepare output path using expo-file-system Paths API
+      const outputFile = new File(Paths.cache, `mixed_${Date.now()}.mp3`);
+      const outputPath = outputFile.uri;
 
       // Convert file URIs to absolute paths
       const inputPaths = await Promise.all(
@@ -134,8 +133,7 @@ export class FFmpegService implements IAudioExportService {
       }
 
       // Verify output file exists
-      const fileInfo = await FileSystem.getInfoAsync(outputPath);
-      if (!fileInfo.exists) {
+      if (!outputFile.exists) {
         throw new AudioError(
           AudioErrorCode.MIXING_FAILED,
           "Output file was not created",
@@ -159,7 +157,9 @@ export class FFmpegService implements IAudioExportService {
       );
     } finally {
       // Clean up statistics callback
-      FFmpegKitConfig.enableStatisticsCallback(null);
+      FFmpegKitConfig.enableStatisticsCallback(
+        undefined as unknown as StatisticsCallback,
+      );
     }
   }
 

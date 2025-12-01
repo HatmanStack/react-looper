@@ -114,32 +114,30 @@ export function migration_v2_removeSelected(state: unknown): TrackStoreState {
   }
 
   // Process each track: remove 'selected' and validate
-  const migratedTracks = stateObj.tracks
-    .map((track: unknown) => {
-      if (!track || typeof track !== "object") {
-        return null;
-      }
+  const migratedTracks: Track[] = [];
 
-      // Destructure to remove 'selected' property
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { selected, ...trackWithoutSelected } = track as Record<
-        string,
-        unknown
-      > & { selected?: unknown };
+  for (const track of stateObj.tracks) {
+    if (!track || typeof track !== "object") {
+      continue;
+    }
 
-      return trackWithoutSelected;
-    })
-    .filter((track: unknown): track is Track => {
-      // Filter out null entries and validate required fields
-      const trackObj = track as Record<string, unknown>;
-      return (
-        track !== null &&
-        typeof trackObj.id === "string" &&
-        typeof trackObj.uri === "string" &&
-        typeof trackObj.speed === "number" &&
-        typeof trackObj.volume === "number"
-      );
-    });
+    // Destructure to remove 'selected' property
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { selected, ...trackWithoutSelected } = track as Record<
+      string,
+      unknown
+    > & { selected?: unknown };
+
+    // Validate required fields
+    if (
+      typeof trackWithoutSelected.id === "string" &&
+      typeof trackWithoutSelected.uri === "string" &&
+      typeof trackWithoutSelected.speed === "number" &&
+      typeof trackWithoutSelected.volume === "number"
+    ) {
+      migratedTracks.push(trackWithoutSelected as unknown as Track);
+    }
+  }
 
   return {
     tracks: migratedTracks,

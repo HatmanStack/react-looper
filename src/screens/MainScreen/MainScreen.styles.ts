@@ -39,7 +39,7 @@ export const getStyles = (responsive: {
     // Use inline style for dynamic maxWidth to avoid StyleSheet caching
     container: [
       staticStyles.containerBase,
-      { maxWidth: isLargeScreen ? maxContentWidth : undefined }
+      { maxWidth: isLargeScreen ? maxContentWidth : undefined },
     ],
     topControls: {
       flexDirection: "row" as const,
@@ -53,7 +53,7 @@ export const getStyles = (responsive: {
     },
     trackListContainer: [
       staticStyles.trackListContainerBase,
-      { paddingHorizontal: isLargeScreen ? getSpacing("md") : 0 }
+      { paddingHorizontal: isLargeScreen ? getSpacing("md") : 0 },
     ],
   };
 };

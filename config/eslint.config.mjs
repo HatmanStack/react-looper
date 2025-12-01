@@ -116,11 +116,12 @@ export default [
   },
   // Jest config files
   {
-    files: ['jest.setup.js', 'jest.env-setup.js', 'jest.config.js'],
+    files: ['config/jest.setup.js', 'config/jest.env-setup.js', 'config/jest.config.js'],
     languageOptions: {
       globals: {
         ...globals.jest,
         ...globals.node,
+        module: 'writable',
       },
     },
   },
