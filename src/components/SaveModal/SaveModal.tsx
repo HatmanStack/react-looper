@@ -283,7 +283,6 @@ export const SaveModal: React.FC<SaveModalProps> = ({
                 onValueChange={setLoopCountPreset}
                 buttons={LOOP_COUNT_PRESETS}
                 density="small"
-                testID="loop-count-selector"
               />
               {loopCountPreset === "custom" && (
                 <TextInput
@@ -311,7 +310,6 @@ export const SaveModal: React.FC<SaveModalProps> = ({
                 onValueChange={setFadeoutPreset}
                 buttons={FADEOUT_PRESETS}
                 density="small"
-                testID="fadeout-selector"
               />
               {fadeoutPreset === "custom" && (
                 <TextInput

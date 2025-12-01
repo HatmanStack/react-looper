@@ -24,26 +24,26 @@ describe("App", () => {
   });
 
   it("renders without crashing", () => {
-    const { getByText } = render(<App />);
-    expect(getByText("Record")).toBeTruthy();
+    const { getByLabelText } = render(<App />);
+    expect(getByLabelText("Record first loop track")).toBeTruthy();
   });
 
   it("renders top control buttons", () => {
-    const { getByText } = render(<App />);
-    expect(getByText("Record")).toBeTruthy();
-    expect(getByText("Stop")).toBeTruthy();
+    const { getByLabelText } = render(<App />);
+    expect(getByLabelText("Record first loop track")).toBeTruthy();
+    expect(getByLabelText("Stop")).toBeTruthy();
   });
 
   it("renders bottom control buttons", () => {
-    const { getByText } = render(<App />);
-    expect(getByText("Import Audio")).toBeTruthy();
-    expect(getByText("Save")).toBeTruthy();
+    const { getByLabelText } = render(<App />);
+    expect(getByLabelText("Import")).toBeTruthy();
+    expect(getByLabelText("Save")).toBeTruthy();
   });
 
   it("renders MainScreen component", () => {
-    const { getByText } = render(<App />);
+    const { getByLabelText } = render(<App />);
     // Verify core UI elements are present
-    expect(getByText("Record")).toBeTruthy();
-    expect(getByText("Import Audio")).toBeTruthy();
+    expect(getByLabelText("Record first loop track")).toBeTruthy();
+    expect(getByLabelText("Import")).toBeTruthy();
   });
 });

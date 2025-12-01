@@ -17,6 +17,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run typecheck && npm run test",
     "eas:build:dev": "eas build --profile development",
     "eas:build:preview": "eas build --profile preview",
     "eas:build:prod": "eas build --profile production",

@@ -11,84 +11,109 @@ jest.mock('expo-status-bar', () => ({
 }));
 
 // Mock expo-av
-jest.mock('expo-av', () => ({
-  Audio: {
-    setAudioModeAsync: jest.fn(() => Promise.resolve()),
-    requestPermissionsAsync: jest.fn(() =>
+jest.mock('expo-av', () => {
+  const mockRecording = {
+    prepareToRecordAsync: jest.fn(() => Promise.resolve()),
+    startAsync: jest.fn(() => Promise.resolve()),
+    stopAndUnloadAsync: jest.fn(() =>
+      Promise.resolve({ uri: 'file:///mock/recording.m4a', durationMillis: 5000 })
+    ),
+    getStatusAsync: jest.fn(() =>
       Promise.resolve({
-        status: 'granted',
-        canAskAgain: true,
-        granted: true,
-        expires: 'never',
+        isRecording: false,
+        isDoneRecording: true,
+        durationMillis: 5000,
       })
     ),
-    getPermissionsAsync: jest.fn(() =>
-      Promise.resolve({
-        status: 'granted',
-        canAskAgain: true,
-        granted: true,
-        expires: 'never',
-      })
-    ),
-    Recording: jest.fn(() => ({
-      prepareToRecordAsync: jest.fn(() => Promise.resolve()),
-      startAsync: jest.fn(() => Promise.resolve()),
-      stopAndUnloadAsync: jest.fn(() =>
-        Promise.resolve({ uri: 'file:///mock/recording.m4a', durationMillis: 5000 })
-      ),
-      getStatusAsync: jest.fn(() =>
+    getURI: jest.fn(() => 'file:///mock/recording.m4a'),
+  };
+
+  return {
+    Audio: {
+      setAudioModeAsync: jest.fn(() => Promise.resolve()),
+      requestPermissionsAsync: jest.fn(() =>
         Promise.resolve({
-          isRecording: false,
-          isDoneRecording: true,
-          durationMillis: 5000,
+          status: 'granted',
+          canAskAgain: true,
+          granted: true,
+          expires: 'never',
         })
       ),
-    })),
-    Sound: {
-      createAsync: jest.fn(() =>
+      getPermissionsAsync: jest.fn(() =>
         Promise.resolve({
-          sound: {
-            getStatusAsync: jest.fn(() =>
-              Promise.resolve({
-                isLoaded: true,
-                durationMillis: 120000,
-                positionMillis: 0,
-                isPlaying: false,
-                didJustFinish: false,
-                isLooping: true,
-              })
-            ),
-            unloadAsync: jest.fn(() => Promise.resolve()),
-            playAsync: jest.fn(() => Promise.resolve()),
-            pauseAsync: jest.fn(() => Promise.resolve()),
-            stopAsync: jest.fn(() => Promise.resolve()),
-            setPositionAsync: jest.fn(() => Promise.resolve()),
-            setRateAsync: jest.fn(() => Promise.resolve()),
-            setVolumeAsync: jest.fn(() => Promise.resolve()),
-            setIsLoopingAsync: jest.fn(() => Promise.resolve()),
-            setOnPlaybackStatusUpdate: jest.fn(),
-          },
+          status: 'granted',
+          canAskAgain: true,
+          granted: true,
+          expires: 'never',
         })
       ),
+      Recording: jest.fn(() => mockRecording),
+      Sound: {
+        createAsync: jest.fn(() =>
+          Promise.resolve({
+            sound: {
+              getStatusAsync: jest.fn(() =>
+                Promise.resolve({
+                  isLoaded: true,
+                  durationMillis: 120000,
+                  positionMillis: 0,
+                  isPlaying: false,
+                  didJustFinish: false,
+                  isLooping: true,
+                })
+              ),
+              unloadAsync: jest.fn(() => Promise.resolve()),
+              playAsync: jest.fn(() => Promise.resolve()),
+              pauseAsync: jest.fn(() => Promise.resolve()),
+              stopAsync: jest.fn(() => Promise.resolve()),
+              setPositionAsync: jest.fn(() => Promise.resolve()),
+              setRateAsync: jest.fn(() => Promise.resolve()),
+              setVolumeAsync: jest.fn(() => Promise.resolve()),
+              setIsLoopingAsync: jest.fn(() => Promise.resolve()),
+              setOnPlaybackStatusUpdate: jest.fn(),
+            },
+          })
+        ),
+      },
+      AndroidOutputFormat: {
+        MPEG_4: 2,
+      },
+      AndroidAudioEncoder: {
+        AAC: 3,
+      },
+      IOSOutputFormat: {
+        MPEG4AAC: 'kAudioFileM4AType',
+      },
+      IOSAudioQuality: {
+        MIN: 0,
+        LOW: 32,
+        MEDIUM: 64,
+        HIGH: 96,
+        MAX: 127,
+      },
     },
-    AndroidOutputFormat: {
-      MPEG_4: 2,
+    RecordingOptionsPresets: {
+      HIGH_QUALITY: {
+        android: {
+          extension: '.m4a',
+          outputFormat: 2, // MPEG_4
+          audioEncoder: 3, // AAC
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: 'kAudioFileM4AType',
+          audioQuality: 96, // HIGH
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+        },
+      },
     },
-    AndroidAudioEncoder: {
-      AAC: 3,
-    },
-    IOSOutputFormat: {
-      MPEG4AAC: 'kAudioFileM4AType',
-    },
-    IOSAudioQuality: {
-      MIN: 0,
-      LOW: 32,
-      MEDIUM: 64,
-      HIGH: 96,
-      MAX: 127,
-    },
-  },
-}));
+  };
+});
 
 // Mock expo-document-picker
 jest.mock('expo-document-picker', () => ({
@@ -171,3 +196,41 @@ jest.mock('expo-media-library', () => ({
 jest.mock('expo-linking', () => ({
   openSettings: jest.fn(() => Promise.resolve()),
 }));
+
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    canGoBack: jest.fn(() => false),
+    setParams: jest.fn(),
+  })),
+  useLocalSearchParams: jest.fn(() => ({})),
+  useGlobalSearchParams: jest.fn(() => ({})),
+  usePathname: jest.fn(() => '/'),
+  useSegments: jest.fn(() => []),
+  Link: 'Link',
+  Stack: {
+    Screen: 'Screen',
+  },
+  Tabs: {
+    Screen: 'Screen',
+  },
+  Slot: 'Slot',
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    canGoBack: jest.fn(() => false),
+    setParams: jest.fn(),
+  },
+}));
+
+// Mock expo native module requirement
+jest.mock('expo', () => ({
+  ...jest.requireActual('expo'),
+  requireOptionalNativeModule: jest.fn(() => null),
+  __ExpoImportMetaRegistry: {},
+}));
+

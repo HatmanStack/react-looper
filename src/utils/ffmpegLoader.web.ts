@@ -4,7 +4,7 @@
  * Handles FFmpeg WebAssembly loading with progress tracking and error handling.
  */
 
-import { getFFmpegService } from "../services/ffmpeg/FFmpegService.web";
+import { getAudioExportService } from "../services/ffmpeg/WebAudioExportService";
 
 export interface LoaderOptions {
   onProgress?: (ratio: number) => void;
@@ -19,7 +19,7 @@ export async function loadFFmpeg(options: LoaderOptions = {}): Promise<void> {
   const { onProgress, onError, onSuccess } = options;
 
   try {
-    const ffmpegService = getFFmpegService();
+    const ffmpegService = getAudioExportService();
 
     // Check if already loaded
     if (ffmpegService.isReady()) {
@@ -30,7 +30,7 @@ export async function loadFFmpeg(options: LoaderOptions = {}): Promise<void> {
 
     console.log("[FFmpegLoader] Starting FFmpeg load...");
 
-    await ffmpegService.load((ratio) => {
+    await ffmpegService.load((ratio: number) => {
       onProgress?.(ratio);
     });
 

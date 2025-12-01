@@ -30,9 +30,10 @@ export function runMigrations<TState>(
     const versionedState: VersionedState<TState> =
       typeof persistedData === "object" &&
       persistedData !== null &&
-      "version" in persistedData
-        ? persistedData
-        : { version: 0, state: persistedData };
+      "version" in persistedData &&
+      "state" in persistedData
+        ? (persistedData as VersionedState<TState>)
+        : { version: 0, state: persistedData as TState };
 
     const fromVersion = versionedState.version || 0;
     const toVersion = config.currentVersion;

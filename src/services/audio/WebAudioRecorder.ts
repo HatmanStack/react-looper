@@ -222,9 +222,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Try permissions API first (not supported in all browsers)
       if ("permissions" in navigator) {
         try {
-          // @ts-expect-error - microphone permission is not in TypeScript's PermissionName type yet
           const result = await navigator.permissions.query({
-            name: "microphone",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            name: "microphone" as any,
           });
 
           if (result.state === "granted") {

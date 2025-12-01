@@ -85,7 +85,10 @@ export function getMaxContentWidth(width?: number): number {
 /**
  * Get responsive spacing
  */
-export function getSpacing(size: "xs" | "sm" | "md" | "lg" | "xl", width?: number): number {
+export function getSpacing(
+  size: "xs" | "sm" | "md" | "lg" | "xl",
+  width?: number,
+): number {
   const baseSpacing = {
     xs: 4,
     sm: 8,
@@ -102,7 +105,10 @@ export function getSpacing(size: "xs" | "sm" | "md" | "lg" | "xl", width?: numbe
 /**
  * Get responsive font size
  */
-export function getFontSize(size: "xs" | "sm" | "md" | "lg" | "xl", width?: number): number {
+export function getFontSize(
+  size: "xs" | "sm" | "md" | "lg" | "xl",
+  width?: number,
+): number {
   const baseFontSize = {
     xs: 12,
     sm: 14,
@@ -120,14 +126,17 @@ export function getFontSize(size: "xs" | "sm" | "md" | "lg" | "xl", width?: numb
  * Responsive values helper
  * Returns different values based on screen size
  */
-export function responsive<T>(values: {
-  xs?: T;
-  sm?: T;
-  md?: T;
-  lg?: T;
-  xl?: T;
-  default: T;
-}, width?: number): T {
+export function responsive<T>(
+  values: {
+    xs?: T;
+    sm?: T;
+    md?: T;
+    lg?: T;
+    xl?: T;
+    default: T;
+  },
+  width?: number,
+): T {
   const breakpoint = getCurrentBreakpoint(width);
 
   return values[breakpoint] ?? values.default;
@@ -137,14 +146,17 @@ export function responsive<T>(values: {
  * Get number of columns for grid layouts
  */
 export function getGridColumns(width?: number): number {
-  return responsive({
-    xs: 1,
-    sm: 2,
-    md: 2,
-    lg: 3,
-    xl: 4,
-    default: 1,
-  }, width);
+  return responsive(
+    {
+      xs: 1,
+      sm: 2,
+      md: 2,
+      lg: 3,
+      xl: 4,
+      default: 1,
+    },
+    width,
+  );
 }
 
 /**
@@ -162,7 +174,9 @@ export function useResponsive() {
     isDesktop: isDesktop(width),
     isLargeDesktop: isLargeDesktop(width),
     maxContentWidth: getMaxContentWidth(width),
-    getSpacing: (size: "xs" | "sm" | "md" | "lg" | "xl") => getSpacing(size, width),
-    getFontSize: (size: "xs" | "sm" | "md" | "lg" | "xl") => getFontSize(size, width),
+    getSpacing: (size: "xs" | "sm" | "md" | "lg" | "xl") =>
+      getSpacing(size, width),
+    getFontSize: (size: "xs" | "sm" | "md" | "lg" | "xl") =>
+      getFontSize(size, width),
   };
 }

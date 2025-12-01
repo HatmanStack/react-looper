@@ -8,6 +8,23 @@
 import { useTrackStore } from "./useTrackStore";
 import { usePlaybackStore, type TrackState } from "./usePlaybackStore";
 import { useUIStore } from "./useUIStore";
+import type { Track } from "../types";
+
+interface StateSnapshot {
+  tracks?: Track[];
+  playback?: {
+    trackStates?: Array<[string, TrackState]>;
+    playingTracks?: string[];
+  };
+  ui?: {
+    saveModalVisible?: boolean;
+    mixingModalVisible?: boolean;
+    isRecording?: boolean;
+    isMixing?: boolean;
+    mixingProgress?: number;
+  };
+  timestamp?: string;
+}
 
 /**
  * Check if running in development mode
@@ -96,7 +113,7 @@ export function exportState() {
 /**
  * Import state (for testing/debugging)
  */
-export function importState(stateSnapshot: unknown) {
+export function importState(stateSnapshot: StateSnapshot) {
   if (!isDevelopment) {
     console.warn("[DevTools] State import only available in development");
     return;

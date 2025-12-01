@@ -112,7 +112,7 @@ export const getStyles = (responsive: {
         paddingVertical: getSpacing("md"),
         paddingHorizontal: isLargeScreen ? getSpacing("lg") : getSpacing("md"),
         maxWidth: isLargeScreen ? maxContentWidth : undefined,
-      }
+      },
     ],
     sectionTitle: {
       fontSize: 18,
@@ -126,17 +126,14 @@ export const getStyles = (responsive: {
     settingRow: staticStyles.settingRow,
     settingTextContainer: [
       staticStyles.settingTextContainer,
-      { marginRight: getSpacing("md") }
+      { marginRight: getSpacing("md") },
     ],
     settingLabel: staticStyles.settingLabel,
     settingDescription: [
       staticStyles.settingDescription,
-      { marginBottom: getSpacing("sm") }
+      { marginBottom: getSpacing("sm") },
     ],
-    sliderContainer: [
-      staticStyles.sliderContainer,
-      { gap: getSpacing("md") }
-    ],
+    sliderContainer: [staticStyles.sliderContainer, { gap: getSpacing("md") }],
     slider: staticStyles.slider,
     sliderValue: staticStyles.sliderValue,
     segmentedButtons: {
