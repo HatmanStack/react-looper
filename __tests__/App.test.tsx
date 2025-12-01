@@ -16,9 +16,7 @@ describe("App", () => {
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
   });
 
-  afterEach(async () => {
-    // Wait for cleanup operations
-    await new Promise((resolve) => setTimeout(resolve, 200));
+  afterEach(() => {
     consoleLogSpy.mockRestore();
     consoleErrorSpy.mockRestore();
   });

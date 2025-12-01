@@ -3,10 +3,11 @@
  *
  * Provides a unified interface for storage across web and native platforms.
  * - Web: Uses localStorage
- * - Native: Uses in-memory storage (AsyncStorage can be added as dependency)
+ * - Native: Uses AsyncStorage from @react-native-async-storage/async-storage
  */
 
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logger } from "../utils/logger";
 
 // Define StateStorage interface locally to avoid importing zustand/middleware
@@ -15,9 +16,6 @@ interface StateStorage {
   setItem: (name: string, value: string) => void | Promise<void>;
   removeItem: (name: string) => void | Promise<void>;
 }
-
-// In-memory fallback storage for native platforms
-const memoryStorage: Record<string, string> = {};
 
 /**
  * Create a storage adapter for the current platform
@@ -57,21 +55,32 @@ export function createStorage(): StateStorage {
     };
   }
 
-  // Native platform: use in-memory storage
-  // Note: For production native apps, install @react-native-async-storage/async-storage
-  logger.warn(
-    "[Storage] Using in-memory storage for native platform. Install @react-native-async-storage/async-storage for persistence.",
-  );
-
+  // Native platform: use AsyncStorage
   return {
     getItem: async (name: string): Promise<string | null> => {
-      return memoryStorage[name] || null;
+      try {
+        return await AsyncStorage.getItem(name);
+      } catch (error) {
+        logger.error("[Storage] Failed to get item from AsyncStorage:", error);
+        return null;
+      }
     },
     setItem: async (name: string, value: string): Promise<void> => {
-      memoryStorage[name] = value;
+      try {
+        await AsyncStorage.setItem(name, value);
+      } catch (error) {
+        logger.error("[Storage] Failed to set item in AsyncStorage:", error);
+      }
     },
     removeItem: async (name: string): Promise<void> => {
-      delete memoryStorage[name];
+      try {
+        await AsyncStorage.removeItem(name);
+      } catch (error) {
+        logger.error(
+          "[Storage] Failed to remove item from AsyncStorage:",
+          error,
+        );
+      }
     },
   };
 }
