@@ -1,46 +1,44 @@
 <div align="center">
 
-# Looper - Audio Mixing App
+# Looper
 
-[![](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
-[![](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![](https://img.shields.io/badge/FFmpeg-00780B?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
+<h4>
+<a href="https://reactnative.dev/"><img src="https://img.shields.io/badge/React%20Native-0.81-blue" alt="React Native" /></a>
+<a href="https://expo.dev/"><img src="https://img.shields.io/badge/Expo-54-orange" alt="Expo" /></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-blue" alt="TypeScript" /></a>
+<a href="https://ffmpeg.org/"><img src="https://img.shields.io/badge/FFmpeg-green" alt="FFmpeg" /></a>
+</h4>
 
 **Professional multi-track audio mixing for everyone.**
 
-A cross-platform audio mixing application that lets you record, import, and mix audio tracks with independent speed and volume controls.
+A cross-platform audio mixing app that lets you record, import, and mix audio tracks with independent speed and volume controls.
 
 [Try It](https://looper.hatstack.fun)
 
----
-
-![Looper App Banner](../assets/banner.png)
-
----
+<img width="400" src="../frontend/assets/banner.png" alt="Looper App">
 
 </div>
 
 ## Features
 
-* 🎙️ **Multi-Track Recording** - Record audio directly with your device's microphone.
-* 📁 **Audio Import** - Import existing audio files from your device.
-* ⚡ **Independent Speed Control** - Adjust playback speed from 0.05x to 2.50x for each track.
-* 🔊 **Independent Volume Control** - Control the volume from 0-100 for each track.
-* 💾 **High-Quality Export** - Mix and export your creation as a high-quality MP3.
-* 🌐 **Cross-Platform** - Runs on Web, Android, and iOS from a single TypeScript codebase.
-* 📴 **Works Offline** - All processing, including FFmpeg mixing, happens locally.
-* 🎛️ **Configurable Quality** - Customize recording and export quality (low/medium/high) and format (MP3/WAV/M4A).
+- **Multi-Track Recording**: Record audio directly with your device microphone
+- **Audio Import**: Import existing audio files from your device
+- **Master Loop Sync**: First track sets the loop length, subsequent tracks loop to match
+- **Independent Speed Control**: Adjust playback speed (0.05x - 2.50x) per track
+- **Independent Volume Control**: Control volume (0-100) per track
+- **Loop Export**: Export with configurable loop count and fadeout
+- **High-Quality Export**: MP3, WAV, or M4A output
+- **Cross-Platform**: Web, Android, and iOS from a single codebase
+- **Works Offline**: All processing happens locally
 
-## Technologies Used
+## Technologies
 
-- **Expo**: Universal React Native framework
-- **React Native Paper**: Material Design 3 UI components
-- **Zustand**: Lightweight state management
-- **Web Audio API**: Browser-based audio processing
-- **lamejs**: MP3 encoding in the browser
-- **expo-av**: Native audio playback and recording
-- **Jest**: Testing framework
+- **Core**: React Native, Expo SDK 54, TypeScript
+- **State**: Zustand with persistence
+- **UI**: React Native Paper (Material Design 3)
+- **Audio**: Web Audio API, expo-av, lamejs (MP3 encoding)
+- **Mixing**: FFmpeg.wasm (web), FFmpeg Kit (native)
+- **Testing**: Jest, React Native Testing Library
 
 ## Installation
 
@@ -61,77 +59,125 @@ A cross-platform audio mixing application that lets you record, import, and mix 
    ```
 
 4. **Open the app**:
-   - Scan the QR code from the terminal using the **Expo Go** app.
-   - Or, press `a` for Android Emulator / `i` for iOS Simulator.
-   - Or, press `w` for web browser.
+   - Scan QR code with Expo Go app
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator
+   - Press `w` for web browser
 
 ## Usage
 
-### Recording Audio
+### Recording Your First Loop
 
-1. Tap the **Record** button to start recording.
-2. Tap **Stop** when finished.
-3. Your recording appears as a new track.
+1. Click the **Record** button (microphone icon)
+2. Perform your loop - drums, vocals, melody
+3. Click **Stop** when finished
+4. This becomes your **master loop** - it sets the loop length for all other tracks
 
-### Importing Audio
+### Adding Overdubs
 
-1. Tap the **Import** button.
-2. Select an audio file from your device.
-3. The imported file appears as a new track.
+1. Click **Record** again
+2. Recording auto-stops at the end of one loop cycle
+3. New track loops automatically to match master loop
+4. Shorter tracks repeat, longer tracks are trimmed
 
-### Mixing Tracks
+### Adjusting Tracks
 
-1. Add multiple tracks via recording or importing.
-2. Adjust **speed** (0.05x - 2.50x) and **volume** (0-100) for each track.
-3. Use the playback controls to preview.
-4. Tap **Save** to export your mix as MP3.
+- **Speed**: 0.05x (very slow) to 2.50x (double speed)
+- **Volume**: 0 (silent) to 100 (full)
+- **Warning**: Changing master track speed affects all tracks
 
-### Export Settings
+### Exporting
 
-Configure export options in the Save modal:
-- **Loop Count**: Number of times to repeat the mix (1-10, or custom)
-- **Fadeout Duration**: Gradual volume decrease at the end (0-10 seconds)
+1. Click the **Save** button
+2. Configure options:
+   - **Loop Count**: 1, 2, 4, 8, or custom
+   - **Fadeout**: None, 1s, 2s, 5s, or custom
+   - **Format**: MP3 or WAV
+   - **Quality**: Low, Medium, or High
+3. Click **Confirm** and wait for processing
 
 ## Architecture
 
-```
-src/
-├── components/     # UI components (TrackItem, SaveModal, etc.)
-├── screens/        # Screen components (MainScreen, SettingsScreen)
-├── services/       # Audio services (player, recorder, mixer)
-├── store/          # Zustand state management
-├── utils/          # Utilities (logger, permissions, audio helpers)
-└── types/          # TypeScript type definitions
+```text
+frontend/
+├── app/                    # Expo Router screens
+├── src/
+│   ├── components/         # Reusable UI components
+│   ├── screens/            # Screen components
+│   ├── services/           # Audio services (platform-specific)
+│   │   ├── audio/          # Recording, playback, mixing
+│   │   ├── ffmpeg/         # FFmpeg integration
+│   │   └── loop/           # Loop engine
+│   ├── store/              # Zustand stores
+│   ├── utils/              # Utilities
+│   └── types/              # TypeScript types
+└── __tests__/              # Test suites
 ```
 
-**Audio Pipeline**:
-- Web: Web Audio API → lamejs MP3 encoding
-- Native: expo-av → ffmpeg-kit for mixing
+### Audio Services
+
+- **Web**: Web Audio API + FFmpeg.wasm
+- **Native**: expo-av + FFmpeg Kit
+- Factory pattern provides platform-appropriate implementations
+
+### State Management
+
+- `useTrackStore`: Track list, master loop, CRUD operations
+- `usePlaybackStore`: Playback state, loop mode
+- `useSettingsStore`: User preferences, export defaults
+- `useUIStore`: Modal visibility, UI state
 
 ## Testing
 
 ```bash
-npm run check        # Run lint, typecheck, and tests
-npm test             # Run Jest tests
-npm run test:watch   # Watch mode
-npm run test:coverage # Coverage report
-npm run lint         # ESLint
-npm run typecheck    # TypeScript check
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # With coverage report
+npm run check         # Lint + typecheck + tests
 ```
 
-## Recent Improvements
+**Test Coverage**:
+- 525+ tests passing
+- Unit tests for services, stores, utilities
+- Component tests with React Native Testing Library
 
-### Export Functionality (v1.1.0)
-- **Fixed MP3/WAV Export**: Rewrote `convertToMP3()` using official lamejs API
-- Proper WAV parsing with `lamejs.WavHeader.readHeader()`
-- `Int16Array.subarray()` for correct audio data handling
+## Building
 
-### Recording Settings Integration
-- Recording format and quality settings now apply to recordings
-- Quality levels: High (192kbps), Medium (128kbps), Low (96kbps)
+### Web
 
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+```bash
+cd frontend && npx expo export --platform web
+```
+
+### Mobile (EAS Build)
+
+```bash
+eas build --platform android --profile production
+eas build --platform ios --profile production
+```
+
+## Keyboard Shortcuts (Web)
+
+- **Space**: Play/Pause
+- **R**: Start/Stop Recording
+- **S**: Open Save Dialog
+- **L**: Toggle Loop Mode
+- **Delete**: Delete selected track
+- **Esc**: Close dialogs
+
+## Troubleshooting
+
+### No sound when recording
+- Check microphone permissions
+- Ensure mic volume is up in system settings
+
+### Clicks at loop boundaries
+- Increase Loop Crossfade Duration in settings (10-20ms)
+
+### Export takes a long time
+- Web mixing is slower than native
+- Reduce loop count or track count for faster exports
 
 ## License
 
-This project is licensed under the MIT License.
+MIT

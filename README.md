@@ -2,33 +2,34 @@
 
 # Looper
 
-[![](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
-[![](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+<h4>
+<a href="https://reactnative.dev/"><img src="https://img.shields.io/badge/React%20Native-0.81-blue" alt="React Native" /></a>
+<a href="https://expo.dev/"><img src="https://img.shields.io/badge/Expo-54-orange" alt="Expo" /></a>
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-blue" alt="TypeScript" /></a>
+<a href="https://ffmpeg.org/"><img src="https://img.shields.io/badge/FFmpeg-green" alt="FFmpeg" /></a>
+</h4>
 
 **Professional multi-track audio mixing for everyone.**
 
+A cross-platform audio mixing app that lets you record, import, and mix audio tracks with independent speed and volume controls.
+
 [Try It](https://looper.hatstack.fun)
 
-<img width="400" src="assets/banner.png" alt="Looper App">
-
-Record, import, and mix audio tracks with independent speed and volume controls. Export your creation as a high-quality MP3.
+<img width="400" src="frontend/assets/banner.png" alt="Looper App">
 
 </div>
 
 ## Structure
 
-```
-├── src/       # Application source code
-├── config/    # Jest, ESLint, Playwright configs
-├── docs/      # Documentation
-└── assets/    # Images and static files
+```text
+├── frontend/   # Expo/React Native client
+└── docs/       # Documentation
 ```
 
 ## Prerequisites
 
 - **Node.js** v18+ (v24 LTS recommended)
-- **Expo CLI**: `npm install -g expo-cli`
+- **npm** or **yarn**
 
 ## Quick Start
 
@@ -38,13 +39,29 @@ npm start       # Start Expo dev server
 npm run check   # Run lint, typecheck, and tests
 ```
 
-## Build
+## Features
+
+- Multi-track audio recording with device microphone
+- Audio file import from device storage
+- Independent speed control (0.05x - 2.50x) per track
+- Independent volume control (0-100) per track
+- Master loop synchronization
+- High-quality MP3/WAV export with loop count and fadeout
+- Cross-platform: Web, Android, iOS
+- Offline support - all processing happens locally
+
+## Available Scripts
 
 ```bash
-npm run web              # Development web
-npm run build:web        # Production web build
-eas build --platform android  # Android APK
-eas build --platform ios      # iOS build
+npm start           # Start Expo dev server
+npm run android     # Run on Android
+npm run ios         # Run on iOS
+npm run web         # Run on Web
+
+npm test            # Run tests
+npm run lint        # Run ESLint
+npm run typecheck   # Run TypeScript check
+npm run check       # Run all checks (lint + typecheck + test)
 ```
 
 See [docs/README.md](docs/README.md) for full documentation.
@@ -52,3 +69,4 @@ See [docs/README.md](docs/README.md) for full documentation.
 ## License
 
 MIT
+</div>
