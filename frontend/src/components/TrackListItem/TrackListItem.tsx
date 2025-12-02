@@ -85,7 +85,8 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
       onPress={handleSelect}
       accessible={true}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole="none"
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: track.selected }}
       accessibilityHint={
         isMaster
           ? "This track sets the loop length for all tracks"

@@ -161,7 +161,7 @@ export class FFmpegService implements IAudioExportService {
         { tracks: tracks.length, originalError: error },
       );
     } finally {
-      // Clean up statistics callback
+      // Disable statistics callback (no dedicated disable method, pass undefined)
       FFmpegKitConfig.enableStatisticsCallback(
         undefined as unknown as StatisticsCallback,
       );

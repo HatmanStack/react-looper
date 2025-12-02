@@ -116,7 +116,7 @@ export default [
   },
   // Jest config files
   {
-    files: ['jest.setup.js', 'jest.env-setup.js', 'jest.config.js'],
+    files: ['jest.setup.js', 'jest.mocks.js'],
     languageOptions: {
       globals: {
         ...globals.jest,

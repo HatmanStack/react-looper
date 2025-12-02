@@ -19,7 +19,6 @@
   },
   "exclude": [
     "node_modules",
-    "__tests__",
     "e2e",
     "**/__tests__",
     "playwright.config.ts"

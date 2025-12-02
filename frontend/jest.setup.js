@@ -1,11 +1,8 @@
 // jest.setup.js
- 
+
 import '@testing-library/jest-native/extend-expect';
 
-// Mock react-native's Dimensions
-jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
-  get: jest.fn().mockReturnValue({ width: 375, height: 812 }),
-}));
+// Note: Dimensions mock is in jest.mocks.js (runs first via setupFiles)
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
