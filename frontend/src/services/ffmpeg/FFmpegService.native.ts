@@ -62,8 +62,12 @@ export class FFmpegService implements IAudioExportService {
 
     try {
       // Prepare output path using expo-file-system Paths API
-      const extension = format === "wav" ? "wav" : format === "m4a" ? "m4a" : "mp3";
-      const outputFile = new File(Paths.cache, `mixed_${Date.now()}.${extension}`);
+      const extension =
+        format === "wav" ? "wav" : format === "m4a" ? "m4a" : "mp3";
+      const outputFile = new File(
+        Paths.cache,
+        `mixed_${Date.now()}.${extension}`,
+      );
       const outputPath = outputFile.uri;
 
       // Convert file URIs to absolute paths

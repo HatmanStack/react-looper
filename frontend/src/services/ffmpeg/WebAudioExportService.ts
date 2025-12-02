@@ -7,7 +7,12 @@
 
 import { AudioError } from "../audio/AudioError";
 import { AudioErrorCode } from "../../types/audio";
-import type { MixOptions, IAudioExportService, MixResult, AudioFormat } from "./exportTypes";
+import type {
+  MixOptions,
+  IAudioExportService,
+  MixResult,
+  AudioFormat,
+} from "./exportTypes";
 import { WebAudioMixer } from "../audio/WebAudioMixer";
 import { getBitrate } from "./audioQuality";
 import lamejs from "@breezystack/lamejs";
