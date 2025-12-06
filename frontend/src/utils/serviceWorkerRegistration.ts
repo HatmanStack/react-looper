@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Service Worker Registration
  * Registers and manages the service worker lifecycle

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * FFmpegService for Native Platforms (iOS/Android)
  *

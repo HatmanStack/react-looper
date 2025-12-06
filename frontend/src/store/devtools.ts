@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * State DevTools Integration
  *

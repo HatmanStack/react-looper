@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Native Audio Services Registration
  *

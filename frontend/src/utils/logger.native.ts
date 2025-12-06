@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Native-specific logger implementation
  *

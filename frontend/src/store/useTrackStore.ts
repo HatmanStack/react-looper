@@ -50,83 +50,83 @@ export const useTrackStore = create<TrackStore>()(
     // Initial state
     tracks: [],
 
-  // Add a new track
-  addTrack: (track: Track) =>
-    set((state) => ({
-      tracks: [...state.tracks, track],
-    })),
+    // Add a new track
+    addTrack: (track: Track) =>
+      set((state) => ({
+        tracks: [...state.tracks, track],
+      })),
 
-  // Remove a track by ID
-  // LOOPER FEATURE: If removing master track (first), clear all tracks
-  removeTrack: (id: string) =>
-    set((state) => {
-      const isMaster = state.tracks.length > 0 && state.tracks[0].id === id;
+    // Remove a track by ID
+    // LOOPER FEATURE: If removing master track (first), clear all tracks
+    removeTrack: (id: string) =>
+      set((state) => {
+        const isMaster = state.tracks.length > 0 && state.tracks[0].id === id;
 
-      // If removing master track, clear all tracks
-      if (isMaster) {
-        return { tracks: [] };
-      }
+        // If removing master track, clear all tracks
+        if (isMaster) {
+          return { tracks: [] };
+        }
 
-      // Otherwise, remove just the specified track
-      return {
-        tracks: state.tracks.filter((track) => track.id !== id),
-      };
-    }),
+        // Otherwise, remove just the specified track
+        return {
+          tracks: state.tracks.filter((track) => track.id !== id),
+        };
+      }),
 
-  // Update track properties
-  updateTrack: (id: string, updates: Partial<Track>) =>
-    set((state) => ({
-      tracks: state.tracks.map((track) =>
-        track.id === id ? { ...track, ...updates } : track,
-      ),
-    })),
+    // Update track properties
+    updateTrack: (id: string, updates: Partial<Track>) =>
+      set((state) => ({
+        tracks: state.tracks.map((track) =>
+          track.id === id ? { ...track, ...updates } : track,
+        ),
+      })),
 
-  // Get a specific track by ID
-  getTrack: (id: string) => {
-    return get().tracks.find((track) => track.id === id);
-  },
+    // Get a specific track by ID
+    getTrack: (id: string) => {
+      return get().tracks.find((track) => track.id === id);
+    },
 
-  // Clear all tracks
-  clearTracks: () =>
-    set({
-      tracks: [],
-    }),
+    // Clear all tracks
+    clearTracks: () =>
+      set({
+        tracks: [],
+      }),
 
-  // Derived state: Get track count
-  getTrackCount: () => {
-    return get().tracks.length;
-  },
+    // Derived state: Get track count
+    getTrackCount: () => {
+      return get().tracks.length;
+    },
 
-  // Derived state: Check if there are playable tracks
-  hasPlayableTracks: () => {
-    return get().tracks.length > 0;
-  },
+    // Derived state: Check if there are playable tracks
+    hasPlayableTracks: () => {
+      return get().tracks.length > 0;
+    },
 
-  // Derived state: Get all currently playing tracks
-  getPlayingTracks: () => {
-    return get().tracks.filter((track) => track.isPlaying);
-  },
+    // Derived state: Get all currently playing tracks
+    getPlayingTracks: () => {
+      return get().tracks.filter((track) => track.isPlaying);
+    },
 
-  // LOOPER FEATURE: Get master track (first track)
-  getMasterTrack: () => {
-    return getFirstTrack(get().tracks);
-  },
+    // LOOPER FEATURE: Get master track (first track)
+    getMasterTrack: () => {
+      return getFirstTrack(get().tracks);
+    },
 
-  // LOOPER FEATURE: Check if given track ID is the master track
-  isMasterTrack: (id: string) => {
-    return isFirstTrack(get().tracks, id);
-  },
+    // LOOPER FEATURE: Check if given track ID is the master track
+    isMasterTrack: (id: string) => {
+      return isFirstTrack(get().tracks, id);
+    },
 
-  // LOOPER FEATURE: Check if any tracks exist (has master)
-  hasMasterTrack: () => {
-    return get().tracks.length > 0;
-  },
+    // LOOPER FEATURE: Check if any tracks exist (has master)
+    hasMasterTrack: () => {
+      return get().tracks.length > 0;
+    },
 
-  // LOOPER FEATURE: Get master loop duration (speed-adjusted duration of first track)
-  getMasterLoopDuration: () => {
-    return calculateMasterLoopDuration(get().tracks);
-  },
-})),
+    // LOOPER FEATURE: Get master loop duration (speed-adjusted duration of first track)
+    getMasterLoopDuration: () => {
+      return calculateMasterLoopDuration(get().tracks);
+    },
+  })),
 );
 
 /**

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Lifecycle Manager
  *

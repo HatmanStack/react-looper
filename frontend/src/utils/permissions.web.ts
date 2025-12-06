@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Permission Utilities - Web Implementation
  *

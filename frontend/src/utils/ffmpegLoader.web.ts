@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * FFmpeg Loader Utility for Web Platform
  *

@@ -54,6 +54,7 @@ export function useAudioController(): UseAudioControllerReturn {
   const audioServiceRef = useRef<AudioService | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const handleStopRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -121,7 +122,7 @@ export function useAudioController(): UseAudioControllerReturn {
         });
 
         recordingTimerRef.current = setTimeout(() => {
-          handleStop();
+          handleStopRef.current();
         }, targetDuration);
       } else {
         await audioServiceRef.current.startRecording({
@@ -208,6 +209,9 @@ export function useAudioController(): UseAudioControllerReturn {
       setIsLoading(false);
     }
   }, [tracks.length, addTrack]);
+
+  // Keep ref in sync with latest handleStop
+  handleStopRef.current = handleStop;
 
   const handleImport = useCallback(async () => {
     if (!audioServiceRef.current) {

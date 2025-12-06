@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Native Audio File Manager
  *

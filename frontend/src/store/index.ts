@@ -6,10 +6,7 @@
  */
 
 export { useTrackStore, initializeTrackStore } from "./useTrackStore";
-export {
-  usePlaybackStore,
-  initializePlaybackStore,
-} from "./usePlaybackStore";
+export { usePlaybackStore, initializePlaybackStore } from "./usePlaybackStore";
 export {
   useSettingsStore,
   initializeSettingsStore,

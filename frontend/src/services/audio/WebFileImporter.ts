@@ -230,11 +230,7 @@ export class WebFileImporter {
 
     for (let i = 0; i < signature.length; i++) {
       // For MP3 frame sync, mask the second byte (only check sync bits)
-      if (
-        signature[0] === 0xff &&
-        i === 1 &&
-        (signature[1] & 0xf0) === 0xf0
-      ) {
+      if (signature[0] === 0xff && i === 1 && (signature[1] & 0xf0) === 0xf0) {
         if ((bytes[offset + i] & 0xf0) !== 0xf0) {
           return false;
         }
