@@ -36,9 +36,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onDismiss }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📼 Recording Tracks</Text>
             <Text style={styles.text}>
-              • First track sets the base loop length{"\n"}• Subsequent tracks
-              snap to multiples (1x, 2x, 4x) of the base{"\n"}• Press Stop to
-              save your recording as a track
+              • First track sets the master loop length{"\n"}• Subsequent tracks
+              auto-stop at the master loop boundary{"\n"}• Press Stop to save
+              your recording as a track
             </Text>
           </View>
 

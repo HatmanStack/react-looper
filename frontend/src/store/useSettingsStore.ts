@@ -6,9 +6,12 @@
  */
 
 import { create } from "zustand";
-// Note: Persist middleware removed to avoid import.meta errors on web
-// See: react-vocabulary/TS_RENDER.md for details
-// TODO: Re-implement persistence with platform-specific approach
+import { subscribeWithSelector } from "zustand/middleware";
+import { createStorage } from "./storage";
+import { logger } from "../utils/logger";
+
+const STORAGE_KEY = "looper-settings";
+const storage = createStorage();
 
 /**
  * Audio format options for export and recording
@@ -134,23 +137,67 @@ const DEFAULT_SETTINGS: SettingsState = {
  * // Access settings
  * const loopMode = useSettingsStore((state) => state.defaultLoopMode);
  */
-export const useSettingsStore = create<SettingsStore>()((set) => ({
-  // Initialize with default values
-  ...DEFAULT_SETTINGS,
+export const useSettingsStore = create<SettingsStore>()(
+  subscribeWithSelector((set) => ({
+    // Initialize with default values
+    ...DEFAULT_SETTINGS,
 
-  // Update partial settings (merge semantics)
-  updateSettings: (updates: Partial<SettingsState>) =>
-    set((state) => ({
-      ...state,
-      ...updates,
-    })),
+    // Update partial settings (merge semantics)
+    updateSettings: (updates: Partial<SettingsState>) =>
+      set((state) => ({
+        ...state,
+        ...updates,
+      })),
 
-  // Reset all settings to defaults
-  resetToDefaults: () =>
-    set({
-      ...DEFAULT_SETTINGS,
-    }),
-}));
+    // Reset all settings to defaults
+    resetToDefaults: () =>
+      set({
+        ...DEFAULT_SETTINGS,
+      }),
+  })),
+);
+
+/**
+ * Initialize store from persisted storage
+ * Call this on app startup
+ */
+export async function initializeSettingsStore(): Promise<void> {
+  try {
+    const stored = await storage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Merge with defaults to handle new settings added in updates
+      useSettingsStore.setState({
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+      });
+      logger.info("[SettingsStore] Loaded settings from storage");
+    }
+  } catch (error) {
+    logger.error("[SettingsStore] Failed to load from storage:", error);
+  }
+}
+
+// Subscribe to settings changes and persist
+useSettingsStore.subscribe(
+  (state) => ({
+    loopCrossfadeDuration: state.loopCrossfadeDuration,
+    defaultLoopMode: state.defaultLoopMode,
+    defaultLoopCount: state.defaultLoopCount,
+    defaultFadeout: state.defaultFadeout,
+    exportFormat: state.exportFormat,
+    exportQuality: state.exportQuality,
+    recordingFormat: state.recordingFormat,
+    recordingQuality: state.recordingQuality,
+  }),
+  async (settings) => {
+    try {
+      await storage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      logger.error("[SettingsStore] Failed to persist settings:", error);
+    }
+  },
+);
 
 /**
  * Helper to get current settings snapshot

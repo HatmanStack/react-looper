@@ -17,7 +17,9 @@ import { WebAudioMixer } from "../audio/WebAudioMixer";
 import { getBitrate } from "./audioQuality";
 import lamejs from "@breezystack/lamejs";
 
-// Type augmentation for lamejs - the package types are incomplete
+// Type augmentation for lamejs - the @breezystack/lamejs package lacks complete TypeScript definitions.
+// The 'as any' cast is necessary because the package exports don't match their runtime API.
+// See: https://github.com/nickreese/lamejs - no @types package available.
 interface WavHeaderResult {
   channels: number;
   sampleRate: number;
@@ -109,16 +111,23 @@ export class FFmpegService implements IAudioExportService {
       // Convert format if not WAV
       let outputBlob: Blob;
       let actualFormat: AudioFormat = format;
+      let formatFallbackWarning: string | undefined;
 
       if (format === "mp3") {
         const result = await this.convertToMP3(wavBlob, quality);
         outputBlob = result.blob;
         actualFormat = result.format;
+        if (result.format !== "mp3") {
+          formatFallbackWarning =
+            "MP3 encoding failed. Your file was saved as WAV instead.";
+        }
       } else if (format === "m4a") {
         // M4A not supported without FFmpeg, fallback to WAV
         console.warn("[FFmpegService.web] M4A format not supported, using WAV");
         outputBlob = wavBlob;
         actualFormat = "wav";
+        formatFallbackWarning =
+          "M4A format is not supported in the browser. Your file was saved as WAV instead.";
       } else {
         outputBlob = wavBlob;
         actualFormat = "wav";
@@ -128,7 +137,7 @@ export class FFmpegService implements IAudioExportService {
         onProgress({ ratio: 1.0, time: 0, duration: 0 });
       }
 
-      return { data: outputBlob, actualFormat };
+      return { data: outputBlob, actualFormat, formatFallbackWarning };
     } catch (error) {
       console.error("[FFmpegService.web] Mixing failed:", error);
 
@@ -237,7 +246,9 @@ export class FFmpegService implements IAudioExportService {
         `[FFmpegService.web] MP3 encoding complete: ${mp3Data.length} chunks`,
       );
 
-      // Create blob (cast to any[] for TypeScript compatibility)
+      // Create blob from encoded chunks
+      // NOTE: Int8Array[] is compatible with BlobPart[] but TypeScript's strict checking
+      // doesn't recognize this. The cast is safe as Blob accepts ArrayBuffer views.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mp3Blob = new Blob(mp3Data as any[], { type: "audio/mpeg" });
       return { blob: mp3Blob, format: "mp3" };

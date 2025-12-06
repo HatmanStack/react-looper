@@ -4,19 +4,47 @@ import '@testing-library/jest-native/extend-expect';
 
 // Note: Dimensions mock is in jest.mocks.js (runs first via setupFiles)
 
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  setItem: jest.fn(() => Promise.resolve()),
-  getItem: jest.fn(() => Promise.resolve(null)),
-  removeItem: jest.fn(() => Promise.resolve()),
-  multiGet: jest.fn(() => Promise.resolve([])),
-  multiSet: jest.fn(() => Promise.resolve()),
-  multiRemove: jest.fn(() => Promise.resolve()),
-  clear: jest.fn(() => Promise.resolve()),
-  getAllKeys: jest.fn(() => Promise.resolve([])),
-  mergeItem: jest.fn(() => Promise.resolve()),
-  multiMerge: jest.fn(() => Promise.resolve()),
-}));
+// Mock AsyncStorage with actual storage behavior for persistence tests
+const mockAsyncStorage = (() => {
+  let store = {};
+  return {
+    setItem: jest.fn((key, value) => {
+      store[key] = value;
+      return Promise.resolve();
+    }),
+    getItem: jest.fn((key) => Promise.resolve(store[key] ?? null)),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+      return Promise.resolve();
+    }),
+    multiGet: jest.fn((keys) =>
+      Promise.resolve(keys.map((key) => [key, store[key] ?? null])),
+    ),
+    multiSet: jest.fn((pairs) => {
+      pairs.forEach(([key, value]) => {
+        store[key] = value;
+      });
+      return Promise.resolve();
+    }),
+    multiRemove: jest.fn((keys) => {
+      keys.forEach((key) => delete store[key]);
+      return Promise.resolve();
+    }),
+    clear: jest.fn(() => {
+      store = {};
+      return Promise.resolve();
+    }),
+    getAllKeys: jest.fn(() => Promise.resolve(Object.keys(store))),
+    mergeItem: jest.fn(() => Promise.resolve()),
+    multiMerge: jest.fn(() => Promise.resolve()),
+    // Helper for tests to reset storage between tests
+    __reset: () => {
+      store = {};
+    },
+  };
+})();
+
+jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
 
 // @expo/vector-icons and react-native-vector-icons are mocked via moduleNameMapper
 

@@ -9,10 +9,13 @@
  */
 
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 import { useSettingsStore } from "./useSettingsStore";
-// Note: Persist middleware removed to avoid import.meta errors on web
-// See: react-vocabulary/TS_RENDER.md for details
-// TODO: Re-implement persistence with platform-specific approach
+import { createStorage, serializers } from "./storage";
+import { logger } from "../utils/logger";
+
+const STORAGE_KEY = "looper-playback";
+const storage = createStorage();
 
 export interface TrackState {
   speed: number;
@@ -59,12 +62,15 @@ const DEFAULT_TRACK_STATE: TrackState = {
   isLooping: true,
 };
 
-export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
-  trackStates: new Map(),
-  playingTracks: new Set(),
-  isAnyPlaying: false,
-  // LOOPER FEATURE: Initialize loop mode from settings
-  loopMode: useSettingsStore.getState().defaultLoopMode,
+// NOTE: Using Map and Set for trackStates/playingTracks is intentional for O(1) lookups.
+// These are serialized to arrays for persistence (see subscribe handler below).
+export const usePlaybackStore = create<PlaybackState>()(
+  subscribeWithSelector((set, get) => ({
+    trackStates: new Map(),
+    playingTracks: new Set(),
+    isAnyPlaying: false,
+    // LOOPER FEATURE: Initialize loop mode from settings
+    loopMode: useSettingsStore.getState().defaultLoopMode,
 
   setTrackPlaying: (trackId: string, isPlaying: boolean) =>
     set((state) => {
@@ -209,4 +215,84 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
     set((state) => ({
       loopMode: !state.loopMode,
     })),
-}));
+})),
+);
+
+/**
+ * Serialized playback state for storage
+ */
+interface SerializedPlaybackState {
+  trackStates: Array<[string, TrackState]>;
+  loopMode: boolean;
+}
+
+/**
+ * Initialize store from persisted storage
+ * Call this on app startup
+ */
+export async function initializePlaybackStore(): Promise<void> {
+  try {
+    const stored = await storage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed: SerializedPlaybackState = JSON.parse(stored);
+
+      // Deserialize Map from array and reset playing state
+      const trackStates = new Map<string, TrackState>();
+      if (Array.isArray(parsed.trackStates)) {
+        for (const [id, state] of parsed.trackStates) {
+          trackStates.set(id, {
+            ...state,
+            isPlaying: false, // Reset playing state on load
+          });
+        }
+      }
+
+      usePlaybackStore.setState({
+        trackStates,
+        playingTracks: new Set(), // Reset playing tracks
+        isAnyPlaying: false,
+        loopMode: parsed.loopMode ?? useSettingsStore.getState().defaultLoopMode,
+      });
+
+      logger.info(
+        `[PlaybackStore] Loaded ${trackStates.size} track states from storage`,
+      );
+    }
+  } catch (error) {
+    logger.error("[PlaybackStore] Failed to load from storage:", error);
+  }
+}
+
+// Subscribe to changes and persist (only speed/volume/looping settings, not playing state)
+usePlaybackStore.subscribe(
+  (state) => ({ trackStates: state.trackStates, loopMode: state.loopMode }),
+  async ({ trackStates, loopMode }) => {
+    try {
+      // Serialize Map to array, excluding transient playing state
+      const serializedStates: Array<[string, TrackState]> = [];
+      trackStates.forEach((state, id) => {
+        serializedStates.push([
+          id,
+          {
+            speed: state.speed,
+            volume: state.volume,
+            isPlaying: false, // Don't persist playing state
+            isLooping: state.isLooping,
+          },
+        ]);
+      });
+
+      const data: SerializedPlaybackState = {
+        trackStates: serializedStates,
+        loopMode,
+      };
+
+      await storage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (error) {
+      logger.error("[PlaybackStore] Failed to persist state:", error);
+    }
+  },
+  // NOTE: equalityFn returning false ensures persistence runs on every state change.
+  // This is intentional because Map mutations don't trigger reference equality checks.
+  { equalityFn: () => false },
+);

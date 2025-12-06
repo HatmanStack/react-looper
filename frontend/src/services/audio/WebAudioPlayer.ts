@@ -15,12 +15,17 @@ import { AudioError } from "./AudioError";
 
 export class WebAudioPlayer extends BaseAudioPlayer {
   private audioContext: AudioContext | null = null;
+  // NOTE: Full AudioBuffer is stored in memory. For very long tracks (>10 min),
+  // consider streaming audio using MediaSource Extensions instead.
   private audioBuffer: AudioBuffer | null = null;
   private sourceNode: AudioBufferSourceNode | null = null;
   private gainNode: GainNode | null = null;
   private startTime: number = 0;
   private pauseTime: number = 0;
-  private positionUpdateTimer: number | null = null;
+  // NOTE: Using requestAnimationFrame instead of setInterval for position updates.
+  // This syncs with display refresh and is more battery-efficient on mobile.
+  private animationFrameId: number | null = null;
+  private lastUpdateTime: number = 0;
 
   constructor() {
     super();
@@ -231,6 +236,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
   /**
    * Get current position
+   * Accounts for playback speed when calculating position
    */
   protected async _getPosition(): Promise<number> {
     if (!this.audioContext || !this.audioBuffer) {
@@ -238,8 +244,11 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     }
 
     if (this._isPlaying && this.sourceNode) {
-      // Calculate current position while playing
-      const currentPosition = this.audioContext.currentTime - this.startTime;
+      // Calculate elapsed time since playback started
+      const elapsedTime = this.audioContext.currentTime - this.startTime;
+
+      // Account for playback speed: actual audio position = elapsed time * speed
+      const currentPosition = elapsedTime * this._speed;
 
       // Handle looping
       if (this._looping && this.audioBuffer) {
@@ -322,25 +331,39 @@ export class WebAudioPlayer extends BaseAudioPlayer {
   }
 
   /**
-   * Start position update timer
+   * Start position update using requestAnimationFrame
+   * More efficient than setInterval and syncs with display refresh
    */
   private startPositionUpdateTimer(): void {
     this.stopPositionUpdateTimer();
 
     if (this._onPositionUpdate) {
-      this.positionUpdateTimer = window.setInterval(() => {
-        this.triggerPositionUpdate();
-      }, this._updateInterval);
+      this.lastUpdateTime = performance.now();
+
+      const updateLoop = (currentTime: number) => {
+        // Only trigger update if enough time has passed (based on _updateInterval)
+        if (currentTime - this.lastUpdateTime >= this._updateInterval) {
+          this.triggerPositionUpdate();
+          this.lastUpdateTime = currentTime;
+        }
+
+        // Continue the loop if still playing
+        if (this._isPlaying) {
+          this.animationFrameId = requestAnimationFrame(updateLoop);
+        }
+      };
+
+      this.animationFrameId = requestAnimationFrame(updateLoop);
     }
   }
 
   /**
-   * Stop position update timer
+   * Stop position update loop
    */
   private stopPositionUpdateTimer(): void {
-    if (this.positionUpdateTimer !== null) {
-      clearInterval(this.positionUpdateTimer);
-      this.positionUpdateTimer = null;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
   }
 

@@ -56,6 +56,8 @@ export interface MixResult {
   data: Blob | string;
   /** The actual format of the output (may differ from requested if fallback occurred) */
   actualFormat: AudioFormat;
+  /** Warning message if format fallback occurred */
+  formatFallbackWarning?: string;
 }
 
 export interface IAudioExportService {

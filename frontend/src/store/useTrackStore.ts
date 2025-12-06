@@ -9,15 +9,18 @@
  */
 
 import { create } from "zustand";
-// Note: Persist middleware removed to avoid import.meta errors on web
-// See: react-vocabulary/TS_RENDER.md for details
-// TODO: Re-implement persistence with platform-specific approach
+import { subscribeWithSelector } from "zustand/middleware";
 import type { Track } from "../types";
 import {
   calculateMasterLoopDuration,
   getMasterTrack as getFirstTrack,
   isMasterTrack as isFirstTrack,
 } from "../utils/loopUtils";
+import { createStorage } from "./storage";
+import { logger } from "../utils/logger";
+
+const STORAGE_KEY = "looper-tracks";
+const storage = createStorage();
 
 interface TrackStore {
   // State
@@ -42,9 +45,10 @@ interface TrackStore {
   getMasterLoopDuration: () => number;
 }
 
-export const useTrackStore = create<TrackStore>()((set, get) => ({
-  // Initial state
-  tracks: [],
+export const useTrackStore = create<TrackStore>()(
+  subscribeWithSelector((set, get) => ({
+    // Initial state
+    tracks: [],
 
   // Add a new track
   addTrack: (track: Track) =>
@@ -122,4 +126,41 @@ export const useTrackStore = create<TrackStore>()((set, get) => ({
   getMasterLoopDuration: () => {
     return calculateMasterLoopDuration(get().tracks);
   },
-}));
+})),
+);
+
+/**
+ * Initialize store from persisted storage
+ * Call this on app startup
+ */
+export async function initializeTrackStore(): Promise<void> {
+  try {
+    const stored = await storage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.tracks)) {
+        // Reset isPlaying state on load (tracks shouldn't auto-play on restart)
+        const tracks = parsed.tracks.map((track: Track) => ({
+          ...track,
+          isPlaying: false,
+        }));
+        useTrackStore.setState({ tracks });
+        logger.info(`[TrackStore] Loaded ${tracks.length} tracks from storage`);
+      }
+    }
+  } catch (error) {
+    logger.error("[TrackStore] Failed to load from storage:", error);
+  }
+}
+
+// Subscribe to track changes and persist
+useTrackStore.subscribe(
+  (state) => state.tracks,
+  async (tracks) => {
+    try {
+      await storage.setItem(STORAGE_KEY, JSON.stringify({ tracks }));
+    } catch (error) {
+      logger.error("[TrackStore] Failed to persist tracks:", error);
+    }
+  },
+);

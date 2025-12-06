@@ -87,8 +87,9 @@ export class WebFileImporter {
    * Process selected file and create blob URL
    */
   private static async processFile(file: File): Promise<ImportedFile> {
-    // Validate file type
-    if (!this.isValidAudioFile(file)) {
+    // Validate file type using MIME type, magic bytes, or extension
+    const isValid = await this.isValidAudioFile(file);
+    if (!isValid) {
       throw new AudioError(
         AudioErrorCode.INVALID_FORMAT,
         `Unsupported file type: ${file.type}`,
@@ -129,19 +130,120 @@ export class WebFileImporter {
   }
 
   /**
-   * Check if file is a valid audio file
+   * Check if file is a valid audio file using MIME type, magic bytes, and extension
    */
-  private static isValidAudioFile(file: File): boolean {
-    // Check MIME type
+  private static async isValidAudioFile(file: File): Promise<boolean> {
+    // Check MIME type first
     if (file.type && this.SUPPORTED_AUDIO_TYPES.includes(file.type)) {
       return true;
     }
 
-    // Check file extension as fallback
+    // Sniff magic bytes from file header for more reliable detection
+    const detectedType = await this.detectAudioTypeFromBytes(file);
+    if (detectedType) {
+      return true;
+    }
+
+    // Check file extension as final fallback
     const extension = file.name.split(".").pop()?.toLowerCase();
     const validExtensions = ["mp3", "wav", "m4a", "aac", "ogg", "webm"];
 
     return extension ? validExtensions.includes(extension) : false;
+  }
+
+  /**
+   * Magic byte signatures for common audio formats
+   * NOTE: Using magic bytes instead of relying solely on MIME type or file extension
+   * because these can be spoofed. Magic bytes provide reliable format detection.
+   * The playback verification (verifyAudioPlayback) serves as a final validation.
+   */
+  private static AUDIO_SIGNATURES: Array<{
+    bytes: number[];
+    offset: number;
+    type: string;
+  }> = [
+    // MP3: ID3 tag or frame sync
+    { bytes: [0x49, 0x44, 0x33], offset: 0, type: "audio/mpeg" }, // ID3
+    { bytes: [0xff, 0xfb], offset: 0, type: "audio/mpeg" }, // MP3 frame sync
+    { bytes: [0xff, 0xfa], offset: 0, type: "audio/mpeg" }, // MP3 frame sync
+    { bytes: [0xff, 0xf3], offset: 0, type: "audio/mpeg" }, // MP3 frame sync
+    { bytes: [0xff, 0xf2], offset: 0, type: "audio/mpeg" }, // MP3 frame sync
+
+    // WAV: RIFF header with WAVE format
+    { bytes: [0x52, 0x49, 0x46, 0x46], offset: 0, type: "audio/wav" }, // RIFF
+
+    // OGG: OggS magic
+    { bytes: [0x4f, 0x67, 0x67, 0x53], offset: 0, type: "audio/ogg" },
+
+    // FLAC: fLaC magic
+    { bytes: [0x66, 0x4c, 0x61, 0x43], offset: 0, type: "audio/flac" },
+
+    // M4A/MP4: ftyp atom (need to also check for audio-specific ftyp)
+    { bytes: [0x66, 0x74, 0x79, 0x70], offset: 4, type: "audio/mp4" },
+
+    // WebM: EBML header (0x1A 0x45 0xDF 0xA3)
+    { bytes: [0x1a, 0x45, 0xdf, 0xa3], offset: 0, type: "audio/webm" },
+  ];
+
+  /**
+   * Detect audio type from file magic bytes
+   * More reliable than MIME type or extension which can be spoofed
+   */
+  private static async detectAudioTypeFromBytes(
+    file: File,
+  ): Promise<string | null> {
+    try {
+      // Read first 12 bytes (enough for all signatures)
+      const buffer = await file.slice(0, 12).arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+
+      for (const sig of this.AUDIO_SIGNATURES) {
+        if (this.matchesSignature(bytes, sig.bytes, sig.offset)) {
+          // For WAV, verify WAVE format marker at offset 8
+          if (sig.type === "audio/wav") {
+            const waveMarker = [0x57, 0x41, 0x56, 0x45]; // "WAVE"
+            if (!this.matchesSignature(bytes, waveMarker, 8)) {
+              continue; // Not a WAV file, might be AVI or other RIFF format
+            }
+          }
+          return sig.type;
+        }
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Check if bytes match a signature at given offset
+   */
+  private static matchesSignature(
+    bytes: Uint8Array,
+    signature: number[],
+    offset: number,
+  ): boolean {
+    if (bytes.length < offset + signature.length) {
+      return false;
+    }
+
+    for (let i = 0; i < signature.length; i++) {
+      // For MP3 frame sync, mask the second byte (only check sync bits)
+      if (
+        signature[0] === 0xff &&
+        i === 1 &&
+        (signature[1] & 0xf0) === 0xf0
+      ) {
+        if ((bytes[offset + i] & 0xf0) !== 0xf0) {
+          return false;
+        }
+      } else if (bytes[offset + i] !== signature[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

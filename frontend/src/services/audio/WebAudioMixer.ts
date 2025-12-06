@@ -12,6 +12,17 @@ import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
 import { useSettingsStore } from "../../store/useSettingsStore";
 
+// Maximum recommended mix duration in seconds (to prevent memory exhaustion)
+// 10 minutes at 44.1kHz stereo 16-bit = ~100MB of audio data.
+// NOTE: OfflineAudioContext allocates the entire buffer upfront, so longer mixes
+// may cause browser tab crashes on memory-constrained devices.
+const MAX_RECOMMENDED_DURATION_SECONDS = 600;
+
+// Chunk size for WAV conversion (process 1 second at a time)
+// NOTE: Chunked processing reduces peak memory by not creating one giant ArrayBuffer.
+// Trade-off: slightly slower but prevents out-of-memory for long audio exports.
+const WAV_CHUNK_SECONDS = 1;
+
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
   private cachedBlob: Blob | null = null;
@@ -62,6 +73,22 @@ export class WebAudioMixer extends BaseAudioMixer {
       logger.log(
         `[WebAudioMixer] Master loop: ${masterLoopDuration.toFixed(2)}s, Loops: ${loopCount}, Fadeout: ${fadeoutDuration.toFixed(2)}s, Total: ${totalDuration.toFixed(2)}s`,
       );
+
+      // Check memory requirements and warn if too large
+      const estimatedMemoryMB = this.estimateMemoryUsage(
+        totalDuration,
+        sampleRate,
+        2, // stereo
+      );
+      logger.log(
+        `[WebAudioMixer] Estimated memory usage: ${estimatedMemoryMB.toFixed(1)}MB`,
+      );
+
+      if (totalDuration > MAX_RECOMMENDED_DURATION_SECONDS) {
+        logger.warn(
+          `[WebAudioMixer] Mix duration (${totalDuration.toFixed(0)}s) exceeds recommended maximum (${MAX_RECOMMENDED_DURATION_SECONDS}s). This may cause memory issues.`,
+        );
+      }
 
       // Create offline context for rendering
       const offlineContext = new OfflineAudioContext({
@@ -269,63 +296,103 @@ export class WebAudioMixer extends BaseAudioMixer {
   }
 
   /**
-   * Convert AudioBuffer to WAV Blob
+   * Estimate memory usage for a mix operation
+   * Returns estimated memory in megabytes
+   */
+  private estimateMemoryUsage(
+    durationSeconds: number,
+    sampleRate: number,
+    channels: number,
+  ): number {
+    // AudioBuffer uses Float32 (4 bytes per sample)
+    // Plus WAV output uses Int16 (2 bytes per sample)
+    const samplesPerChannel = durationSeconds * sampleRate;
+    const audioBufferBytes = samplesPerChannel * channels * 4; // Float32
+    const wavBytes = samplesPerChannel * channels * 2 + 44; // Int16 + header
+
+    const totalBytes = audioBufferBytes + wavBytes;
+    return totalBytes / (1024 * 1024);
+  }
+
+  /**
+   * Convert AudioBuffer to WAV Blob using chunked processing
+   * Processes audio data in chunks to reduce peak memory usage
    */
   private audioBufferToWav(buffer: AudioBuffer): Blob {
-    const length = buffer.length * buffer.numberOfChannels * 2;
-    const wavBuffer = new ArrayBuffer(44 + length);
-    const view = new DataView(wavBuffer);
+    const sampleRate = buffer.sampleRate;
+    const numChannels = buffer.numberOfChannels;
+    const dataLength = buffer.length * numChannels * 2; // 16-bit samples
 
-    // Write WAV header
-    const writeString = (offset: number, string: string) => {
+    // Create WAV header (44 bytes)
+    const headerBuffer = new ArrayBuffer(44);
+    const headerView = new DataView(headerBuffer);
+
+    const writeString = (view: DataView, offset: number, string: string) => {
       for (let i = 0; i < string.length; i++) {
         view.setUint8(offset + i, string.charCodeAt(i));
       }
     };
 
-    const sampleRate = buffer.sampleRate;
-    const numChannels = buffer.numberOfChannels;
-
     // RIFF header
-    writeString(0, "RIFF");
-    view.setUint32(4, 36 + length, true);
-    writeString(8, "WAVE");
+    writeString(headerView, 0, "RIFF");
+    headerView.setUint32(4, 36 + dataLength, true);
+    writeString(headerView, 8, "WAVE");
 
     // fmt chunk
-    writeString(12, "fmt ");
-    view.setUint32(16, 16, true); // chunk size
-    view.setUint16(20, 1, true); // PCM format
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numChannels * 2, true); // byte rate
-    view.setUint16(32, numChannels * 2, true); // block align
-    view.setUint16(34, 16, true); // bits per sample
+    writeString(headerView, 12, "fmt ");
+    headerView.setUint32(16, 16, true); // chunk size
+    headerView.setUint16(20, 1, true); // PCM format
+    headerView.setUint16(22, numChannels, true);
+    headerView.setUint32(24, sampleRate, true);
+    headerView.setUint32(28, sampleRate * numChannels * 2, true); // byte rate
+    headerView.setUint16(32, numChannels * 2, true); // block align
+    headerView.setUint16(34, 16, true); // bits per sample
 
-    // data chunk
-    writeString(36, "data");
-    view.setUint32(40, length, true);
+    // data chunk header
+    writeString(headerView, 36, "data");
+    headerView.setUint32(40, dataLength, true);
 
-    // Write audio data
-    const offset = 44;
-    const channels = [];
-    for (let i = 0; i < numChannels; i++) {
-      channels.push(buffer.getChannelData(i));
+    // Process audio data in chunks to reduce memory pressure
+    const samplesPerChunk = Math.floor(sampleRate * WAV_CHUNK_SECONDS);
+    const chunks: ArrayBuffer[] = [headerBuffer];
+
+    // Get all channel data references once
+    const channelData: Float32Array[] = [];
+    for (let c = 0; c < numChannels; c++) {
+      channelData.push(buffer.getChannelData(c));
     }
 
-    let pos = 0;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let channel = 0; channel < numChannels; channel++) {
-        const sample = Math.max(-1, Math.min(1, channels[channel][i]));
-        view.setInt16(
-          offset + pos,
-          sample < 0 ? sample * 0x8000 : sample * 0x7fff,
-          true,
-        );
-        pos += 2;
+    // Process in chunks
+    for (
+      let chunkStart = 0;
+      chunkStart < buffer.length;
+      chunkStart += samplesPerChunk
+    ) {
+      const chunkEnd = Math.min(chunkStart + samplesPerChunk, buffer.length);
+      const chunkSamples = chunkEnd - chunkStart;
+      const chunkBytes = chunkSamples * numChannels * 2;
+
+      const chunkBuffer = new ArrayBuffer(chunkBytes);
+      const chunkView = new DataView(chunkBuffer);
+
+      let pos = 0;
+      for (let i = chunkStart; i < chunkEnd; i++) {
+        for (let channel = 0; channel < numChannels; channel++) {
+          const sample = Math.max(-1, Math.min(1, channelData[channel][i]));
+          const int16Sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+          chunkView.setInt16(pos, int16Sample, true);
+          pos += 2;
+        }
       }
+
+      chunks.push(chunkBuffer);
     }
 
-    return new Blob([wavBuffer], { type: "audio/wav" });
+    logger.log(
+      `[WebAudioMixer] WAV conversion: ${chunks.length - 1} chunks processed`,
+    );
+
+    return new Blob(chunks, { type: "audio/wav" });
   }
 
   /**
