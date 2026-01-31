@@ -2,5 +2,5 @@
 User-agent: *
 Allow: /
 
-# Sitemap location (update with actual domain)
-Sitemap: https://looper.app/sitemap.xml
+# Sitemap location
+Sitemap: https://looper.hatstack.fun/sitemap.xml
