@@ -19,6 +19,7 @@ import { Alert } from "../../utils/alert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TrackList } from "@components/TrackList";
 import { ActionButton } from "@components/ActionButton";
+import { TopControlsSkeleton } from "@components/TopControlsSkeleton";
 import { SaveModal } from "@components/SaveModal";
 import { HelpModal } from "@components/HelpModal";
 import { ConfirmationDialog } from "@components/ConfirmationDialog";
@@ -82,6 +83,7 @@ export const MainScreen: React.FC = () => {
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // For updating recording duration
 
   // Confirmation dialog state for master track speed changes
+  const [isInitialized, setIsInitialized] = useState(false);
   const [speedConfirmationVisible, setSpeedConfirmationVisible] =
     useState(false);
   const [pendingSpeedChange, setPendingSpeedChange] = useState<{
@@ -98,10 +100,12 @@ export const MainScreen: React.FC = () => {
   useEffect(() => {
     try {
       audioServiceRef.current = getAudioService();
+      setIsInitialized(true);
     } catch (error) {
       if (error instanceof AudioError) {
         Alert.alert("Error", error.userMessage);
       }
+      setIsInitialized(true); // Show UI even on error
     }
 
     return () => {
@@ -581,95 +585,99 @@ export const MainScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <View style={styles.container}>
         {/* Top Controls */}
-        <Surface
-          style={styles.topControls}
-          elevation={0}
-          accessibilityRole="toolbar"
-          accessibilityLabel="Main controls"
-        >
-          <ActionButton
-            label="Record"
-            icon="microphone"
-            onPress={handleRecord}
-            disabled={isRecording || isLoading}
-            iconOnly={useIconOnly}
-            accessibilityLabel={
-              isRecording
-                ? "Recording in progress"
-                : hasMasterTrack()
-                  ? "Record overdub track"
-                  : "Record first loop track"
-            }
-            accessibilityHint={
-              hasMasterTrack()
-                ? "Record a new track that will auto-stop at the loop boundary"
-                : "Record your first track to set the master loop length"
-            }
-          />
-          <ActionButton
-            label="Stop"
-            icon="stop"
-            onPress={handleStop}
-            disabled={!isRecording || isLoading}
-            iconOnly={useIconOnly}
-            accessibilityHint="Stop recording and save track"
-          />
-          <ActionButton
-            label="Import"
-            icon="file-music"
-            onPress={handleImport}
-            disabled={isLoading}
-            iconOnly={useIconOnly}
-            accessibilityHint="Import an audio file from device storage"
-          />
-          <ActionButton
-            label="Save"
-            icon="content-save"
-            onPress={handleSave}
-            disabled={tracks.length === 0 || isLoading}
-            iconOnly={useIconOnly}
-            accessibilityHint="Mix and save all tracks to a single audio file"
-          />
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="dots-vertical"
-                size={32}
-                iconColor="#FFFFFF"
-                onPress={() => setMenuVisible(true)}
-                accessibilityLabel="More options"
-                accessibilityHint="Open menu for loop mode, settings, and help"
-              />
-            }
+        {!isInitialized ? (
+          <TopControlsSkeleton style={styles.topControls} />
+        ) : (
+          <Surface
+            style={styles.topControls}
+            elevation={0}
+            accessibilityRole="toolbar"
+            accessibilityLabel="Main controls"
           >
-            <Menu.Item
-              onPress={() => {
-                toggleLoopMode();
-                setMenuVisible(false);
-              }}
-              title={loopMode ? "Loop Mode: On" : "Loop Mode: Off"}
-              leadingIcon={loopMode ? "repeat" : "repeat-off"}
+            <ActionButton
+              label="Record"
+              icon="microphone"
+              onPress={handleRecord}
+              disabled={isRecording || isLoading}
+              iconOnly={useIconOnly}
+              accessibilityLabel={
+                isRecording
+                  ? "Recording in progress"
+                  : hasMasterTrack()
+                    ? "Record overdub track"
+                    : "Record first loop track"
+              }
+              accessibilityHint={
+                hasMasterTrack()
+                  ? "Record a new track that will auto-stop at the loop boundary"
+                  : "Record your first track to set the master loop length"
+              }
             />
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                handleSettings();
-              }}
-              title="Settings"
-              leadingIcon="cog"
+            <ActionButton
+              label="Stop"
+              icon="stop"
+              onPress={handleStop}
+              disabled={!isRecording || isLoading}
+              iconOnly={useIconOnly}
+              accessibilityHint="Stop recording and save track"
             />
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                handleHelp();
-              }}
-              title="Help"
-              leadingIcon="help-circle"
+            <ActionButton
+              label="Import"
+              icon="file-music"
+              onPress={handleImport}
+              disabled={isLoading}
+              iconOnly={useIconOnly}
+              accessibilityHint="Import an audio file from device storage"
             />
-          </Menu>
-        </Surface>
+            <ActionButton
+              label="Save"
+              icon="content-save"
+              onPress={handleSave}
+              disabled={tracks.length === 0 || isLoading}
+              iconOnly={useIconOnly}
+              accessibilityHint="Mix and save all tracks to a single audio file"
+            />
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={32}
+                  iconColor="#FFFFFF"
+                  onPress={() => setMenuVisible(true)}
+                  accessibilityLabel="More options"
+                  accessibilityHint="Open menu for loop mode, settings, and help"
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  toggleLoopMode();
+                  setMenuVisible(false);
+                }}
+                title={loopMode ? "Loop Mode: On" : "Loop Mode: Off"}
+                leadingIcon={loopMode ? "repeat" : "repeat-off"}
+              />
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+                  handleSettings();
+                }}
+                title="Settings"
+                leadingIcon="cog"
+              />
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+                  handleHelp();
+                }}
+                title="Help"
+                leadingIcon="help-circle"
+              />
+            </Menu>
+          </Surface>
+        )}
 
         {/* Recording Progress Indicator */}
         {isRecording && (

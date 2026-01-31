@@ -34,14 +34,18 @@ export const getStyles = (responsive: {
 }) => {
   const { maxContentWidth, isDesktop: isLargeScreen, getSpacing } = responsive;
 
+  // Always apply maxWidth to prevent layout flash on initial render.
+  // On small screens, width: 100% still constrains to screen size.
+  const effectiveMaxWidth = maxContentWidth > 0 ? maxContentWidth : 900;
+
   return {
     safeArea: staticStyles.safeArea,
-    // Use inline style for dynamic maxWidth to avoid StyleSheet caching
     container: [
       staticStyles.containerBase,
-      { maxWidth: isLargeScreen ? maxContentWidth : undefined },
+      { maxWidth: effectiveMaxWidth },
     ],
     topControls: {
+      width: "100%" as const,
       flexDirection: "row" as const,
       justifyContent: "space-evenly" as const,
       alignItems: "center" as const,
