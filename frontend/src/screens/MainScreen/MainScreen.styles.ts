@@ -40,10 +40,7 @@ export const getStyles = (responsive: {
 
   return {
     safeArea: staticStyles.safeArea,
-    container: [
-      staticStyles.containerBase,
-      { maxWidth: effectiveMaxWidth },
-    ],
+    container: [staticStyles.containerBase, { maxWidth: effectiveMaxWidth }],
     topControls: {
       width: "100%" as const,
       flexDirection: "row" as const,

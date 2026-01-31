@@ -1,5 +1,5 @@
 // jest.mocks.js - Module mocks that run before environment setup
-/* eslint-disable no-undef */
+ 
 
 // Mock react-native-safe-area-context for react-native-paper compatibility
 jest.mock('react-native-safe-area-context', () => {

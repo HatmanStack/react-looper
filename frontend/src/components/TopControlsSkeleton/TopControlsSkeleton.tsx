@@ -5,8 +5,14 @@
  * Matches ActionButton appearance - pills on desktop, circles on mobile.
  */
 
-import React, { useEffect, useRef } from "react";
-import { Animated, Dimensions, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import {
+  Animated,
+  Dimensions,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 import { Surface } from "react-native-paper";
 import { BREAKPOINTS } from "../../utils/responsive";
 
@@ -27,7 +33,8 @@ export const TopControlsSkeleton: React.FC<TopControlsSkeletonProps> = ({
   const screenWidth = Dimensions.get("window").width;
   const isDesktop = screenWidth === 0 || screenWidth >= BREAKPOINTS.md;
   const iconOnly = !isDesktop;
-  const pulseAnim = useRef(new Animated.Value(0.6)).current;
+
+  const pulseAnim = useMemo(() => new Animated.Value(0.6), []);
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -42,7 +49,7 @@ export const TopControlsSkeleton: React.FC<TopControlsSkeletonProps> = ({
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();
@@ -50,31 +57,13 @@ export const TopControlsSkeleton: React.FC<TopControlsSkeletonProps> = ({
 
   const buttonStyle = iconOnly ? styles.iconButton : styles.pillButton;
 
-  const SkeletonActionButton = () => (
-    <Animated.View
-      style={[
-        buttonStyle,
-        { opacity: pulseAnim },
-      ]}
-    />
-  );
-
-  const SkeletonMenuButton = () => (
-    <Animated.View
-      style={[
-        styles.menuButton,
-        { opacity: pulseAnim },
-      ]}
-    />
-  );
-
   return (
     <Surface style={style} elevation={0}>
-      <SkeletonActionButton />
-      <SkeletonActionButton />
-      <SkeletonActionButton />
-      <SkeletonActionButton />
-      <SkeletonMenuButton />
+      <Animated.View style={[buttonStyle, { opacity: pulseAnim }]} />
+      <Animated.View style={[buttonStyle, { opacity: pulseAnim }]} />
+      <Animated.View style={[buttonStyle, { opacity: pulseAnim }]} />
+      <Animated.View style={[buttonStyle, { opacity: pulseAnim }]} />
+      <Animated.View style={[styles.menuButton, { opacity: pulseAnim }]} />
     </Surface>
   );
 };
