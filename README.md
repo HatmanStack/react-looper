@@ -15,7 +15,7 @@ A cross-platform audio mixing app that lets you record, import, and mix audio tr
 
 [Try It](https://looper.hatstack.fun)
 
-<img width="400" src="frontend/assets/banner.png" alt="Looper App">
+---
 
 </div>
 
