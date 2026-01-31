@@ -1,6 +1,6 @@
 <div align="center">
 
-# Looper
+<img src="frontend/public/og-image.jpg" alt="Looper App">
 
 <h4>
 <a href="https://reactnative.dev/"><img src="https://img.shields.io/badge/React%20Native-0.81-blue" alt="React Native" /></a>
