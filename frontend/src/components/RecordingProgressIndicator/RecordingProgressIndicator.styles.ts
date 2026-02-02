@@ -25,6 +25,7 @@ export const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginVertical: 12,
+    alignSelf: "center",
   },
 
   instructionText: {

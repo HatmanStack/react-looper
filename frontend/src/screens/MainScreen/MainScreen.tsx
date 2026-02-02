@@ -143,8 +143,6 @@ export const MainScreen: React.FC = () => {
     }
 
     try {
-      setIsLoading(true);
-
       // Detect recording context: first track or subsequent
       const masterLoopDuration = getMasterLoopDuration();
       const isFirstTrackRecording = !hasMasterTrack();
@@ -152,17 +150,21 @@ export const MainScreen: React.FC = () => {
       // Convert quality level to bitrate
       const bitRate = getBitrate(recordingFormat, recordingQuality);
 
-      // Start recording with maxDuration for subsequent tracks
+      // Start recording with auto-stop timer for subsequent tracks
       if (!isFirstTrackRecording) {
         const targetDuration = calculateQuantizedDuration(masterLoopDuration);
+        logger.log(
+          `[MainScreen] Starting subsequent recording: masterLoopDuration=${masterLoopDuration}ms, targetDuration=${targetDuration}ms`,
+        );
 
+        // Don't pass maxDuration to avoid dual auto-stop timers
+        // MainScreen's timer will be the sole mechanism for auto-stopping
         await audioServiceRef.current.startRecording({
-          maxDuration: targetDuration,
           format: recordingFormat as import("../../types/audio").AudioFormat,
           bitRate,
         });
 
-        // Set up auto-stop timer as backup
+        // Set up auto-stop timer (this is the only auto-stop mechanism)
         recordingTimerRef.current = setTimeout(() => {
           handleStop();
         }, targetDuration);
@@ -190,8 +192,6 @@ export const MainScreen: React.FC = () => {
       } else {
         Alert.alert("Error", "Failed to start recording");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -214,12 +214,16 @@ export const MainScreen: React.FC = () => {
     }
 
     try {
-      setIsLoading(true);
+      // IMPORTANT: Capture duration BEFORE stopRecording() resets the internal state
+      // getRecordingDuration() now also returns the final duration after stop (defensive)
+      const recordingDuration = audioServiceRef.current.getRecordingDuration();
+      logger.log(
+        `[MainScreen] Stopping recording, captured duration: ${recordingDuration}ms`,
+      );
+
       const uri = await audioServiceRef.current.stopRecording();
       setIsRecording(false);
       setRecordingDuration(0);
-
-      const recordingDuration = audioServiceRef.current.getRecordingDuration();
 
       // Create new track
       const newTrack: Track = {
@@ -249,8 +253,6 @@ export const MainScreen: React.FC = () => {
       } else {
         Alert.alert("Error", "Failed to stop recording");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 

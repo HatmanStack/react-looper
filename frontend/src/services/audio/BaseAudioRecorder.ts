@@ -21,6 +21,12 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
   protected _recordingStartTime: number = 0;
 
   /**
+   * Final duration of the last completed recording (ms)
+   * Preserved after stopRecording() so it can still be retrieved
+   */
+  protected _finalDuration: number = 0;
+
+  /**
    * Recording options for current session
    */
   protected _currentOptions?: RecordingOptions;
@@ -82,6 +88,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
 
       this._currentOptions = options;
       this._recordingStartTime = Date.now();
+      this._finalDuration = 0; // Reset final duration for new recording
       this._isRecording = true;
 
       await this._startRecording(options);
@@ -117,6 +124,9 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
     }
 
     try {
+      // Capture final duration BEFORE stopping (while _recordingStartTime is still valid)
+      this._finalDuration = Date.now() - this._recordingStartTime;
+
       const uri = await this._stopRecording();
 
       // Reset state
@@ -169,13 +179,14 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
   }
 
   /**
-   * Get current recording duration
+   * Get current recording duration, or final duration if recording just stopped
    */
   public getRecordingDuration(): number {
-    if (!this._isRecording) {
-      return 0;
+    if (this._isRecording) {
+      return Date.now() - this._recordingStartTime;
     }
-    return Date.now() - this._recordingStartTime;
+    // Return the final duration from the last completed recording
+    return this._finalDuration;
   }
 
   /**

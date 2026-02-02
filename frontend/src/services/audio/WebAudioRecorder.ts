@@ -19,13 +19,25 @@ export class WebAudioRecorder extends BaseAudioRecorder {
   private audioChunks: Blob[] = [];
   private mediaStream: MediaStream | null = null;
   private autoStopTimer: NodeJS.Timeout | null = null;
+  /** Track if permissions have been granted to avoid redundant getUserMedia calls */
+  private permissionsGranted: boolean = false;
 
   /**
    * Start recording implementation for web
    */
   protected async _startRecording(options?: RecordingOptions): Promise<void> {
     try {
+      // Ensure clean state before starting
+      if (this.mediaRecorder) {
+        logger.log(
+          "[WebAudioRecorder] Cleaning up previous MediaRecorder before starting new recording",
+        );
+        this.mediaRecorder = null;
+      }
+      this.audioChunks = [];
+
       // Request microphone access
+      logger.log("[WebAudioRecorder] Requesting microphone access...");
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: options?.sampleRate || 44100,
@@ -33,6 +45,17 @@ export class WebAudioRecorder extends BaseAudioRecorder {
           echoCancellation: true,
           noiseSuppression: true,
         },
+      });
+
+      // Log stream and track info for debugging
+      const audioTracks = this.mediaStream.getAudioTracks();
+      logger.log(
+        `[WebAudioRecorder] Got media stream with ${audioTracks.length} audio track(s)`,
+      );
+      audioTracks.forEach((track, i) => {
+        logger.log(
+          `[WebAudioRecorder] Track ${i}: label="${track.label}", enabled=${track.enabled}, readyState=${track.readyState}, muted=${track.muted}`,
+        );
       });
 
       // Determine MIME type based on format option or browser support
@@ -44,14 +67,24 @@ export class WebAudioRecorder extends BaseAudioRecorder {
         audioBitsPerSecond: (options?.bitRate || 128) * 1000,
       });
 
-      // Clear any previous chunks
-      this.audioChunks = [];
+      logger.log(
+        `[WebAudioRecorder] MediaRecorder created, state: ${this.mediaRecorder.state}`,
+      );
 
       // Set up event handlers
       this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
+        logger.log(
+          `[WebAudioRecorder] ondataavailable fired, data size: ${event.data?.size ?? "null"}`,
+        );
         if (event.data && event.data.size > 0) {
           this.audioChunks.push(event.data);
         }
+      };
+
+      this.mediaRecorder.onstart = () => {
+        logger.log(
+          `[WebAudioRecorder] MediaRecorder onstart fired, state: ${this.mediaRecorder?.state}`,
+        );
       };
 
       // Handle errors
@@ -123,6 +156,10 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    * Stop recording and return audio blob URL
    */
   protected async _stopRecording(): Promise<string> {
+    logger.log(
+      `[WebAudioRecorder] _stopRecording called, mediaRecorder state: ${this.mediaRecorder?.state}, chunks collected: ${this.audioChunks.length}`,
+    );
+
     // Clear auto-stop timer if it exists
     if (this.autoStopTimer) {
       clearTimeout(this.autoStopTimer);
@@ -136,6 +173,16 @@ export class WebAudioRecorder extends BaseAudioRecorder {
         "MediaRecorder not initialized",
         "Recording session not found.",
       );
+    }
+
+    // Log track states before stopping
+    if (this.mediaStream) {
+      const tracks = this.mediaStream.getAudioTracks();
+      tracks.forEach((track, i) => {
+        logger.log(
+          `[WebAudioRecorder] Before stop - Track ${i}: readyState=${track.readyState}, enabled=${track.enabled}`,
+        );
+      });
     }
 
     return new Promise((resolve, reject) => {
@@ -153,6 +200,9 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Handle recording stop
       this.mediaRecorder.onstop = () => {
         try {
+          logger.log(
+            `[WebAudioRecorder] onstop handler called, chunks: ${this.audioChunks.length}`,
+          );
           // Create blob from chunks
           const mimeType = this.mediaRecorder?.mimeType || "audio/webm";
           const audioBlob = new Blob(this.audioChunks, { type: mimeType });
@@ -218,6 +268,11 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    * Request microphone permissions
    */
   protected async _getPermissions(): Promise<boolean> {
+    // If we've already successfully recorded, permissions are granted
+    if (this.permissionsGranted) {
+      return true;
+    }
+
     try {
       // Try permissions API first (not supported in all browsers)
       if ("permissions" in navigator) {
@@ -228,6 +283,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
           });
 
           if (result.state === "granted") {
+            this.permissionsGranted = true;
             return true;
           }
 
@@ -238,7 +294,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
           // State is 'prompt' - will be requested when getUserMedia is called
         } catch (permError) {
           // Permissions API not fully supported, fall through
-          console.warn(
+          logger.warn(
             "[WebAudioRecorder] Permissions API not available:",
             permError,
           );
@@ -253,9 +309,14 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Immediately stop the stream since this is just a permission check
       stream.getTracks().forEach((track) => track.stop());
 
+      // Add a small delay to ensure the audio device is fully released
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      this.permissionsGranted = true;
       return true;
     } catch (error) {
       if ((error as Error).name === "NotAllowedError") {
+        this.permissionsGranted = false;
         return false;
       }
 
