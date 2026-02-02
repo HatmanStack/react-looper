@@ -58,8 +58,9 @@ function getProgressColor(progress: number): string {
 export const RecordingProgressIndicator: React.FC<
   RecordingProgressIndicatorProps
 > = ({ isFirstTrack, recordingDuration, loopDuration }) => {
-  // For first track, just show elapsed time
-  if (isFirstTrack) {
+  // For first track OR if loopDuration is invalid, just show elapsed time
+  // loopDuration can be 0 if the master track has Infinity duration (metadata issue)
+  if (isFirstTrack || loopDuration <= 0 || !Number.isFinite(loopDuration)) {
     return (
       <View style={styles.container} testID="recording-progress-indicator">
         <Text style={styles.timerText} testID="timer-text">
@@ -72,8 +73,8 @@ export const RecordingProgressIndicator: React.FC<
     );
   }
 
-  // For subsequent tracks, show progress bar + timer
-  const progress = loopDuration > 0 ? recordingDuration / loopDuration : 0;
+  // For subsequent tracks with valid loop duration, show progress bar + timer
+  const progress = recordingDuration / loopDuration;
   const clampedProgress = Math.min(progress, 1.0); // Clamp to 1.0 max
   const progressColor = getProgressColor(clampedProgress);
 

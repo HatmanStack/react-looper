@@ -270,8 +270,12 @@ export class WebAudioRecorder extends BaseAudioRecorder {
   protected async _getPermissions(): Promise<boolean> {
     // If we've already successfully recorded, permissions are granted
     if (this.permissionsGranted) {
+      logger.log(
+        "[WebAudioRecorder] Permissions already granted, skipping check",
+      );
       return true;
     }
+    logger.log("[WebAudioRecorder] Checking permissions...");
 
     try {
       // Try permissions API first (not supported in all browsers)

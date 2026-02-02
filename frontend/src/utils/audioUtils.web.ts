@@ -24,44 +24,64 @@ export interface AudioMetadata {
 export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
   return new Promise((resolve, reject) => {
     const audio = new Audio();
+    let resolved = false;
 
     const cleanup = () => {
+      audio.onloadedmetadata = null;
+      audio.ondurationchange = null;
+      audio.onerror = null;
       audio.remove();
     };
 
-    audio.onloadedmetadata = () => {
-      const metadata: AudioMetadata = {
-        duration: audio.duration * 1000, // Convert to milliseconds
-      };
-
-      cleanup();
-      resolve(metadata);
+    const tryResolve = () => {
+      // Only resolve if duration is finite and positive
+      if (!resolved && Number.isFinite(audio.duration) && audio.duration > 0) {
+        resolved = true;
+        const metadata: AudioMetadata = {
+          duration: audio.duration * 1000, // Convert to milliseconds
+        };
+        cleanup();
+        resolve(metadata);
+      }
     };
 
+    // Try to get duration on metadata load
+    audio.onloadedmetadata = tryResolve;
+
+    // Also listen for duration changes (for streaming formats)
+    audio.ondurationchange = tryResolve;
+
     audio.onerror = () => {
-      cleanup();
-      reject(
-        new AudioError(
-          AudioErrorCode.INVALID_FORMAT,
-          "Failed to load audio metadata",
-          "Could not read audio file information.",
-        ),
-      );
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        reject(
+          new AudioError(
+            AudioErrorCode.INVALID_FORMAT,
+            "Failed to load audio metadata",
+            "Could not read audio file information.",
+          ),
+        );
+      }
     };
 
     // Set timeout to avoid hanging
     setTimeout(() => {
-      cleanup();
-      reject(
-        new AudioError(
-          AudioErrorCode.INVALID_FORMAT,
-          "Metadata loading timeout",
-          "Audio file took too long to load.",
-        ),
-      );
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        reject(
+          new AudioError(
+            AudioErrorCode.INVALID_FORMAT,
+            "Metadata loading timeout",
+            "Audio file took too long to load.",
+          ),
+        );
+      }
     }, 10000);
 
     audio.src = uri;
+    audio.load(); // Explicitly start loading
   });
 }
 

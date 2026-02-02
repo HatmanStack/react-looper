@@ -147,6 +147,10 @@ export const MainScreen: React.FC = () => {
       const masterLoopDuration = getMasterLoopDuration();
       const isFirstTrackRecording = !hasMasterTrack();
 
+      logger.log(
+        `[MainScreen] handleRecord called: isFirstTrack=${isFirstTrackRecording}, masterLoopDuration=${masterLoopDuration}, trackCount=${tracks.length}`,
+      );
+
       // Convert quality level to bitrate
       const bitRate = getBitrate(recordingFormat, recordingQuality);
 
@@ -154,20 +158,36 @@ export const MainScreen: React.FC = () => {
       if (!isFirstTrackRecording) {
         const targetDuration = calculateQuantizedDuration(masterLoopDuration);
         logger.log(
-          `[MainScreen] Starting subsequent recording: masterLoopDuration=${masterLoopDuration}ms, targetDuration=${targetDuration}ms`,
+          `[MainScreen] Starting subsequent recording: masterLoopDuration=${masterLoopDuration}ms, targetDuration=${targetDuration}ms, tracks[0].duration=${tracks[0]?.duration}`,
         );
 
-        // Don't pass maxDuration to avoid dual auto-stop timers
-        // MainScreen's timer will be the sole mechanism for auto-stopping
-        await audioServiceRef.current.startRecording({
-          format: recordingFormat as import("../../types/audio").AudioFormat,
-          bitRate,
-        });
+        // Sanity check: don't set up auto-stop if duration is invalid
+        if (targetDuration < 500) {
+          logger.error(
+            `[MainScreen] Invalid targetDuration (${targetDuration}ms), treating as first track recording`,
+          );
+          // Fall through to first-track behavior (no auto-stop)
+          await audioServiceRef.current.startRecording({
+            format: recordingFormat as import("../../types/audio").AudioFormat,
+            bitRate,
+          });
+        } else {
+          // Don't pass maxDuration to avoid dual auto-stop timers
+          // MainScreen's timer will be the sole mechanism for auto-stopping
+          await audioServiceRef.current.startRecording({
+            format: recordingFormat as import("../../types/audio").AudioFormat,
+            bitRate,
+          });
 
-        // Set up auto-stop timer (this is the only auto-stop mechanism)
-        recordingTimerRef.current = setTimeout(() => {
-          handleStop();
-        }, targetDuration);
+          // Set up auto-stop timer (this is the only auto-stop mechanism)
+          logger.log(
+            `[MainScreen] Setting auto-stop timer for ${targetDuration}ms`,
+          );
+          recordingTimerRef.current = setTimeout(() => {
+            logger.log(`[MainScreen] Auto-stop timer fired`);
+            handleStop();
+          }, targetDuration);
+        }
       } else {
         // First track - no auto-stop
         await audioServiceRef.current.startRecording({
