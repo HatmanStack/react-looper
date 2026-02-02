@@ -7,11 +7,15 @@
  * - Optimized for performance with many tracks
  */
 
-import React from "react";
+import React, { useCallback } from "react";
 import { FlatList, View, Text } from "react-native";
 import { TrackListItem } from "../TrackListItem";
+import { useTrackStore } from "../../store/useTrackStore";
 import type { Track } from "../../types";
 import { styles } from "./TrackList.styles";
+
+/** Estimated item height for getItemLayout optimization */
+const ITEM_HEIGHT = 144; // padding (16) + margin (8) + content (~120)
 
 export interface TrackListProps {
   tracks: Track[];
@@ -32,38 +36,74 @@ export const TrackList: React.FC<TrackListProps> = ({
   onSpeedChange,
   onSelect,
 }) => {
-  const renderItem = ({ item }: { item: Track }) => (
-    <TrackListItem
-      track={item}
-      onPlay={onPlay}
-      onPause={onPause}
-      onDelete={onDelete}
-      onVolumeChange={onVolumeChange}
-      onSpeedChange={onSpeedChange}
-      onSelect={onSelect}
-    />
+  // Get master loop duration once at list level (avoids N selector calls in items)
+  const masterLoopDuration = useTrackStore((state) =>
+    state.getMasterLoopDuration(),
   );
 
-  const renderEmptyState = () => (
-    <View
-      style={styles.emptyContainer}
-      accessibilityRole="text"
-      accessibilityLabel="No tracks yet. Record audio or import tracks to get started"
-    >
-      <Text style={styles.emptyTitle} accessibilityRole="header">
-        No tracks yet
-      </Text>
-      <Text style={styles.emptySubtitle}>
-        Record audio or import tracks to get started
-      </Text>
-    </View>
+  const renderItem = useCallback(
+    ({ item }: { item: Track }) => (
+      <TrackListItem
+        track={item}
+        masterLoopDuration={masterLoopDuration}
+        onPlay={onPlay}
+        onPause={onPause}
+        onDelete={onDelete}
+        onVolumeChange={onVolumeChange}
+        onSpeedChange={onSpeedChange}
+        onSelect={onSelect}
+      />
+    ),
+    [
+      masterLoopDuration,
+      onPlay,
+      onPause,
+      onDelete,
+      onVolumeChange,
+      onSpeedChange,
+      onSelect,
+    ],
   );
+
+  const renderEmptyState = useCallback(
+    () => (
+      <View
+        style={styles.emptyContainer}
+        accessibilityRole="text"
+        accessibilityLabel="No tracks yet. Record audio or import tracks to get started"
+      >
+        <Text style={styles.emptyTitle} accessibilityRole="header">
+          No tracks yet
+        </Text>
+        <Text style={styles.emptySubtitle}>
+          Record audio or import tracks to get started
+        </Text>
+      </View>
+    ),
+    [],
+  );
+
+  /**
+   * getItemLayout optimization for faster scroll and initial render.
+   * Requires consistent item height.
+   */
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<Track> | null | undefined, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+
+  const keyExtractor = useCallback((item: Track) => item.id, []);
 
   return (
     <FlatList
       data={tracks}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
+      keyExtractor={keyExtractor}
+      getItemLayout={getItemLayout}
       ListEmptyComponent={renderEmptyState}
       contentContainerStyle={tracks.length === 0 ? styles.emptyList : undefined}
       // Performance optimizations

@@ -17,3 +17,5 @@ export { ConfirmationDialog } from "./ConfirmationDialog";
 export type { ConfirmationDialogProps } from "./ConfirmationDialog";
 export { TrackProgressBar } from "./TrackProgressBar";
 export type { TrackProgressBarProps } from "./TrackProgressBar";
+export { ErrorBoundary } from "./ErrorBoundary";
+export type { ErrorBoundaryProps } from "./ErrorBoundary";

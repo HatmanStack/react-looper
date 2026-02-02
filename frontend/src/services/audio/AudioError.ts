@@ -5,7 +5,7 @@
  */
 
 import { Platform } from "react-native";
-import { AudioErrorCode } from "../../types/audio";
+import { AudioErrorCode, assertNever } from "../../types/audio";
 
 export class AudioError extends Error {
   /**
@@ -54,7 +54,8 @@ export class AudioError extends Error {
   }
 
   /**
-   * Get a user-friendly message based on error code
+   * Get a user-friendly message based on error code.
+   * Uses exhaustive matching - TypeScript will error if any case is unhandled.
    */
   private getDefaultUserMessage(code: AudioErrorCode): string {
     switch (code) {
@@ -73,8 +74,9 @@ export class AudioError extends Error {
       case AudioErrorCode.RESOURCE_UNAVAILABLE:
         return "Audio resource is currently unavailable. Please try again later.";
       case AudioErrorCode.UNKNOWN_ERROR:
-      default:
         return "An unexpected error occurred. Please try again.";
+      default:
+        return assertNever(code);
     }
   }
 
@@ -105,12 +107,13 @@ export class AudioError extends Error {
    * Check if error is recoverable (user can retry)
    */
   isRecoverable(): boolean {
-    return [
+    const recoverableCodes: readonly AudioErrorCode[] = [
       AudioErrorCode.RECORDING_FAILED,
       AudioErrorCode.PLAYBACK_FAILED,
       AudioErrorCode.MIXING_FAILED,
       AudioErrorCode.RESOURCE_UNAVAILABLE,
-    ].includes(this.code);
+    ];
+    return recoverableCodes.includes(this.code);
   }
 
   /**

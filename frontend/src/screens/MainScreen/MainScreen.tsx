@@ -6,7 +6,7 @@
  * - Middle section: Track list with FlatList
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View } from "react-native";
 import {
   Surface,
@@ -38,6 +38,7 @@ import { useTrackStore } from "../../store/useTrackStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import { usePlaybackStore } from "../../store/usePlaybackStore";
 import { useResponsive } from "../../utils/responsive";
+import { logger } from "../../utils/logger";
 
 // Initialize audio services for current platform
 initializeAudioServices();
@@ -403,99 +404,111 @@ export const MainScreen: React.FC = () => {
     }
   };
 
-  const handlePlay = async (trackId: string) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
-
-    // Check if track is already playing
-    const track = tracks.find((t) => t.id === trackId);
-    if (track?.isPlaying) {
-      return;
-    }
-
-    try {
-      await audioServiceRef.current.playTrack(trackId);
-
-      // Update track state in store
-      updateTrack(trackId, { isPlaying: true });
-    } catch (error) {
-      if (error instanceof AudioError) {
-        Alert.alert("Playback Error", error.userMessage);
+  const handlePlay = useCallback(
+    async (trackId: string) => {
+      if (!audioServiceRef.current) {
+        return;
       }
-    }
-  };
 
-  const handlePause = async (trackId: string) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
-
-    try {
-      await audioServiceRef.current.pauseTrack(trackId);
-
-      // Update track state in store
-      updateTrack(trackId, { isPlaying: false });
-    } catch (error) {
-      if (error instanceof AudioError) {
-        Alert.alert("Playback Error", error.userMessage);
+      // Check if track is already playing
+      const track = tracks.find((t) => t.id === trackId);
+      if (track?.isPlaying) {
+        return;
       }
-    }
-  };
 
-  const handleDelete = async (trackId: string) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
+      try {
+        await audioServiceRef.current.playTrack(trackId);
 
-    // Check if this is the master track (first track)
-    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
-
-    // If deleting master track, show confirmation (this will clear all tracks)
-    if (isMasterTrack) {
-      setPendingDeletion(trackId);
-      setDeleteConfirmationVisible(true);
-      return;
-    }
-
-    // Otherwise, delete immediately
-    await performDelete(trackId);
-  };
-
-  const performDelete = async (trackId: string) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
-
-    try {
-      // Check if this is the master track (first track)
-      const isMaster = tracks.length > 0 && tracks[0].id === trackId;
-
-      if (isMaster) {
-        // If deleting master track, unload ALL tracks since store will clear all
-        for (const track of tracks) {
-          try {
-            await audioServiceRef.current.unloadTrack(track.id);
-          } catch (error) {
-            console.error(
-              `[MainScreen] Failed to unload track ${track.id}:`,
-              error,
-            );
-          }
+        // Update track state in store
+        updateTrack(trackId, { isPlaying: true });
+      } catch (error) {
+        if (error instanceof AudioError) {
+          Alert.alert("Playback Error", error.userMessage);
         }
-      } else {
-        // Otherwise, just unload this specific track
-        await audioServiceRef.current.unloadTrack(trackId);
+      }
+    },
+    [tracks, updateTrack],
+  );
+
+  const handlePause = useCallback(
+    async (trackId: string) => {
+      if (!audioServiceRef.current) {
+        return;
       }
 
-      // Remove track from store (store handles master track deletion logic)
-      removeTrack(trackId);
-    } catch (error) {
-      if (error instanceof AudioError) {
-        Alert.alert("Delete Error", error.userMessage);
+      try {
+        await audioServiceRef.current.pauseTrack(trackId);
+
+        // Update track state in store
+        updateTrack(trackId, { isPlaying: false });
+      } catch (error) {
+        if (error instanceof AudioError) {
+          Alert.alert("Playback Error", error.userMessage);
+        }
       }
-    }
-  };
+    },
+    [updateTrack],
+  );
+
+  const performDelete = useCallback(
+    async (trackId: string) => {
+      if (!audioServiceRef.current) {
+        return;
+      }
+
+      try {
+        // Check if this is the master track (first track)
+        const isMaster = tracks.length > 0 && tracks[0].id === trackId;
+
+        if (isMaster) {
+          // If deleting master track, unload ALL tracks since store will clear all
+          for (const track of tracks) {
+            try {
+              await audioServiceRef.current.unloadTrack(track.id);
+            } catch (error) {
+              logger.error(
+                `[MainScreen] Failed to unload track ${track.id}:`,
+                error,
+              );
+            }
+          }
+        } else {
+          // Otherwise, just unload this specific track
+          await audioServiceRef.current.unloadTrack(trackId);
+        }
+
+        // Remove track from store (store handles master track deletion logic)
+        removeTrack(trackId);
+      } catch (error) {
+        if (error instanceof AudioError) {
+          Alert.alert("Delete Error", error.userMessage);
+        }
+      }
+    },
+    [tracks, removeTrack],
+  );
+
+  const handleDelete = useCallback(
+    async (trackId: string) => {
+      if (!audioServiceRef.current) {
+        return;
+      }
+
+      // Check if this is the master track (first track)
+      const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+
+      // If deleting master track, show confirmation (this will clear all tracks)
+      if (isMasterTrack) {
+        setPendingDeletion(trackId);
+        setDeleteConfirmationVisible(true);
+        return;
+      }
+
+      // Otherwise, delete immediately
+      await performDelete(trackId);
+    },
+    [tracks, performDelete],
+  );
 
   const handleDeleteConfirm = async () => {
     if (pendingDeletion) {
@@ -510,55 +523,64 @@ export const MainScreen: React.FC = () => {
     setDeleteConfirmationVisible(false);
   };
 
-  const handleVolumeChange = async (trackId: string, volume: number) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
+  const handleVolumeChange = useCallback(
+    async (trackId: string, volume: number) => {
+      if (!audioServiceRef.current) {
+        return;
+      }
 
-    try {
-      await audioServiceRef.current.setTrackVolume(trackId, volume);
+      try {
+        await audioServiceRef.current.setTrackVolume(trackId, volume);
 
-      // Update track state in store
-      updateTrack(trackId, { volume });
-    } catch (error) {
-      console.error("[MainScreen] Volume change failed:", error);
-    }
-  };
+        // Update track state in store
+        updateTrack(trackId, { volume });
+      } catch (error) {
+        logger.error("[MainScreen] Volume change failed:", error);
+      }
+    },
+    [updateTrack],
+  );
 
-  const handleSpeedChange = async (trackId: string, speed: number) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
+  const applySpeedChange = useCallback(
+    async (trackId: string, speed: number) => {
+      if (!audioServiceRef.current) {
+        return;
+      }
 
-    // Check if this is the master track (first track) and if there are other tracks
-    const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
-    const hasOtherTracks = tracks.length > 1;
+      try {
+        await audioServiceRef.current.setTrackSpeed(trackId, speed);
 
-    // If changing master track speed with other tracks present, show confirmation
-    if (isMasterTrack && hasOtherTracks) {
-      setPendingSpeedChange({ trackId, speed });
-      setSpeedConfirmationVisible(true);
-      return;
-    }
+        // Update track state in store
+        updateTrack(trackId, { speed });
+      } catch (error) {
+        logger.error("[MainScreen] Speed change failed:", error);
+      }
+    },
+    [updateTrack],
+  );
 
-    // Otherwise, apply speed change immediately
-    await applySpeedChange(trackId, speed);
-  };
+  const handleSpeedChange = useCallback(
+    async (trackId: string, speed: number) => {
+      if (!audioServiceRef.current) {
+        return;
+      }
 
-  const applySpeedChange = async (trackId: string, speed: number) => {
-    if (!audioServiceRef.current) {
-      return;
-    }
+      // Check if this is the master track (first track) and if there are other tracks
+      const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
+      const hasOtherTracks = tracks.length > 1;
 
-    try {
-      await audioServiceRef.current.setTrackSpeed(trackId, speed);
+      // If changing master track speed with other tracks present, show confirmation
+      if (isMasterTrack && hasOtherTracks) {
+        setPendingSpeedChange({ trackId, speed });
+        setSpeedConfirmationVisible(true);
+        return;
+      }
 
-      // Update track state in store
-      updateTrack(trackId, { speed });
-    } catch (error) {
-      console.error("[MainScreen] Speed change failed:", error);
-    }
-  };
+      // Otherwise, apply speed change immediately
+      await applySpeedChange(trackId, speed);
+    },
+    [tracks, applySpeedChange],
+  );
 
   const handleSpeedChangeConfirm = () => {
     if (pendingSpeedChange) {
@@ -573,13 +595,16 @@ export const MainScreen: React.FC = () => {
     setSpeedConfirmationVisible(false);
   };
 
-  const handleSelect = (trackId: string) => {
-    const track = tracks.find((t) => t.id === trackId);
-    if (track) {
-      // Toggle selection in store
-      updateTrack(trackId, { selected: !track.selected });
-    }
-  };
+  const handleSelect = useCallback(
+    (trackId: string) => {
+      const track = tracks.find((t) => t.id === trackId);
+      if (track) {
+        // Toggle selection in store
+        updateTrack(trackId, { selected: !track.selected });
+      }
+    },
+    [tracks, updateTrack],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>

@@ -33,7 +33,7 @@ const sliderValueToSpeed = (value: number): number => {
   return value / SPEED_DIVISOR;
 };
 
-export const SpeedSlider: React.FC<SpeedSliderProps> = ({
+const SpeedSliderComponent: React.FC<SpeedSliderProps> = ({
   value,
   onValueChange,
   disabled = false,
@@ -76,3 +76,13 @@ export const SpeedSlider: React.FC<SpeedSliderProps> = ({
     </View>
   );
 };
+
+/**
+ * Memoized SpeedSlider - only re-renders when value or disabled changes.
+ * Ignores callback reference changes to prevent unnecessary re-renders.
+ */
+export const SpeedSlider = React.memo(
+  SpeedSliderComponent,
+  (prev, next) => prev.value === next.value && prev.disabled === next.disabled,
+);
+SpeedSlider.displayName = "SpeedSlider";

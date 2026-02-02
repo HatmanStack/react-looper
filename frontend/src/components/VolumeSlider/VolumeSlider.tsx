@@ -15,7 +15,7 @@ export interface VolumeSliderProps {
   disabled?: boolean;
 }
 
-export const VolumeSlider: React.FC<VolumeSliderProps> = ({
+const VolumeSliderComponent: React.FC<VolumeSliderProps> = ({
   value,
   onValueChange,
   disabled = false,
@@ -45,3 +45,13 @@ export const VolumeSlider: React.FC<VolumeSliderProps> = ({
     </View>
   );
 };
+
+/**
+ * Memoized VolumeSlider - only re-renders when value or disabled changes.
+ * Ignores callback reference changes to prevent unnecessary re-renders.
+ */
+export const VolumeSlider = React.memo(
+  VolumeSliderComponent,
+  (prev, next) => prev.value === next.value && prev.disabled === next.disabled,
+);
+VolumeSlider.displayName = "VolumeSlider";

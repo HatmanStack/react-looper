@@ -22,7 +22,7 @@ export interface TrackProgressBarProps {
   isPlaying: boolean;
 }
 
-export const TrackProgressBar: React.FC<TrackProgressBarProps> = ({
+const TrackProgressBarComponent: React.FC<TrackProgressBarProps> = ({
   trackId,
   masterLoopDuration,
   speed,
@@ -81,3 +81,10 @@ export const TrackProgressBar: React.FC<TrackProgressBarProps> = ({
     </View>
   );
 };
+
+/**
+ * Memoized TrackProgressBar to prevent unnecessary re-renders.
+ * Re-renders only when playback state or loop duration changes.
+ */
+export const TrackProgressBar = React.memo(TrackProgressBarComponent);
+TrackProgressBar.displayName = "TrackProgressBar";

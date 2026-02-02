@@ -5,6 +5,10 @@
  */
 
 import { migration_v2_removeSelected } from "../trackMigrations";
+import type { Track } from "../../../types";
+
+/** Track type after v2 migration (selected property removed) */
+type MigratedTrack = Omit<Track, "selected">;
 
 describe("looperNormalization migration (v2)", () => {
   describe("migration_v2_removeSelected", () => {
@@ -39,7 +43,7 @@ describe("looperNormalization migration (v2)", () => {
       const newState = migration_v2_removeSelected(oldState);
 
       // Verify selected property removed from all tracks
-      newState.tracks.forEach((track: any) => {
+      newState.tracks.forEach((track: MigratedTrack) => {
         expect(track).not.toHaveProperty("selected");
       });
 

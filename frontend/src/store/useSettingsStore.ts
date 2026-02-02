@@ -6,19 +6,21 @@
  */
 
 import { create } from "zustand";
+import type { QualityLevelValue } from "../types/audio";
+
 // Note: Persist middleware removed to avoid import.meta errors on web
 // See: react-vocabulary/TS_RENDER.md for details
 // TODO: Re-implement persistence with platform-specific approach
 
 /**
- * Audio format options for export and recording
+ * Audio formats available in settings (excludes legacy 3gpp)
  */
 export type AudioFormat = "mp3" | "wav" | "m4a";
 
 /**
- * Quality level options
+ * Re-export quality type from central location
  */
-export type QualityLevel = "low" | "medium" | "high";
+export type QualityLevel = QualityLevelValue;
 
 /**
  * Settings state interface

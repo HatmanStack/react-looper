@@ -6,8 +6,18 @@
  * - Native: Uses FFmpeg via ffmpeg-kit-react-native
  */
 
+import type { QualityLevelValue } from "../../types/audio";
+
+/**
+ * Audio formats supported by the export service
+ * Note: 3gpp is not supported for export, only these three formats
+ */
 export type AudioFormat = "mp3" | "wav" | "m4a";
-export type QualityLevel = "low" | "medium" | "high";
+
+/**
+ * Re-export quality type from central location
+ */
+export type QualityLevel = QualityLevelValue;
 
 export interface MixingProgress {
   ratio: number; // 0-1

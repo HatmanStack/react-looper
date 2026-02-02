@@ -25,6 +25,13 @@ export enum AudioQuality {
 }
 
 /**
+ * String literal union types derived from enums
+ * Use these when you need to assign string values directly (e.g., in settings)
+ */
+export type AudioFormatValue = `${AudioFormat}`;
+export type QualityLevelValue = `${AudioQuality}`;
+
+/**
  * Input track for audio mixing
  */
 export interface MixerTrackInput {
@@ -206,15 +213,39 @@ export interface MixingOptions {
 }
 
 /**
- * Audio error codes
+ * Audio error codes as string literal union
+ * Provides exhaustive type checking in switch statements
  */
-export enum AudioErrorCode {
-  PERMISSION_DENIED = "PERMISSION_DENIED",
-  RECORDING_FAILED = "RECORDING_FAILED",
-  PLAYBACK_FAILED = "PLAYBACK_FAILED",
-  MIXING_FAILED = "MIXING_FAILED",
-  FILE_NOT_FOUND = "FILE_NOT_FOUND",
-  INVALID_FORMAT = "INVALID_FORMAT",
-  RESOURCE_UNAVAILABLE = "RESOURCE_UNAVAILABLE",
-  UNKNOWN_ERROR = "UNKNOWN_ERROR",
-}
+export type AudioErrorCode =
+  | "PERMISSION_DENIED"
+  | "RECORDING_FAILED"
+  | "PLAYBACK_FAILED"
+  | "MIXING_FAILED"
+  | "FILE_NOT_FOUND"
+  | "INVALID_FORMAT"
+  | "RESOURCE_UNAVAILABLE"
+  | "UNKNOWN_ERROR";
+
+/**
+ * Audio error code constants for runtime use
+ * Maintains backwards compatibility with enum-style access
+ */
+// eslint-disable-next-line no-redeclare -- Intentional: type + const with same name is valid TS pattern
+export const AudioErrorCode = {
+  PERMISSION_DENIED: "PERMISSION_DENIED",
+  RECORDING_FAILED: "RECORDING_FAILED",
+  PLAYBACK_FAILED: "PLAYBACK_FAILED",
+  MIXING_FAILED: "MIXING_FAILED",
+  FILE_NOT_FOUND: "FILE_NOT_FOUND",
+  INVALID_FORMAT: "INVALID_FORMAT",
+  RESOURCE_UNAVAILABLE: "RESOURCE_UNAVAILABLE",
+  UNKNOWN_ERROR: "UNKNOWN_ERROR",
+} as const;
+
+/**
+ * Helper for exhaustive type checking in switch statements.
+ * TypeScript will error if any AudioErrorCode case is unhandled.
+ */
+export const assertNever = (x: never): never => {
+  throw new Error(`Unhandled error code: ${x}`);
+};

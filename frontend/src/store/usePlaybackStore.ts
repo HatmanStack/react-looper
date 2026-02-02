@@ -50,6 +50,8 @@ interface PlaybackState {
   // LOOPER FEATURE: Loop mode actions
   setLoopMode: (enabled: boolean) => void;
   toggleLoopMode: () => void;
+  /** Sync loop mode with a settings value (call after settings store loads) */
+  syncLoopMode: (defaultLoopMode: boolean) => void;
 }
 
 const DEFAULT_TRACK_STATE: TrackState = {
@@ -59,20 +61,54 @@ const DEFAULT_TRACK_STATE: TrackState = {
   isLooping: true,
 };
 
+/**
+ * Helper to update a track state in the Map, with early-exit when unchanged.
+ * Returns the original map if no change needed, avoiding unnecessary re-renders.
+ */
+const updateTrackState = (
+  map: Map<string, TrackState>,
+  trackId: string,
+  update: Partial<TrackState>,
+): Map<string, TrackState> => {
+  const existing = map.get(trackId);
+  if (!existing) return map;
+
+  // Check if any value actually changed
+  const hasChange = (Object.keys(update) as (keyof TrackState)[]).some(
+    (key) => existing[key] !== update[key],
+  );
+  if (!hasChange) return map;
+
+  const newMap = new Map(map);
+  newMap.set(trackId, { ...existing, ...update });
+  return newMap;
+};
+
+/** Default loop mode - looping is typical for a looper app */
+const DEFAULT_LOOP_MODE = true;
+
 export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
   trackStates: new Map(),
   playingTracks: new Set(),
   isAnyPlaying: false,
-  // LOOPER FEATURE: Initialize loop mode from settings
-  loopMode: useSettingsStore.getState().defaultLoopMode,
+  // LOOPER FEATURE: Default to looping enabled (synced with settings via syncLoopMode)
+  loopMode: DEFAULT_LOOP_MODE,
 
   setTrackPlaying: (trackId: string, isPlaying: boolean) =>
     set((state) => {
-      const newTrackStates = new Map(state.trackStates);
-      const trackState = newTrackStates.get(trackId);
+      const newTrackStates = updateTrackState(state.trackStates, trackId, {
+        isPlaying,
+      });
 
-      if (trackState) {
-        newTrackStates.set(trackId, { ...trackState, isPlaying });
+      // Skip update if track state didn't change
+      if (newTrackStates === state.trackStates) {
+        return state;
+      }
+
+      const isCurrentlyPlaying = state.playingTracks.has(trackId);
+      // Skip Set recreation if playing state matches
+      if (isPlaying === isCurrentlyPlaying) {
+        return { trackStates: newTrackStates };
       }
 
       const newPlayingTracks = new Set(state.playingTracks);
@@ -91,37 +127,37 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
 
   setTrackSpeed: (trackId: string, speed: number) =>
     set((state) => {
-      const newTrackStates = new Map(state.trackStates);
-      const trackState = newTrackStates.get(trackId);
-
-      if (trackState) {
-        newTrackStates.set(trackId, { ...trackState, speed });
+      const newTrackStates = updateTrackState(state.trackStates, trackId, {
+        speed,
+      });
+      // Skip update if unchanged
+      if (newTrackStates === state.trackStates) {
+        return state;
       }
-
       return { trackStates: newTrackStates };
     }),
 
   setTrackVolume: (trackId: string, volume: number) =>
     set((state) => {
-      const newTrackStates = new Map(state.trackStates);
-      const trackState = newTrackStates.get(trackId);
-
-      if (trackState) {
-        newTrackStates.set(trackId, { ...trackState, volume });
+      const newTrackStates = updateTrackState(state.trackStates, trackId, {
+        volume,
+      });
+      // Skip update if unchanged
+      if (newTrackStates === state.trackStates) {
+        return state;
       }
-
       return { trackStates: newTrackStates };
     }),
 
   setTrackLooping: (trackId: string, isLooping: boolean) =>
     set((state) => {
-      const newTrackStates = new Map(state.trackStates);
-      const trackState = newTrackStates.get(trackId);
-
-      if (trackState) {
-        newTrackStates.set(trackId, { ...trackState, isLooping });
+      const newTrackStates = updateTrackState(state.trackStates, trackId, {
+        isLooping,
+      });
+      // Skip update if unchanged
+      if (newTrackStates === state.trackStates) {
+        return state;
       }
-
       return { trackStates: newTrackStates };
     }),
 
@@ -194,7 +230,7 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
       trackStates: new Map(),
       playingTracks: new Set(),
       isAnyPlaying: false,
-      // LOOPER FEATURE: Reset loop mode to settings default
+      // LOOPER FEATURE: Reset loop mode to settings default (read at runtime, not init time)
       loopMode: useSettingsStore.getState().defaultLoopMode,
     }),
 
@@ -209,4 +245,10 @@ export const usePlaybackStore = create<PlaybackState>()((set, get) => ({
     set((state) => ({
       loopMode: !state.loopMode,
     })),
+
+  // Sync loop mode with settings store value
+  syncLoopMode: (defaultLoopMode: boolean) =>
+    set({
+      loopMode: defaultLoopMode,
+    }),
 }));

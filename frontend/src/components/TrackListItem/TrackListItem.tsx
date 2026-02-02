@@ -20,6 +20,8 @@ import { styles } from "./TrackListItem.styles";
 
 export interface TrackListItemProps {
   track: Track;
+  /** Master loop duration in milliseconds (passed from TrackList for single selector call) */
+  masterLoopDuration: number;
   onPlay?: (trackId: string) => void;
   onPause?: (trackId: string) => void;
   onDelete?: (trackId: string) => void;
@@ -28,8 +30,9 @@ export interface TrackListItemProps {
   onSelect?: (trackId: string) => void;
 }
 
-export const TrackListItem: React.FC<TrackListItemProps> = ({
+const TrackListItemComponent: React.FC<TrackListItemProps> = ({
   track,
+  masterLoopDuration,
   onPlay,
   onPause,
   onDelete,
@@ -39,10 +42,6 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
 }) => {
   // Check if this track is the master track (first track in store)
   const isMaster = useTrackStore((state) => state.isMasterTrack(track.id));
-  // Get master loop duration for progress bar sync
-  const masterLoopDuration = useTrackStore((state) =>
-    state.getMasterLoopDuration(),
-  );
 
   const handlePlay = () => {
     onPlay?.(track.id);
@@ -170,3 +169,10 @@ export const TrackListItem: React.FC<TrackListItemProps> = ({
     </Pressable>
   );
 };
+
+/**
+ * Memoized TrackListItem to prevent unnecessary re-renders.
+ * Re-renders only when track data or callback references change.
+ */
+export const TrackListItem = React.memo(TrackListItemComponent);
+TrackListItem.displayName = "TrackListItem";
