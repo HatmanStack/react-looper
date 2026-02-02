@@ -145,8 +145,8 @@ describe("RecordingProgressIndicator", () => {
       expect(progressBar).toBeTruthy();
     });
 
-    it("handles zero loop duration gracefully", () => {
-      const { getByTestId } = render(
+    it("handles zero loop duration gracefully by falling back to first-track UI", () => {
+      const { queryByTestId, getByText } = render(
         <RecordingProgressIndicator
           isFirstTrack={false}
           recordingDuration={5000}
@@ -154,8 +154,24 @@ describe("RecordingProgressIndicator", () => {
         />,
       );
 
-      const progressBar = getByTestId("progress-bar");
-      expect(progressBar).toBeTruthy();
+      // Should fall back to first-track UI (no progress bar) when loopDuration is invalid
+      expect(queryByTestId("progress-bar")).toBeNull();
+      // Should show the first-track instruction text
+      expect(getByText(/Stop to set loop length/i)).toBeTruthy();
+    });
+
+    it("handles Infinity loop duration gracefully by falling back to first-track UI", () => {
+      const { queryByTestId, getByText } = render(
+        <RecordingProgressIndicator
+          isFirstTrack={false}
+          recordingDuration={5000}
+          loopDuration={Infinity}
+        />,
+      );
+
+      // Should fall back to first-track UI when loopDuration is Infinity
+      expect(queryByTestId("progress-bar")).toBeNull();
+      expect(getByText(/Stop to set loop length/i)).toBeTruthy();
     });
   });
 
