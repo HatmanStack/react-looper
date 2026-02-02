@@ -25,6 +25,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
   return new Promise((resolve, reject) => {
     const audio = new Audio();
     let resolved = false;
+    let metadataLoaded = false;
 
     const cleanup = () => {
       audio.onloadedmetadata = null;
@@ -33,20 +34,39 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
       audio.remove();
     };
 
+    const doResolve = (duration: number) => {
+      if (resolved) return;
+      resolved = true;
+      const metadata: AudioMetadata = {
+        duration: duration * 1000, // Convert to milliseconds
+      };
+      cleanup();
+      resolve(metadata);
+    };
+
     const tryResolve = () => {
-      // Only resolve if duration is finite and positive
-      if (!resolved && Number.isFinite(audio.duration) && audio.duration > 0) {
-        resolved = true;
-        const metadata: AudioMetadata = {
-          duration: audio.duration * 1000, // Convert to milliseconds
-        };
-        cleanup();
-        resolve(metadata);
+      // If we have a finite, positive duration, resolve immediately
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        doResolve(audio.duration);
       }
     };
 
     // Try to get duration on metadata load
-    audio.onloadedmetadata = tryResolve;
+    audio.onloadedmetadata = () => {
+      metadataLoaded = true;
+      tryResolve();
+
+      // If duration is still Infinity after metadata loads, set a short timeout
+      // to allow durationchange to fire, then accept whatever we have
+      if (!resolved) {
+        setTimeout(() => {
+          if (!resolved && metadataLoaded) {
+            // Accept the duration even if Infinity - UI will handle it
+            doResolve(audio.duration);
+          }
+        }, 500);
+      }
+    };
 
     // Also listen for duration changes (for streaming formats)
     audio.ondurationchange = tryResolve;
@@ -65,7 +85,7 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
       }
     };
 
-    // Set timeout to avoid hanging
+    // Set timeout to avoid hanging indefinitely
     setTimeout(() => {
       if (!resolved) {
         resolved = true;
