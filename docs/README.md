@@ -170,4 +170,4 @@ npm run --prefix frontend eas:build:prod
 
 ## License
 
-MIT
+Apache 2.0 - See [LICENSE](../LICENSE) for details.

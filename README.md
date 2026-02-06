@@ -68,5 +68,5 @@ See [docs/README.md](docs/README.md) for full documentation.
 
 ## License
 
-MIT
+Apache 2.0 - See [LICENSE](LICENSE) for details.
 </div>
