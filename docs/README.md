@@ -34,7 +34,7 @@ A cross-platform audio mixing app that lets you record, import, and mix audio tr
 ## Technologies
 
 - **Core**: React Native, Expo SDK 54, TypeScript
-- **State**: Zustand with persistence
+- **State**: Zustand
 - **UI**: React Native Paper (Material Design 3)
 - **Audio**: Web Audio API, expo-av, lamejs (MP3 encoding)
 - **Mixing**: FFmpeg.wasm (web), FFmpeg Kit (native)
@@ -146,24 +146,14 @@ npm run check         # Lint + typecheck + tests
 ### Web
 
 ```bash
-cd frontend && npx expo export --platform web
+npm run build:web
 ```
 
 ### Mobile (EAS Build)
 
 ```bash
-eas build --platform android --profile production
-eas build --platform ios --profile production
+npm run --prefix frontend eas:build:prod
 ```
-
-## Keyboard Shortcuts (Web)
-
-- **Space**: Play/Pause
-- **R**: Start/Stop Recording
-- **S**: Open Save Dialog
-- **L**: Toggle Loop Mode
-- **Delete**: Delete selected track
-- **Esc**: Close dialogs
 
 ## Troubleshooting
 

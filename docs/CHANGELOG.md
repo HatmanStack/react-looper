@@ -4,16 +4,6 @@ All notable changes to Looper will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
-
-### Planned
-- Waveform visualization
-- Real-time mixing preview
-- Audio effects (reverb, EQ)
-- Trim and edit audio clips
-
----
-
 ## [1.0.0] - 2025-12-02
 
 ### Added
@@ -29,7 +19,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Cross-platform support: Web, Android, iOS
 - Offline capability (all processing local)
 - Dark mode Material Design interface
-- Keyboard shortcuts (web)
 - Progress indicators for mixing operations
 
 ### Technical
