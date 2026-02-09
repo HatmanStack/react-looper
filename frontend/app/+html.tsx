@@ -22,6 +22,8 @@ export default function Root({ children }: PropsWithChildren) {
           name="description"
           content="Record, import, and mix unlimited audio tracks with independent speed and volume controls. Export high-quality MP3/WAV files. Free, works offline."
         />
+        <link rel="canonical" href="https://looper.hatstack.fun/" />
+        <meta name="robots" content="index, follow" />
         <meta
           property="og:title"
           content="Looper - Free Multi-Track Audio Mixing App"
@@ -30,6 +32,7 @@ export default function Root({ children }: PropsWithChildren) {
           property="og:description"
           content="Record, import, and mix audio tracks. Export MP3/WAV. Free & offline."
         />
+        <meta property="og:url" content="https://looper.hatstack.fun/" />
         <meta
           property="og:image"
           content="https://looper.hatstack.fun/og-image.jpg"
