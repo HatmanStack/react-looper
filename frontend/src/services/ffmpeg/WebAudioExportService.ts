@@ -124,6 +124,7 @@ export class FFmpegService implements IAudioExportService {
       return { data: outputBlob, actualFormat };
     } catch (error) {
       logger.error("[FFmpegService.web] Mixing failed:", error);
+      if (error instanceof AudioError) throw error;
 
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
