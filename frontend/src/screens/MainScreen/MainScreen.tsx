@@ -32,14 +32,13 @@ import { AudioService } from "../../services/audio/AudioService";
 import { AudioError } from "../../services/audio/AudioError";
 import { getFileImporter } from "../../services/audio/FileImporterFactory";
 import { getAudioMetadata } from "../../utils/audioUtils";
-import { getAudioExportService } from "../../services/ffmpeg/AudioExportService";
-import { getBitrate } from "../../services/ffmpeg/audioQuality";
 import { useTrackStore } from "../../store/useTrackStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import { usePlaybackStore } from "../../store/usePlaybackStore";
 import { useResponsive } from "../../utils/responsive";
-import { logger } from "../../utils/logger";
-import { downloadBlob } from "../../utils/downloadFile";
+import { useRecordingSession } from "../../hooks/useRecordingSession";
+import { useTrackPlayback } from "../../hooks/useTrackPlayback";
+import { useExportFlow } from "../../hooks/useExportFlow";
 
 export const MainScreen: React.FC = () => {
   const router = useRouter();
@@ -76,29 +75,11 @@ export const MainScreen: React.FC = () => {
   const loopMode = usePlaybackStore((state) => state.loopMode);
   const toggleLoopMode = usePlaybackStore((state) => state.toggleLoopMode);
 
-  const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [recordingDuration, setRecordingDuration] = useState(0); // Current recording duration in ms
-  const audioServiceRef = useRef<AudioService | null>(null);
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null); // For updating recording duration
-
-  // Confirmation dialog state for master track speed changes
+  const [isImporting, setIsImporting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [speedConfirmationVisible, setSpeedConfirmationVisible] =
-    useState(false);
-  const [pendingSpeedChange, setPendingSpeedChange] = useState<{
-    trackId: string;
-    speed: number;
-  } | null>(null);
-
-  // Confirmation dialog state for master track deletion
-  const [deleteConfirmationVisible, setDeleteConfirmationVisible] =
-    useState(false);
-  const [pendingDeletion, setPendingDeletion] = useState<string | null>(null);
+  const audioServiceRef = useRef<AudioService | null>(null);
 
   // Initialize AudioService
   useEffect(() => {
@@ -114,166 +95,67 @@ export const MainScreen: React.FC = () => {
     }
 
     return () => {
-      // Cleanup on unmount
       if (audioServiceRef.current) {
         audioServiceRef.current.cleanup();
-      }
-      if (recordingTimerRef.current) {
-        clearTimeout(recordingTimerRef.current);
-      }
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
       }
     };
   }, []);
 
-  /**
-   * Calculate quantized duration based on base loop.
-   * Returns the base duration (1x of the master loop).
-   */
-  const calculateQuantizedDuration = (baseDuration: number): number => {
-    return baseDuration;
-  };
-
-  const handleRecord = async () => {
-    if (!audioServiceRef.current) {
-      Alert.alert("Error", "Audio service not initialized");
-      return;
-    }
-
-    try {
-      // Detect recording context: first track or subsequent
-      const masterLoopDuration = getMasterLoopDuration();
-      const isFirstTrackRecording = !hasMasterTrack();
-
-      logger.log(
-        `[MainScreen] handleRecord called: isFirstTrack=${isFirstTrackRecording}, masterLoopDuration=${masterLoopDuration}, trackCount=${tracks.length}`,
-      );
-
-      // Convert quality level to bitrate
-      const bitRate = getBitrate(recordingFormat, recordingQuality);
-
-      // Start recording with auto-stop timer for subsequent tracks
-      if (!isFirstTrackRecording) {
-        const targetDuration = calculateQuantizedDuration(masterLoopDuration);
-        logger.log(
-          `[MainScreen] Starting subsequent recording: masterLoopDuration=${masterLoopDuration}ms, targetDuration=${targetDuration}ms, tracks[0].duration=${tracks[0]?.duration}`,
-        );
-
-        // Sanity check: don't set up auto-stop if duration is invalid
-        if (targetDuration < 500) {
-          logger.error(
-            `[MainScreen] Invalid targetDuration (${targetDuration}ms), treating as first track recording`,
-          );
-          // Fall through to first-track behavior (no auto-stop)
-          await audioServiceRef.current.startRecording({
-            format: recordingFormat as import("../../types/audio").AudioFormat,
-            bitRate,
-          });
-        } else {
-          // Don't pass maxDuration to avoid dual auto-stop timers
-          // MainScreen's timer will be the sole mechanism for auto-stopping
-          await audioServiceRef.current.startRecording({
-            format: recordingFormat as import("../../types/audio").AudioFormat,
-            bitRate,
-          });
-
-          // Set up auto-stop timer (this is the only auto-stop mechanism)
-          logger.log(
-            `[MainScreen] Setting auto-stop timer for ${targetDuration}ms`,
-          );
-          recordingTimerRef.current = setTimeout(() => {
-            logger.log(`[MainScreen] Auto-stop timer fired`);
-            handleStop();
-          }, targetDuration);
-        }
-      } else {
-        // First track - no auto-stop
-        await audioServiceRef.current.startRecording({
-          format: recordingFormat as import("../../types/audio").AudioFormat,
-          bitRate,
+  // Recording hook
+  const { isRecording, recordingDuration, handleRecord, handleStop } =
+    useRecordingSession({
+      audioService: audioServiceRef.current,
+      tracks,
+      getMasterLoopDuration,
+      hasMasterTrack,
+      recordingFormat,
+      recordingQuality,
+      onTrackRecorded: async (track: Track) => {
+        await audioServiceRef.current?.loadTrack(track.id, track.uri, {
+          speed: track.speed,
+          volume: track.volume,
+          loop: true,
         });
-      }
+        addTrack(track);
+      },
+    });
 
-      setIsRecording(true);
-      setRecordingDuration(0);
+  // Playback hook
+  const {
+    handlePlay,
+    handlePause,
+    handleDelete,
+    handleVolumeChange,
+    handleSpeedChange,
+    handleSelect,
+    speedConfirmationVisible,
+    handleSpeedChangeConfirm,
+    handleSpeedChangeCancel,
+    deleteConfirmationVisible,
+    handleDeleteConfirm,
+    handleDeleteCancel,
+  } = useTrackPlayback({
+    audioService: audioServiceRef.current,
+    tracks,
+    updateTrack,
+    removeTrack,
+  });
 
-      // Start interval to update recording duration display
-      recordingIntervalRef.current = setInterval(() => {
-        if (audioServiceRef.current) {
-          const duration = audioServiceRef.current.getRecordingDuration();
-          setRecordingDuration(duration);
-        }
-      }, 100); // Update every 100ms for smooth progress
-    } catch (error) {
-      if (error instanceof AudioError) {
-        Alert.alert("Recording Error", error.userMessage);
-      } else {
-        Alert.alert("Error", "Failed to start recording");
-      }
-    }
-  };
+  // Export hook
+  const {
+    isExporting,
+    saveModalVisible,
+    handleSave,
+    handleSaveModalDismiss,
+    handleSaveModalSave,
+  } = useExportFlow({
+    tracks,
+    exportFormat,
+    exportQuality,
+    loopCrossfadeDuration,
+  });
 
-  const handleStop = async () => {
-    if (!audioServiceRef.current) {
-      Alert.alert("Error", "Audio service not initialized");
-      return;
-    }
-
-    // Clear the auto-stop timer if it exists
-    if (recordingTimerRef.current) {
-      clearTimeout(recordingTimerRef.current);
-      recordingTimerRef.current = null;
-    }
-
-    // Clear the recording duration update interval
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-      recordingIntervalRef.current = null;
-    }
-
-    try {
-      // IMPORTANT: Capture duration BEFORE stopRecording() resets the internal state
-      // getRecordingDuration() now also returns the final duration after stop (defensive)
-      const recordingDuration = audioServiceRef.current.getRecordingDuration();
-      logger.log(
-        `[MainScreen] Stopping recording, captured duration: ${recordingDuration}ms`,
-      );
-
-      const uri = await audioServiceRef.current.stopRecording();
-      setIsRecording(false);
-      setRecordingDuration(0);
-
-      // Create new track
-      const newTrack: Track = {
-        id: crypto.randomUUID(),
-        name: `Recording ${tracks.length + 1}`,
-        uri,
-        duration: recordingDuration,
-        speed: 1.0,
-        volume: 75,
-        isPlaying: false,
-        selected: true,
-        createdAt: Date.now(),
-      };
-
-      // Load track for playback
-      await audioServiceRef.current.loadTrack(newTrack.id, newTrack.uri, {
-        speed: newTrack.speed,
-        volume: newTrack.volume,
-        loop: true,
-      });
-
-      // Add track to store
-      addTrack(newTrack);
-    } catch (error) {
-      if (error instanceof AudioError) {
-        Alert.alert("Error", error.userMessage);
-      } else {
-        Alert.alert("Error", "Failed to stop recording");
-      }
-    }
-  };
+  const isLoading = isExporting || isImporting;
 
   const handleImport = async () => {
     if (!audioServiceRef.current) {
@@ -282,7 +164,7 @@ export const MainScreen: React.FC = () => {
     }
 
     try {
-      setIsLoading(true);
+      setIsImporting(true);
 
       // Get the file importer for current platform
       const fileImporter = getFileImporter();
@@ -320,16 +202,8 @@ export const MainScreen: React.FC = () => {
         // User cancelled
       }
     } finally {
-      setIsLoading(false);
+      setIsImporting(false);
     }
-  };
-
-  const handleSave = () => {
-    setSaveModalVisible(true);
-  };
-
-  const handleSaveModalDismiss = () => {
-    setSaveModalVisible(false);
   };
 
   const handleHelp = () => {
@@ -343,282 +217,6 @@ export const MainScreen: React.FC = () => {
   const handleSettings = () => {
     router.push("/settings");
   };
-
-  const handleSaveModalSave = async (
-    filename: string,
-    loopCount: number,
-    fadeoutDuration: number,
-  ) => {
-    // Filter only selected tracks
-    const selectedTracks = tracks.filter((track) => track.selected);
-
-    if (selectedTracks.length < 1) {
-      Alert.alert("Error", "Please select at least one track to save");
-      return;
-    }
-
-    setSaveModalVisible(false);
-    setIsLoading(true);
-
-    try {
-      // Get FFmpeg service
-      const audioExportService = getAudioExportService();
-
-      // Ensure FFmpeg is loaded (especially important for web)
-      await audioExportService.load();
-
-      // Prepare tracks for mixing
-      const mixTracks = selectedTracks.map((track) => ({
-        uri: track.uri,
-        speed: track.speed,
-        volume: track.volume,
-      }));
-
-      // Mix tracks with loop, fadeout, format, quality, and crossfade options
-      const result = await audioExportService.mix({
-        tracks: mixTracks,
-        loopCount,
-        fadeoutDuration,
-        format: exportFormat,
-        quality: exportQuality,
-        crossfadeDuration: loopCrossfadeDuration,
-      });
-
-      setIsLoading(false);
-
-      // Use actual format from result (may differ if fallback occurred)
-      const actualFormat = result.actualFormat;
-
-      // Handle the result (Blob for web, URI for native)
-      if (typeof result.data === "string") {
-        // Native: result is a file URI
-        Alert.alert(
-          "Success",
-          `Mixed audio saved successfully!\n\nFile: ${filename}.${actualFormat}\n\nLocation: ${result.data}`,
-          [{ text: "OK" }],
-        );
-      } else {
-        // Web: result is a Blob
-        downloadBlob(result.data as Blob, `${filename}.${actualFormat}`);
-
-        Alert.alert(
-          "Success",
-          `Mixed audio downloaded as ${filename}.${actualFormat} (${exportQuality} quality)`,
-        );
-      }
-    } catch (error) {
-      setIsLoading(false);
-
-      if (error instanceof AudioError) {
-        Alert.alert("Mixing Error", error.userMessage);
-      } else {
-        const errorMessage = (error as Error).message || "Unknown error";
-        Alert.alert("Error", `Failed to mix audio tracks: ${errorMessage}`);
-      }
-    }
-  };
-
-  const handlePlay = useCallback(
-    async (trackId: string) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      // Check if track is already playing
-      const track = tracks.find((t) => t.id === trackId);
-      if (track?.isPlaying) {
-        return;
-      }
-
-      try {
-        await audioServiceRef.current.playTrack(trackId);
-
-        // Update track state in store
-        updateTrack(trackId, { isPlaying: true });
-      } catch (error) {
-        if (error instanceof AudioError) {
-          Alert.alert("Playback Error", error.userMessage);
-        }
-      }
-    },
-    [tracks, updateTrack],
-  );
-
-  const handlePause = useCallback(
-    async (trackId: string) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      try {
-        await audioServiceRef.current.pauseTrack(trackId);
-
-        // Update track state in store
-        updateTrack(trackId, { isPlaying: false });
-      } catch (error) {
-        if (error instanceof AudioError) {
-          Alert.alert("Playback Error", error.userMessage);
-        }
-      }
-    },
-    [updateTrack],
-  );
-
-  const performDelete = useCallback(
-    async (trackId: string) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      try {
-        // Check if this is the master track (first track)
-        const isMaster = tracks.length > 0 && tracks[0].id === trackId;
-
-        if (isMaster) {
-          // If deleting master track, unload ALL tracks since store will clear all
-          for (const track of tracks) {
-            try {
-              await audioServiceRef.current.unloadTrack(track.id);
-            } catch (error) {
-              logger.error(
-                `[MainScreen] Failed to unload track ${track.id}:`,
-                error,
-              );
-            }
-          }
-        } else {
-          // Otherwise, just unload this specific track
-          await audioServiceRef.current.unloadTrack(trackId);
-        }
-
-        // Remove track from store (store handles master track deletion logic)
-        removeTrack(trackId);
-      } catch (error) {
-        if (error instanceof AudioError) {
-          Alert.alert("Delete Error", error.userMessage);
-        }
-      }
-    },
-    [tracks, removeTrack],
-  );
-
-  const handleDelete = useCallback(
-    async (trackId: string) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      // Check if this is the master track (first track)
-      const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
-
-      // If deleting master track, show confirmation (this will clear all tracks)
-      if (isMasterTrack) {
-        setPendingDeletion(trackId);
-        setDeleteConfirmationVisible(true);
-        return;
-      }
-
-      // Otherwise, delete immediately
-      await performDelete(trackId);
-    },
-    [tracks, performDelete],
-  );
-
-  const handleDeleteConfirm = async () => {
-    if (pendingDeletion) {
-      await performDelete(pendingDeletion);
-      setPendingDeletion(null);
-    }
-    setDeleteConfirmationVisible(false);
-  };
-
-  const handleDeleteCancel = () => {
-    setPendingDeletion(null);
-    setDeleteConfirmationVisible(false);
-  };
-
-  const handleVolumeChange = useCallback(
-    async (trackId: string, volume: number) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      try {
-        await audioServiceRef.current.setTrackVolume(trackId, volume);
-
-        // Update track state in store
-        updateTrack(trackId, { volume });
-      } catch (error) {
-        logger.error("[MainScreen] Volume change failed:", error);
-      }
-    },
-    [updateTrack],
-  );
-
-  const applySpeedChange = useCallback(
-    async (trackId: string, speed: number) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      try {
-        await audioServiceRef.current.setTrackSpeed(trackId, speed);
-
-        // Update track state in store
-        updateTrack(trackId, { speed });
-      } catch (error) {
-        logger.error("[MainScreen] Speed change failed:", error);
-      }
-    },
-    [updateTrack],
-  );
-
-  const handleSpeedChange = useCallback(
-    async (trackId: string, speed: number) => {
-      if (!audioServiceRef.current) {
-        return;
-      }
-
-      // Check if this is the master track (first track) and if there are other tracks
-      const isMasterTrack = tracks.length > 0 && tracks[0].id === trackId;
-      const hasOtherTracks = tracks.length > 1;
-
-      // If changing master track speed with other tracks present, show confirmation
-      if (isMasterTrack && hasOtherTracks) {
-        setPendingSpeedChange({ trackId, speed });
-        setSpeedConfirmationVisible(true);
-        return;
-      }
-
-      // Otherwise, apply speed change immediately
-      await applySpeedChange(trackId, speed);
-    },
-    [tracks, applySpeedChange],
-  );
-
-  const handleSpeedChangeConfirm = () => {
-    if (pendingSpeedChange) {
-      applySpeedChange(pendingSpeedChange.trackId, pendingSpeedChange.speed);
-      setPendingSpeedChange(null);
-    }
-    setSpeedConfirmationVisible(false);
-  };
-
-  const handleSpeedChangeCancel = () => {
-    setPendingSpeedChange(null);
-    setSpeedConfirmationVisible(false);
-  };
-
-  const handleSelect = useCallback(
-    (trackId: string) => {
-      const track = tracks.find((t) => t.id === trackId);
-      if (track) {
-        // Toggle selection in store
-        updateTrack(trackId, { selected: !track.selected });
-      }
-    },
-    [tracks, updateTrack],
-  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
