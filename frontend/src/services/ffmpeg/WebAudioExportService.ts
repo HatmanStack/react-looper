@@ -75,6 +75,7 @@ export class FFmpegService implements IAudioExportService {
       fadeoutDuration = 0,
       format = "wav",
       quality = "high",
+      crossfadeDuration = 0,
     } = options;
 
     if (!tracks || tracks.length === 0) {
@@ -94,6 +95,7 @@ export class FFmpegService implements IAudioExportService {
       await this.mixer.mixTracks(tracks, "output.wav", {
         loopCount,
         fadeoutDuration,
+        crossfadeDuration,
       });
 
       if (onProgress) {

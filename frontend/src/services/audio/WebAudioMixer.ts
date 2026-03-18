@@ -12,7 +12,6 @@ import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
 import { scaleVolume } from "../../utils/audioUtils";
 import { fetchWithTimeout } from "../../utils/audioUtils.shared";
-import { useSettingsStore } from "../../store/useSettingsStore";
 import { getSharedAudioContext, releaseAudioContext } from "./audioContextManager";
 
 export class WebAudioMixer extends BaseAudioMixer {
@@ -78,9 +77,8 @@ export class WebAudioMixer extends BaseAudioMixer {
       masterGain.gain.value = 1.0;
       masterGain.connect(offlineContext.destination);
 
-      // Read crossfade duration from settings
-      const crossfadeDurationMs =
-        useSettingsStore.getState().loopCrossfadeDuration;
+      // Read crossfade duration from options
+      const crossfadeDurationMs = options?.crossfadeDuration ?? 0;
       const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
 
       logger.log(

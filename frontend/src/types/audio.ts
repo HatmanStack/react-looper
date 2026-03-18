@@ -210,6 +210,12 @@ export interface MixingOptions {
    * Default: 0 (no fadeout)
    */
   fadeoutDuration?: number;
+
+  /**
+   * Crossfade duration in milliseconds at loop boundaries
+   * Default: 0 (no crossfade)
+   */
+  crossfadeDuration?: number;
 }
 
 /**

@@ -67,6 +67,11 @@ export const MainScreen: React.FC = () => {
   const recordingFormat = useSettingsStore((state) => state.recordingFormat);
   const recordingQuality = useSettingsStore((state) => state.recordingQuality);
 
+  // Get crossfade setting for export
+  const loopCrossfadeDuration = useSettingsStore(
+    (state) => state.loopCrossfadeDuration,
+  );
+
   // Get loop mode state
   const loopMode = usePlaybackStore((state) => state.loopMode);
   const toggleLoopMode = usePlaybackStore((state) => state.toggleLoopMode);
@@ -369,13 +374,14 @@ export const MainScreen: React.FC = () => {
         volume: track.volume,
       }));
 
-      // Mix tracks with loop, fadeout, format, and quality options
+      // Mix tracks with loop, fadeout, format, quality, and crossfade options
       const result = await audioExportService.mix({
         tracks: mixTracks,
         loopCount,
         fadeoutDuration,
         format: exportFormat,
         quality: exportQuality,
+        crossfadeDuration: loopCrossfadeDuration,
       });
 
       setIsLoading(false);
