@@ -21,6 +21,8 @@ export class WebAudioRecorder extends BaseAudioRecorder {
   private autoStopTimer: NodeJS.Timeout | null = null;
   /** Track if permissions have been granted to avoid redundant getUserMedia calls */
   private permissionsGranted: boolean = false;
+  /** Pending reject callback from _stopRecording promise, used by onerror */
+  private pendingRecordingReject: ((error: AudioError) => void) | null = null;
 
   /**
    * Start recording implementation for web
@@ -90,11 +92,18 @@ export class WebAudioRecorder extends BaseAudioRecorder {
       // Handle errors
       this.mediaRecorder.onerror = (event: Event) => {
         logger.error("[WebAudioRecorder] MediaRecorder error:", event);
-        throw new AudioError(
+        const error = new AudioError(
           AudioErrorCode.RECORDING_FAILED,
           "MediaRecorder error occurred",
           "Recording failed. Please try again.",
         );
+        // If a stop operation is pending, reject its promise
+        if (this.pendingRecordingReject) {
+          this.pendingRecordingReject(error);
+          this.pendingRecordingReject = null;
+        }
+        // Clean up the recording state
+        this.cleanupMediaStream();
       };
 
       // Start recording
@@ -186,7 +195,10 @@ export class WebAudioRecorder extends BaseAudioRecorder {
     }
 
     return new Promise((resolve, reject) => {
+      this.pendingRecordingReject = reject;
+
       if (!this.mediaRecorder) {
+        this.pendingRecordingReject = null;
         reject(
           new AudioError(
             AudioErrorCode.RECORDING_FAILED,
@@ -199,6 +211,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
 
       // Handle recording stop
       this.mediaRecorder.onstop = () => {
+        this.pendingRecordingReject = null;
         try {
           logger.log(
             `[WebAudioRecorder] onstop handler called, chunks: ${this.audioChunks.length}`,
@@ -245,6 +258,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    */
   protected async _cancelRecording(): Promise<void> {
     logger.log("[WebAudioRecorder] Cancelling recording");
+    this.pendingRecordingReject = null;
 
     // Clear auto-stop timer if it exists
     if (this.autoStopTimer) {
@@ -335,6 +349,7 @@ export class WebAudioRecorder extends BaseAudioRecorder {
    */
   protected async _cleanup(): Promise<void> {
     logger.log("[WebAudioRecorder] Cleaning up resources");
+    this.pendingRecordingReject = null;
 
     // Clear auto-stop timer if it exists
     if (this.autoStopTimer) {
