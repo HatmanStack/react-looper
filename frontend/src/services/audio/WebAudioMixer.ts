@@ -12,10 +12,7 @@ import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
 import { scaleVolume } from "../../utils/audioUtils";
 import { fetchWithTimeout } from "../../utils/audioUtils.shared";
-import {
-  getSharedAudioContext,
-  releaseAudioContext,
-} from "./audioContextManager";
+import { getSharedAudioContext } from "./audioContextManager";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
@@ -337,10 +334,7 @@ export class WebAudioMixer extends BaseAudioMixer {
    * Cleanup
    */
   public async cleanup(): Promise<void> {
-    if (this.audioContext) {
-      releaseAudioContext();
-      this.audioContext = null;
-    }
+    this.audioContext = null;
     this.cachedBlob = null;
   }
 }

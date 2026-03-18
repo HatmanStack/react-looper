@@ -36,6 +36,7 @@ import { useTrackStore } from "../../store/useTrackStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import { usePlaybackStore } from "../../store/usePlaybackStore";
 import { useResponsive } from "../../utils/responsive";
+import { looperTheme } from "../../theme/paperTheme";
 import { useRecordingSession } from "../../hooks/useRecordingSession";
 import { useTrackPlayback } from "../../hooks/useTrackPlayback";
 import { useExportFlow } from "../../hooks/useExportFlow";
@@ -72,6 +73,7 @@ export const MainScreen: React.FC = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState(false);
   const audioServiceRef = useRef<AudioService | null>(null);
 
   // Initialize AudioService
@@ -84,7 +86,7 @@ export const MainScreen: React.FC = () => {
       if (error instanceof AudioError) {
         Alert.alert("Error", error.userMessage);
       }
-      setIsInitialized(true);
+      setInitError(true);
     }
 
     return () => {
@@ -105,7 +107,11 @@ export const MainScreen: React.FC = () => {
       recordingQuality,
       onTrackRecorded: useCallback(
         async (track: Track) => {
-          await audioServiceRef.current?.loadTrack(track.id, track.uri, {
+          if (!audioServiceRef.current) {
+            Alert.alert("Error", "Audio service not initialized");
+            return;
+          }
+          await audioServiceRef.current.loadTrack(track.id, track.uri, {
             speed: track.speed,
             volume: track.volume,
             loop: true,
@@ -197,7 +203,7 @@ export const MainScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <View style={styles.container}>
         {/* Top Controls */}
-        {!isInitialized ? (
+        {!isInitialized && !initError ? (
           <TopControlsSkeleton style={styles.topControls} />
         ) : (
           <Surface
@@ -256,7 +262,7 @@ export const MainScreen: React.FC = () => {
                 <IconButton
                   icon="dots-vertical"
                   size={32}
-                  iconColor="#FFFFFF"
+                  iconColor={looperTheme.colors.onSurface}
                   onPress={() => setMenuVisible(true)}
                   accessibilityLabel="More options"
                   accessibilityHint="Open menu for loop mode, settings, and help"
@@ -354,23 +360,14 @@ export const MainScreen: React.FC = () => {
         {/* Loading Indicator */}
         {isLoading && (
           <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            }}
+            style={styles.loadingOverlay}
             accessibilityLabel="Loading"
             accessibilityLiveRegion="polite"
             accessibilityRole="progressbar"
           >
             <ActivityIndicator
               size="large"
-              color="#3F51B5"
+              color={looperTheme.colors.primary}
               accessibilityLabel="Loading, please wait"
             />
           </View>

@@ -18,7 +18,6 @@ import { logger } from "../../utils/logger";
 import {
   getSharedAudioContext,
   ensureContextResumed,
-  releaseAudioContext,
 } from "./audioContextManager";
 
 export class WebAudioPlayer extends BaseAudioPlayer {
@@ -322,9 +321,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     // Release audio buffer
     this.audioBuffer = null;
 
-    // Release shared AudioContext reference
     if (this.audioContext) {
-      releaseAudioContext();
       this.audioContext = null;
     }
 

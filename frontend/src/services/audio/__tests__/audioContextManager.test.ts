@@ -4,7 +4,6 @@
 import {
   getSharedAudioContext,
   ensureContextResumed,
-  releaseAudioContext,
   closeSharedAudioContext,
   resetAudioContextForTesting,
 } from "../audioContextManager";
@@ -88,12 +87,6 @@ describe("audioContextManager", () => {
       });
       await ensureContextResumed();
       expect(ctx.resume).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("releaseAudioContext", () => {
-    it("does not throw when called without get", () => {
-      expect(() => releaseAudioContext()).not.toThrow();
     });
   });
 

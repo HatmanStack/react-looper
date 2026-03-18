@@ -112,7 +112,7 @@ export async function fetchWithTimeout(
     if ((error as Error).name === "AbortError") {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
-        `Audio fetch timed out after ${timeoutMs}ms: ${uri}`,
+        `Audio fetch timed out after ${timeoutMs}ms`,
         "Audio file took too long to load. Please check your connection and try again.",
       );
     }

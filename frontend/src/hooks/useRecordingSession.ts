@@ -53,12 +53,17 @@ export function useRecordingSession(
   const [recordingDuration, setRecordingDuration] = useState(0);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isStoppingRef = useRef(false);
 
   // Use ref for handleStop to avoid stale closure in setTimeout
-  const handleStopRef = useRef<() => Promise<void>>(undefined);
+  const handleStopRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   const handleStop = useCallback(async () => {
+    if (isStoppingRef.current) return;
+    isStoppingRef.current = true;
+
     if (!audioService) {
+      isStoppingRef.current = false;
       Alert.alert("Error", "Audio service not initialized");
       return;
     }
@@ -106,6 +111,8 @@ export function useRecordingSession(
       } else {
         Alert.alert("Error", "Failed to stop recording");
       }
+    } finally {
+      isStoppingRef.current = false;
     }
   }, [audioService, tracks.length, onTrackRecorded]);
 

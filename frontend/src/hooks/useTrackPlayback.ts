@@ -199,7 +199,10 @@ export function useTrackPlayback(
 
   const handleSpeedChangeConfirm = useCallback(() => {
     if (pendingSpeedChange) {
-      applySpeedChange(pendingSpeedChange.trackId, pendingSpeedChange.speed);
+      void applySpeedChange(
+        pendingSpeedChange.trackId,
+        pendingSpeedChange.speed,
+      );
       setPendingSpeedChange(null);
     }
     setSpeedConfirmationVisible(false);

@@ -14,6 +14,7 @@
 import type { Track } from "../../types";
 import {
   calculateLoopCount,
+  calculateSpeedAdjustedDuration,
   calculateTrackLoopBoundaries,
 } from "../../utils/loopUtils";
 
@@ -106,9 +107,13 @@ export class LoopEngine {
       };
     }
 
-    const loopCount = calculateLoopCount(track.duration, masterLoopDuration);
-    const boundaries = calculateTrackLoopBoundaries(
+    const effectiveDuration = calculateSpeedAdjustedDuration(
       track.duration,
+      track.speed ?? 1,
+    );
+    const loopCount = calculateLoopCount(effectiveDuration, masterLoopDuration);
+    const boundaries = calculateTrackLoopBoundaries(
+      effectiveDuration,
       masterLoopDuration,
     );
 
@@ -150,9 +155,13 @@ export class LoopEngine {
       return false;
     }
 
-    // Track should loop if it's shorter than master duration
+    // Track should loop if its effective (speed-adjusted) duration is shorter than master
     // (Master track itself doesn't loop)
-    return track.duration < masterLoopDuration;
+    const effectiveDuration = calculateSpeedAdjustedDuration(
+      track.duration,
+      track.speed ?? 1,
+    );
+    return effectiveDuration < masterLoopDuration;
   }
 
   /**
