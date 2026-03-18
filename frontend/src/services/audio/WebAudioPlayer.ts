@@ -320,6 +320,16 @@ export class WebAudioPlayer extends BaseAudioPlayer {
     // Release audio buffer
     this.audioBuffer = null;
 
+    // Close AudioContext to prevent resource leak
+    if (this.audioContext) {
+      try {
+        await this.audioContext.close();
+      } catch {
+        // Context may already be closed
+      }
+      this.audioContext = null;
+    }
+
     // Reset timers
     this.startTime = 0;
     this.pauseTime = 0;
