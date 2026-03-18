@@ -80,9 +80,10 @@ export function formatFileSize(bytes: number): string {
  * @returns Gain value from 0.0 to 1.0
  */
 export function scaleVolume(volume: number): number {
-  if (volume === 0) return 0;
-  if (volume === 100) return 1;
-  return 1 - Math.log(100 - volume) / Math.log(100);
+  const clamped = Math.max(0, Math.min(100, volume));
+  if (clamped === 0) return 0;
+  if (clamped === 100) return 1;
+  return 1 - Math.log(100 - clamped) / Math.log(100);
 }
 
 /** Default timeout for audio fetch operations (30 seconds) */

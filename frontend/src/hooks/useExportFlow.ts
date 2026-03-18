@@ -93,10 +93,10 @@ export function useExportFlow(
 
         // Handle the result (Blob for web, URI for native)
         if (typeof result.data === "string") {
-          // Native: result is a file URI
+          // Native: result is a file URI — show actual path, not user-supplied name
           Alert.alert(
             "Success",
-            `Mixed audio saved successfully!\n\nFile: ${filename}.${actualFormat}\n\nLocation: ${result.data}`,
+            `Mixed audio saved successfully!\n\nLocation: ${result.data}`,
             [{ text: "OK" }],
           );
         } else {

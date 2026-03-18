@@ -32,7 +32,7 @@ export class NativeAudioFileManager extends AudioFileManager {
   private permanentDir: Directory;
   private metadataFile: File;
   private metadata: FileMetadata = {};
-  private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
     super();
@@ -45,8 +45,13 @@ export class NativeAudioFileManager extends AudioFileManager {
    * Initialize directories and load metadata
    */
   private async init(): Promise<void> {
-    if (this.initialized) return;
+    if (this.initPromise) return this.initPromise;
 
+    this.initPromise = this.doInit();
+    return this.initPromise;
+  }
+
+  private async doInit(): Promise<void> {
     // Create directories if they don't exist
     if (!this.tempDir.exists) {
       this.tempDir.create();
@@ -60,8 +65,6 @@ export class NativeAudioFileManager extends AudioFileManager {
 
     // Load metadata
     await this.loadMetadata();
-
-    this.initialized = true;
   }
 
   /**

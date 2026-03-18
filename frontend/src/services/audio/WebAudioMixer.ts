@@ -218,6 +218,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       return "blob://mixed-audio.wav";
     } catch (error) {
       logger.error("[WebAudioMixer] Mixing failed:", error);
+      if (error instanceof AudioError) throw error;
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix audio: ${(error as Error).message}`,
@@ -245,11 +246,12 @@ export class WebAudioMixer extends BaseAudioMixer {
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       return audioBuffer;
     } catch (error) {
+      if (error instanceof AudioError) throw error;
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        `Failed to load audio from ${uri}: ${(error as Error).message}`,
+        `Failed to load audio buffer: ${(error as Error).message}`,
         "Unable to load audio file for mixing",
-        { uri, originalError: error },
+        { originalError: error },
       );
     }
   }
