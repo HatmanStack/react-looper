@@ -44,7 +44,6 @@
     "react-native-screens": "^4.18.0",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.21.0",
-    "uuid": "^13.0.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

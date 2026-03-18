@@ -242,7 +242,7 @@ export const MainScreen: React.FC = () => {
 
       // Create new track
       const newTrack: Track = {
-        id: `track-${Date.now()}`,
+        id: crypto.randomUUID(),
         name: `Recording ${tracks.length + 1}`,
         uri,
         duration: recordingDuration,
@@ -289,7 +289,7 @@ export const MainScreen: React.FC = () => {
 
       // Create new track
       const newTrack: Track = {
-        id: `track-${Date.now()}`,
+        id: crypto.randomUUID(),
         name: importedFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
         uri: importedFile.uri,
         duration: metadata.duration,

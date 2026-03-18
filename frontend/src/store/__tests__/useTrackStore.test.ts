@@ -10,7 +10,7 @@ import { useTrackStore } from "../useTrackStore";
 
 // Helper to create mock tracks for testing
 const createMockTrack = (overrides: Partial<Track> = {}): Track => ({
-  id: `track-${Date.now()}-${Math.random()}`,
+  id: crypto.randomUUID(),
   name: "Test Track",
   uri: "file:///test.mp3",
   duration: 10000, // 10 seconds default
