@@ -39,6 +39,7 @@ import { useSettingsStore } from "../../store/useSettingsStore";
 import { usePlaybackStore } from "../../store/usePlaybackStore";
 import { useResponsive } from "../../utils/responsive";
 import { logger } from "../../utils/logger";
+import { downloadBlob } from "../../utils/downloadFile";
 
 // Initialize audio services for current platform
 initializeAudioServices();
@@ -394,15 +395,7 @@ export const MainScreen: React.FC = () => {
         );
       } else {
         // Web: result is a Blob
-        // Create download link
-        const url = URL.createObjectURL(result.data);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${filename}.${actualFormat}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        downloadBlob(result.data as Blob, `${filename}.${actualFormat}`);
 
         Alert.alert(
           "Success",
