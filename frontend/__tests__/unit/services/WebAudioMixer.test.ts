@@ -137,14 +137,7 @@ global.fetch = jest.fn().mockResolvedValue({
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1000)),
 } as any);
 
-// Mock settings store
-jest.mock("../../../src/store/useSettingsStore", () => ({
-  useSettingsStore: {
-    getState: jest.fn().mockReturnValue({
-      loopCrossfadeDuration: 0, // Default: no crossfade
-    }),
-  },
-}));
+// No store mocks needed - WebAudioMixer accepts crossfadeDuration via options
 
 describe("WebAudioMixer - Track Repetition and Fadeout", () => {
   let mixer: WebAudioMixer;
@@ -536,14 +529,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
   });
 
   describe("Crossfade at Loop Boundaries", () => {
-    const { useSettingsStore } = require("../../../src/store/useSettingsStore");
-
     it("applies gapless looping when crossfade is 0", async () => {
-      // Set crossfade duration = 0
-      (useSettingsStore.getState as jest.Mock).mockReturnValue({
-        loopCrossfadeDuration: 0,
-      });
-
       const tracks: MixerTrackInput[] = [
         {
           uri: "file://track1.mp3",
@@ -553,7 +539,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 0 });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -563,12 +549,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
 
-    it("applies crossfade at loop boundaries when setting > 0", async () => {
-      // Set crossfade duration = 20ms
-      (useSettingsStore.getState as jest.Mock).mockReturnValue({
-        loopCrossfadeDuration: 20,
-      });
-
+    it("applies crossfade at loop boundaries when crossfadeDuration > 0", async () => {
       const tracks: MixerTrackInput[] = [
         {
           uri: "file://track1.mp3",
@@ -578,7 +559,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 20 });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -590,11 +571,6 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
     });
 
     it("skips crossfade for very short tracks", async () => {
-      // Set crossfade duration = 50ms
-      (useSettingsStore.getState as jest.Mock).mockReturnValue({
-        loopCrossfadeDuration: 50,
-      });
-
       const tracks: MixerTrackInput[] = [
         {
           uri: "file://track1.mp3",
@@ -604,7 +580,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 5 });
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 5, crossfadeDuration: 50 });
 
       // Should complete without errors
       const blob = mixer.getBlob();
@@ -612,11 +588,6 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
     });
 
     it("handles crossfade with multiple loop cycles", async () => {
-      // Set crossfade duration = 30ms
-      (useSettingsStore.getState as jest.Mock).mockReturnValue({
-        loopCrossfadeDuration: 30,
-      });
-
       const tracks: MixerTrackInput[] = [
         {
           uri: "file://track1.mp3",
@@ -626,7 +597,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 4 });
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 4, crossfadeDuration: 30 });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -637,11 +608,6 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
     });
 
     it("applies crossfade to multiple tracks", async () => {
-      // Set crossfade duration = 20ms
-      (useSettingsStore.getState as jest.Mock).mockReturnValue({
-        loopCrossfadeDuration: 20,
-      });
-
       const tracks: MixerTrackInput[] = [
         {
           uri: "file://track1.mp3",
@@ -657,7 +623,7 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2 });
+      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 20 });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
