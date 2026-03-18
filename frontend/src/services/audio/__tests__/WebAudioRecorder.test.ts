@@ -144,15 +144,15 @@ describe("WebAudioRecorder", () => {
       await recorder.startRecording();
 
       // Override stop to trigger onerror instead of onstop
-      mockMediaRecorder.stop = jest
-        .fn()
-        .mockImplementation(function (this: any) {
-          setTimeout(() => {
-            if (this.onerror) {
-              this.onerror(new Event("error"));
-            }
-          }, 0);
-        });
+      mockMediaRecorder.stop = jest.fn().mockImplementation(function (
+        this: any,
+      ) {
+        setTimeout(() => {
+          if (this.onerror) {
+            this.onerror(new Event("error"));
+          }
+        }, 0);
+      });
 
       const promise = recorder.stopRecording();
       jest.runAllTimers();
@@ -165,15 +165,15 @@ describe("WebAudioRecorder", () => {
 
       const trackStopFn = mockMediaStream.getTracks()[0].stop;
 
-      mockMediaRecorder.stop = jest
-        .fn()
-        .mockImplementation(function (this: any) {
-          setTimeout(() => {
-            if (this.onerror) {
-              this.onerror(new Event("error"));
-            }
-          }, 0);
-        });
+      mockMediaRecorder.stop = jest.fn().mockImplementation(function (
+        this: any,
+      ) {
+        setTimeout(() => {
+          if (this.onerror) {
+            this.onerror(new Event("error"));
+          }
+        }, 0);
+      });
 
       const promise = recorder.stopRecording();
       jest.runAllTimers();

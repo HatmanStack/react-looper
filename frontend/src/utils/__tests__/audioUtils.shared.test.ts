@@ -32,14 +32,19 @@ describe("fetchWithTimeout", () => {
     jest.useFakeTimers();
 
     // Mock fetch that never resolves
-    global.fetch = jest.fn().mockImplementation((_uri: string, options: RequestInit) => {
-      return new Promise((_resolve, reject) => {
-        options.signal?.addEventListener("abort", () => {
-          const abortError = new DOMException("The operation was aborted.", "AbortError");
-          reject(abortError);
+    global.fetch = jest
+      .fn()
+      .mockImplementation((_uri: string, options: RequestInit) => {
+        return new Promise((_resolve, reject) => {
+          options.signal?.addEventListener("abort", () => {
+            const abortError = new DOMException(
+              "The operation was aborted.",
+              "AbortError",
+            );
+            reject(abortError);
+          });
         });
       });
-    });
 
     const promise = fetchWithTimeout("https://example.com/audio.mp3", 5000);
 

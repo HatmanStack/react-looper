@@ -12,7 +12,10 @@ import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
 import { scaleVolume } from "../../utils/audioUtils";
 import { fetchWithTimeout } from "../../utils/audioUtils.shared";
-import { getSharedAudioContext, releaseAudioContext } from "./audioContextManager";
+import {
+  getSharedAudioContext,
+  releaseAudioContext,
+} from "./audioContextManager";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;

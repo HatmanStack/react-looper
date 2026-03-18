@@ -3,6 +3,8 @@
  * Registers and manages the service worker lifecycle
  */
 
+import { logger } from "./logger";
+
 export function register(): void {
   if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
     window.addEventListener("load", () => {

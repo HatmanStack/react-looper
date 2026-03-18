@@ -231,7 +231,10 @@ export class FFmpegService implements IAudioExportService {
       );
 
       // Create blob from encoded MP3 chunks
-      const mp3Blob = new Blob(mp3Data as BlobPart[], { type: "audio/mpeg" });
+      const mp3Blob = new Blob(
+        mp3Data.map((chunk) => new Uint8Array(chunk)),
+        { type: "audio/mpeg" },
+      );
       return { blob: mp3Blob, format: "mp3" };
     } catch (error) {
       logger.error("[FFmpegService.web] MP3 conversion failed:", error);

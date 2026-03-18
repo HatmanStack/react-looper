@@ -63,7 +63,10 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
         await sound.unloadAsync();
       } catch (error) {
         // Ignore unload errors
-        logger.debug("[audioUtils.native] failed to unload sound during cleanup:", error);
+        logger.debug(
+          "[audioUtils.native] failed to unload sound during cleanup:",
+          error,
+        );
       }
     }
 

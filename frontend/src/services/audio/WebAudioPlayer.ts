@@ -296,7 +296,10 @@ export class WebAudioPlayer extends BaseAudioPlayer {
         this.sourceNode.disconnect();
       } catch (error) {
         // Ignore if already stopped
-        logger.debug("[WebAudioPlayer] unload - source already stopped:", error);
+        logger.debug(
+          "[WebAudioPlayer] unload - source already stopped:",
+          error,
+        );
       }
       this.sourceNode = null;
     }

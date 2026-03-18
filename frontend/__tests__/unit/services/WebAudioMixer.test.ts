@@ -539,7 +539,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 0 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 2,
+        crossfadeDuration: 0,
+      });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -559,7 +562,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 20 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 2,
+        crossfadeDuration: 20,
+      });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -580,7 +586,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 5, crossfadeDuration: 50 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 5,
+        crossfadeDuration: 50,
+      });
 
       // Should complete without errors
       const blob = mixer.getBlob();
@@ -597,7 +606,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 4, crossfadeDuration: 30 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 4,
+        crossfadeDuration: 30,
+      });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();
@@ -623,7 +635,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
         },
       ];
 
-      await mixer.mixTracks(tracks, "output.wav", { loopCount: 2, crossfadeDuration: 20 });
+      await mixer.mixTracks(tracks, "output.wav", {
+        loopCount: 2,
+        crossfadeDuration: 20,
+      });
 
       const blob = mixer.getBlob();
       expect(blob).toBeDefined();

@@ -91,9 +91,7 @@ describe("useExportFlow", () => {
 
   it("handleSaveModalSave with selected tracks calls audioExportService.mix", async () => {
     const track = createMockTrack({ selected: true });
-    const { result } = renderHook(() =>
-      useExportFlow(defaultOptions([track])),
-    );
+    const { result } = renderHook(() => useExportFlow(defaultOptions([track])));
 
     await act(async () => {
       await result.current.handleSaveModalSave("output", 4, 2000);
@@ -114,9 +112,7 @@ describe("useExportFlow", () => {
 
   it("handleSaveModalSave sets isExporting true during mixing, false after", async () => {
     const track = createMockTrack({ selected: true });
-    const { result } = renderHook(() =>
-      useExportFlow(defaultOptions([track])),
-    );
+    const { result } = renderHook(() => useExportFlow(defaultOptions([track])));
 
     // Before export
     expect(result.current.isExporting).toBe(false);
@@ -131,9 +127,7 @@ describe("useExportFlow", () => {
 
   it("handleSaveModalSave with no selected tracks shows error Alert", async () => {
     const track = createMockTrack({ selected: false });
-    const { result } = renderHook(() =>
-      useExportFlow(defaultOptions([track])),
-    );
+    const { result } = renderHook(() => useExportFlow(defaultOptions([track])));
 
     await act(async () => {
       await result.current.handleSaveModalSave("output", 1, 0);
@@ -149,9 +143,7 @@ describe("useExportFlow", () => {
   it("mixing error is caught and shown via Alert", async () => {
     mockMix.mockRejectedValueOnce(new Error("Mix failed"));
     const track = createMockTrack({ selected: true });
-    const { result } = renderHook(() =>
-      useExportFlow(defaultOptions([track])),
-    );
+    const { result } = renderHook(() => useExportFlow(defaultOptions([track])));
 
     await act(async () => {
       await result.current.handleSaveModalSave("output", 1, 0);

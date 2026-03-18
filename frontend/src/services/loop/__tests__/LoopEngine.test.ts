@@ -92,7 +92,11 @@ describe("LoopEngine", () => {
       const tracks = [track1, track2];
       const masterLoopDuration = 10000;
 
-      const info = loopEngine.getTrackLoopInfo("track-2", tracks, masterLoopDuration);
+      const info = loopEngine.getTrackLoopInfo(
+        "track-2",
+        tracks,
+        masterLoopDuration,
+      );
 
       expect(info.loopCount).toBe(3); // 4s track loops 3 times in 10s
       expect(info.boundaries).toHaveLength(3);
@@ -129,7 +133,11 @@ describe("LoopEngine", () => {
       const tracks = [track1, track2];
       const masterLoopDuration = 10000;
 
-      const info = loopEngine.getTrackLoopInfo("track-2", tracks, masterLoopDuration);
+      const info = loopEngine.getTrackLoopInfo(
+        "track-2",
+        tracks,
+        masterLoopDuration,
+      );
 
       expect(info.loopCount).toBe(1); // Plays once (partially)
       expect(info.boundaries).toEqual([0]);
@@ -152,7 +160,9 @@ describe("LoopEngine", () => {
 
       const tracks = [track1, track2];
 
-      expect(loopEngine.shouldTrackLoop("track-2", tracks, 10000, true)).toBe(true);
+      expect(loopEngine.shouldTrackLoop("track-2", tracks, 10000, true)).toBe(
+        true,
+      );
     });
 
     it("returns false when loop mode disabled", () => {
@@ -169,7 +179,9 @@ describe("LoopEngine", () => {
 
       const tracks = [track1, track2];
 
-      expect(loopEngine.shouldTrackLoop("track-2", tracks, 10000, false)).toBe(false);
+      expect(loopEngine.shouldTrackLoop("track-2", tracks, 10000, false)).toBe(
+        false,
+      );
     });
 
     it("returns false when track equals master duration", () => {
@@ -179,11 +191,15 @@ describe("LoopEngine", () => {
         speed: 1.0,
       });
 
-      expect(loopEngine.shouldTrackLoop("track-1", [track], 10000, true)).toBe(false); // Master doesn't loop
+      expect(loopEngine.shouldTrackLoop("track-1", [track], 10000, true)).toBe(
+        false,
+      ); // Master doesn't loop
     });
 
     it("returns false when track not found", () => {
-      expect(loopEngine.shouldTrackLoop("non-existent", [], 10000, true)).toBe(false);
+      expect(loopEngine.shouldTrackLoop("non-existent", [], 10000, true)).toBe(
+        false,
+      );
     });
   });
 

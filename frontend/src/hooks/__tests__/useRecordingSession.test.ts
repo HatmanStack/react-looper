@@ -109,7 +109,18 @@ describe("useRecordingSession", () => {
     const opts = defaultOptions();
     opts.hasMasterTrack.mockReturnValue(true);
     opts.getMasterLoopDuration.mockReturnValue(10000);
-    opts.tracks = [{ id: "track-1", name: "Track 1", uri: "test", duration: 10000, speed: 1.0, volume: 75, isPlaying: false, createdAt: Date.now() }];
+    opts.tracks = [
+      {
+        id: "track-1",
+        name: "Track 1",
+        uri: "test",
+        duration: 10000,
+        speed: 1.0,
+        volume: 75,
+        isPlaying: false,
+        createdAt: Date.now(),
+      },
+    ];
 
     const { result } = renderHook(() => useRecordingSession(opts));
 
@@ -132,7 +143,18 @@ describe("useRecordingSession", () => {
     const opts = defaultOptions();
     opts.hasMasterTrack.mockReturnValue(true);
     opts.getMasterLoopDuration.mockReturnValue(10000);
-    opts.tracks = [{ id: "track-1", name: "Track 1", uri: "test", duration: 10000, speed: 1.0, volume: 75, isPlaying: false, createdAt: Date.now() }];
+    opts.tracks = [
+      {
+        id: "track-1",
+        name: "Track 1",
+        uri: "test",
+        duration: 10000,
+        speed: 1.0,
+        volume: 75,
+        isPlaying: false,
+        createdAt: Date.now(),
+      },
+    ];
 
     const { result, unmount } = renderHook(() => useRecordingSession(opts));
 
@@ -149,7 +171,9 @@ describe("useRecordingSession", () => {
 
   it("error during recording start shows Alert", async () => {
     const opts = defaultOptions();
-    opts.audioService.startRecording.mockRejectedValue(new Error("Mic access denied"));
+    opts.audioService.startRecording.mockRejectedValue(
+      new Error("Mic access denied"),
+    );
 
     const { result } = renderHook(() => useRecordingSession(opts));
 
@@ -157,7 +181,10 @@ describe("useRecordingSession", () => {
       await result.current.handleRecord();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith("Error", "Failed to start recording");
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Error",
+      "Failed to start recording",
+    );
     expect(result.current.isRecording).toBe(false);
   });
 
@@ -171,6 +198,9 @@ describe("useRecordingSession", () => {
       await result.current.handleRecord();
     });
 
-    expect(Alert.alert).toHaveBeenCalledWith("Error", "Audio service not initialized");
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Error",
+      "Audio service not initialized",
+    );
   });
 });

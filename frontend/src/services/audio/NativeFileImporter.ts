@@ -76,7 +76,10 @@ export class NativeFileImporter {
           file.delete();
         } catch (error) {
           // Ignore deletion errors
-          logger.debug("[NativeFileImporter] failed to delete unplayable file:", error);
+          logger.debug(
+            "[NativeFileImporter] failed to delete unplayable file:",
+            error,
+          );
         }
         throw new AudioError(
           AudioErrorCode.INVALID_FORMAT,
@@ -207,10 +210,7 @@ export class NativeFileImporter {
 
       return status.isLoaded;
     } catch (error) {
-      logger.error(
-        "[NativeFileImporter] Playback verification failed:",
-        error,
-      );
+      logger.error("[NativeFileImporter] Playback verification failed:", error);
 
       // Cleanup sound if it was created
       if (sound) {
@@ -218,7 +218,10 @@ export class NativeFileImporter {
           await sound.unloadAsync();
         } catch (error) {
           // Ignore unload errors
-          logger.debug("[NativeFileImporter] failed to unload sound during cleanup:", error);
+          logger.debug(
+            "[NativeFileImporter] failed to unload sound during cleanup:",
+            error,
+          );
         }
       }
 

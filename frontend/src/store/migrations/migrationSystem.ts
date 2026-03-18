@@ -80,9 +80,7 @@ export function runMigrations<TState>(
           throw new Error(errorMsg);
         }
       } else {
-        logger.warn(
-          `[Migration] No migration found for v${version}, skipping`,
-        );
+        logger.warn(`[Migration] No migration found for v${version}, skipping`);
       }
     }
 
@@ -196,10 +194,7 @@ export function createMigratedStorage<TState>(
 
         return JSON.stringify(versionedState);
       } catch (error) {
-        logger.error(
-          "[Migration] Failed to parse/migrate stored data:",
-          error,
-        );
+        logger.error("[Migration] Failed to parse/migrate stored data:", error);
 
         if (config.defaultState) {
           const versionedState = createVersionedState(

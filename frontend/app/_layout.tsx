@@ -32,7 +32,10 @@ export default function RootLayout() {
       <PaperProvider theme={looperTheme}>
         <Head>
           <title>Looper - Free Multi-Track Audio Mixing App</title>
-          <meta name="description" content="Record, import, and mix unlimited audio tracks with independent speed and volume controls. Export high-quality MP3/WAV files. Free, works offline." />
+          <meta
+            name="description"
+            content="Record, import, and mix unlimited audio tracks with independent speed and volume controls. Export high-quality MP3/WAV files. Free, works offline."
+          />
           <link rel="canonical" href="https://looper.hatstack.fun/" />
         </Head>
         <Stack

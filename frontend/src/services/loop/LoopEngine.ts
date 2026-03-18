@@ -66,7 +66,10 @@ export class LoopEngine {
    * @param masterLoopDuration - Pre-calculated master loop duration in ms
    * @returns Master loop info with duration, track ID, and track object
    */
-  getMasterLoopInfo(tracks: Track[], masterLoopDuration: number): MasterLoopInfo {
+  getMasterLoopInfo(
+    tracks: Track[],
+    masterLoopDuration: number,
+  ): MasterLoopInfo {
     const masterTrack = tracks.length > 0 ? tracks[0] : null;
 
     return {
@@ -87,7 +90,11 @@ export class LoopEngine {
    * @param masterLoopDuration - Pre-calculated master loop duration in ms
    * @returns Loop info with count, boundaries, and total duration
    */
-  getTrackLoopInfo(trackId: string, tracks: Track[], masterLoopDuration: number): TrackLoopInfo {
+  getTrackLoopInfo(
+    trackId: string,
+    tracks: Track[],
+    masterLoopDuration: number,
+  ): TrackLoopInfo {
     const track = tracks.find((t) => t.id === trackId);
 
     // Handle track not found
@@ -126,7 +133,12 @@ export class LoopEngine {
    * @param loopMode - Whether loop mode is enabled
    * @returns true if track should loop
    */
-  shouldTrackLoop(trackId: string, tracks: Track[], masterLoopDuration: number, loopMode: boolean): boolean {
+  shouldTrackLoop(
+    trackId: string,
+    tracks: Track[],
+    masterLoopDuration: number,
+    loopMode: boolean,
+  ): boolean {
     // Check if loop mode is enabled
     if (!loopMode) {
       return false;
@@ -158,7 +170,11 @@ export class LoopEngine {
    * @param fadeout - Fadeout duration in milliseconds
    * @returns Total export duration in milliseconds
    */
-  calculateExportDuration(masterLoopDuration: number, loopCount: number, fadeout: number): number {
+  calculateExportDuration(
+    masterLoopDuration: number,
+    loopCount: number,
+    fadeout: number,
+  ): number {
     // Handle edge cases
     if (loopCount <= 0) {
       return fadeout;

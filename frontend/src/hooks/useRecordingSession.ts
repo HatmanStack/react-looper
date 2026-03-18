@@ -11,7 +11,10 @@ import { Alert } from "../utils/alert";
 import { AudioService } from "../services/audio/AudioService";
 import { AudioError } from "../services/audio/AudioError";
 import { getBitrate } from "../services/ffmpeg/audioQuality";
-import type { AudioFormat as ExportAudioFormat, QualityLevel } from "../services/ffmpeg/exportTypes";
+import type {
+  AudioFormat as ExportAudioFormat,
+  QualityLevel,
+} from "../services/ffmpeg/exportTypes";
 import { AudioFormat } from "../types/audio";
 import type { Track } from "../types";
 import { logger } from "../utils/logger";

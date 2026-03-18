@@ -18,10 +18,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
    * Simulate recording start
    */
   protected async _startRecording(options?: RecordingOptions): Promise<void> {
-    logger.log(
-      "[MockAudioRecorder] Starting recording with options:",
-      options,
-    );
+    logger.log("[MockAudioRecorder] Starting recording with options:", options);
 
     // Simulate async initialization delay
     await this.delay(100);

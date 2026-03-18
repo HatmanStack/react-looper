@@ -29,9 +29,7 @@ export class MockAudioPlayer extends BaseAudioPlayer {
     this.duration = metadata.duration;
     this.currentPosition = 0;
 
-    logger.log(
-      `[MockAudioPlayer] Loaded ${uri}, duration: ${this.duration}ms`,
-    );
+    logger.log(`[MockAudioPlayer] Loaded ${uri}, duration: ${this.duration}ms`);
   }
 
   /**

@@ -17,6 +17,7 @@ export class WebLogger implements ILogger {
 
   log(message: string, ...args: unknown[]): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.log(
         `%c[LOG]%c ${message}`,
         "color: #03DAC6; font-weight: bold",
@@ -48,6 +49,7 @@ export class WebLogger implements ILogger {
 
   info(message: string, ...args: unknown[]): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.info(
         `%c[INFO]%c ${message}`,
         "color: #3F51B5; font-weight: bold",
@@ -59,6 +61,7 @@ export class WebLogger implements ILogger {
 
   debug(message: string, ...args: unknown[]): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.log(
         `%c[DEBUG]%c ${message}`,
         "color: #9E9E9E; font-weight: bold",
