@@ -44,11 +44,9 @@ export const MainScreen: React.FC = () => {
   const router = useRouter();
   const responsive = useResponsive();
   const styles = getStyles(responsive);
-
-  // Use icon-only buttons on small screens
   const useIconOnly = !responsive.isDesktop;
 
-  // Use track store instead of local state
+  // Store selectors
   const tracks = useTrackStore((state) => state.tracks);
   const addTrack = useTrackStore((state) => state.addTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
@@ -58,23 +56,18 @@ export const MainScreen: React.FC = () => {
   );
   const hasMasterTrack = useTrackStore((state) => state.hasMasterTrack);
 
-  // Get export settings
   const exportFormat = useSettingsStore((state) => state.exportFormat);
   const exportQuality = useSettingsStore((state) => state.exportQuality);
-
-  // Get recording settings
   const recordingFormat = useSettingsStore((state) => state.recordingFormat);
   const recordingQuality = useSettingsStore((state) => state.recordingQuality);
-
-  // Get crossfade setting for export
   const loopCrossfadeDuration = useSettingsStore(
     (state) => state.loopCrossfadeDuration,
   );
 
-  // Get loop mode state
   const loopMode = usePlaybackStore((state) => state.loopMode);
   const toggleLoopMode = usePlaybackStore((state) => state.toggleLoopMode);
 
+  // Local UI state
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -91,7 +84,7 @@ export const MainScreen: React.FC = () => {
       if (error instanceof AudioError) {
         Alert.alert("Error", error.userMessage);
       }
-      setIsInitialized(true); // Show UI even on error
+      setIsInitialized(true);
     }
 
     return () => {
@@ -110,14 +103,17 @@ export const MainScreen: React.FC = () => {
       hasMasterTrack,
       recordingFormat,
       recordingQuality,
-      onTrackRecorded: async (track: Track) => {
-        await audioServiceRef.current?.loadTrack(track.id, track.uri, {
-          speed: track.speed,
-          volume: track.volume,
-          loop: true,
-        });
-        addTrack(track);
-      },
+      onTrackRecorded: useCallback(
+        async (track: Track) => {
+          await audioServiceRef.current?.loadTrack(track.id, track.uri, {
+            speed: track.speed,
+            volume: track.volume,
+            loop: true,
+          });
+          addTrack(track);
+        },
+        [addTrack],
+      ),
     });
 
   // Playback hook
@@ -157,7 +153,7 @@ export const MainScreen: React.FC = () => {
 
   const isLoading = isExporting || isImporting;
 
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     if (!audioServiceRef.current) {
       Alert.alert("Error", "Audio service not initialized");
       return;
@@ -165,18 +161,13 @@ export const MainScreen: React.FC = () => {
 
     try {
       setIsImporting(true);
-
-      // Get the file importer for current platform
       const fileImporter = getFileImporter();
       const importedFile = await fileImporter.pickAudioFile();
-
-      // Get audio metadata
       const metadata = await getAudioMetadata(importedFile.uri);
 
-      // Create new track
       const newTrack: Track = {
         id: crypto.randomUUID(),
-        name: importedFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
+        name: importedFile.name.replace(/\.[^/.]+$/, ""),
         uri: importedFile.uri,
         duration: metadata.duration,
         speed: 1.0,
@@ -186,37 +177,21 @@ export const MainScreen: React.FC = () => {
         createdAt: Date.now(),
       };
 
-      // Load track for playback
       await audioServiceRef.current.loadTrack(newTrack.id, newTrack.uri, {
         speed: newTrack.speed,
         volume: newTrack.volume,
         loop: true,
       });
 
-      // Add track to store
       addTrack(newTrack);
     } catch (error) {
       if (error instanceof AudioError) {
         Alert.alert("Import Error", error.userMessage);
-      } else {
-        // User cancelled
       }
     } finally {
       setIsImporting(false);
     }
-  };
-
-  const handleHelp = () => {
-    setHelpModalVisible(true);
-  };
-
-  const handleHelpModalDismiss = () => {
-    setHelpModalVisible(false);
-  };
-
-  const handleSettings = () => {
-    router.push("/settings");
-  };
+  }, [addTrack]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
@@ -299,7 +274,7 @@ export const MainScreen: React.FC = () => {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-                  handleSettings();
+                  router.push("/settings");
                 }}
                 title="Settings"
                 leadingIcon="cog"
@@ -307,7 +282,7 @@ export const MainScreen: React.FC = () => {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-                  handleHelp();
+                  setHelpModalVisible(true);
                 }}
                 title="Help"
                 leadingIcon="help-circle"
@@ -349,7 +324,7 @@ export const MainScreen: React.FC = () => {
         {/* Help Modal */}
         <HelpModal
           visible={helpModalVisible}
-          onDismiss={handleHelpModalDismiss}
+          onDismiss={() => setHelpModalVisible(false)}
         />
 
         {/* Speed Change Confirmation Dialog */}

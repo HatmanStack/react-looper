@@ -9,6 +9,7 @@ import { useState, useCallback } from "react";
 import { Alert } from "../utils/alert";
 import { AudioError } from "../services/audio/AudioError";
 import { getAudioExportService } from "../services/ffmpeg/AudioExportService";
+import type { AudioFormat, QualityLevel } from "../services/ffmpeg/exportTypes";
 import { downloadBlob } from "../utils/downloadFile";
 import type { Track } from "../types";
 
@@ -80,8 +81,8 @@ export function useExportFlow(
           tracks: mixTracks,
           loopCount,
           fadeoutDuration,
-          format: exportFormat,
-          quality: exportQuality,
+          format: exportFormat as AudioFormat,
+          quality: exportQuality as QualityLevel,
           crossfadeDuration: loopCrossfadeDuration,
         });
 
