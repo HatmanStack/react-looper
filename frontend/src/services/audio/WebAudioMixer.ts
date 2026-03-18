@@ -10,7 +10,9 @@ import { MixerTrackInput, MixingOptions } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
-import { useSettingsStore } from "../../store/useSettingsStore";
+import { scaleVolume } from "../../utils/audioUtils";
+import { fetchWithTimeout } from "../../utils/audioUtils.shared";
+import { getSharedAudioContext } from "./audioContextManager";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
@@ -75,9 +77,8 @@ export class WebAudioMixer extends BaseAudioMixer {
       masterGain.gain.value = 1.0;
       masterGain.connect(offlineContext.destination);
 
-      // Read crossfade duration from settings
-      const crossfadeDurationMs =
-        useSettingsStore.getState().loopCrossfadeDuration;
+      // Read crossfade duration from options
+      const crossfadeDurationMs = options?.crossfadeDuration ?? 0;
       const crossfadeDuration = crossfadeDurationMs / 1000; // Convert to seconds
 
       logger.log(
@@ -94,7 +95,7 @@ export class WebAudioMixer extends BaseAudioMixer {
 
         // Create volume gain node
         const gainNode = offlineContext.createGain();
-        const scaledVolume = this.scaleVolume(track.volume);
+        const scaledVolume = scaleVolume(track.volume);
         gainNode.gain.value = scaledVolume;
         gainNode.connect(masterGain);
 
@@ -217,6 +218,7 @@ export class WebAudioMixer extends BaseAudioMixer {
       return "blob://mixed-audio.wav";
     } catch (error) {
       logger.error("[WebAudioMixer] Mixing failed:", error);
+      if (error instanceof AudioError) throw error;
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
         `Failed to mix audio: ${(error as Error).message}`,
@@ -232,39 +234,25 @@ export class WebAudioMixer extends BaseAudioMixer {
   private async loadAudioBuffer(uri: string): Promise<AudioBuffer> {
     try {
       // Fetch audio data
-      const response = await fetch(uri);
+      const response = await fetchWithTimeout(uri);
       const arrayBuffer = await response.arrayBuffer();
 
-      // Create AudioContext if needed
-      if (!this.audioContext) {
-        this.audioContext = new AudioContext();
+      // Get shared AudioContext if needed (re-acquire if closed)
+      if (!this.audioContext || this.audioContext.state === "closed") {
+        this.audioContext = getSharedAudioContext();
       }
 
       // Decode audio data
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       return audioBuffer;
     } catch (error) {
+      if (error instanceof AudioError) throw error;
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
-        `Failed to load audio from ${uri}: ${(error as Error).message}`,
+        `Failed to load audio buffer: ${(error as Error).message}`,
         "Unable to load audio file for mixing",
-        { uri, originalError: error },
+        { originalError: error },
       );
-    }
-  }
-
-  /**
-   * Scale volume from 0-100 to gain value with logarithmic curve
-   * Matches Android implementation
-   */
-  private scaleVolume(volume: number): number {
-    if (volume === 0) {
-      return 0;
-    } else if (volume === 100) {
-      return 1;
-    } else {
-      // Logarithmic scaling: 1 - (Math.log(MAX_VOLUME - progress) / Math.log(MAX_VOLUME))
-      return 1 - Math.log(100 - volume) / Math.log(100);
     }
   }
 
@@ -348,10 +336,7 @@ export class WebAudioMixer extends BaseAudioMixer {
    * Cleanup
    */
   public async cleanup(): Promise<void> {
-    if (this.audioContext) {
-      await this.audioContext.close();
-      this.audioContext = null;
-    }
+    this.audioContext = null;
     this.cachedBlob = null;
   }
 }

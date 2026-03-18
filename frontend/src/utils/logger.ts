@@ -10,6 +10,7 @@ export interface ILogger {
   warn(message: string, ...args: unknown[]): void;
   error(message: string, ...args: unknown[]): void;
   info(message: string, ...args: unknown[]): void;
+  debug(message: string, ...args: unknown[]): void;
 }
 
 /**
@@ -26,6 +27,7 @@ export class Logger implements ILogger {
 
   log(message: string, ...args: unknown[]): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.log(`[LOG] ${message}`, ...args);
     }
   }
@@ -40,7 +42,15 @@ export class Logger implements ILogger {
 
   info(message: string, ...args: unknown[]): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.info(`[INFO] ${message}`, ...args);
+    }
+  }
+
+  debug(message: string, ...args: unknown[]): void {
+    if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
+      console.log(`[DEBUG] ${message}`, ...args);
     }
   }
 }

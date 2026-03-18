@@ -8,6 +8,7 @@
 import { IAudioRecorder } from "./interfaces/IAudioRecorder";
 import { RecordingOptions, AudioErrorCode } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export abstract class BaseAudioRecorder implements IAudioRecorder {
   /**
@@ -218,7 +219,7 @@ export abstract class BaseAudioRecorder implements IAudioRecorder {
       await this._cleanup();
     } catch (error) {
       // Log but don't throw - cleanup should be best-effort
-      console.error("Error during recorder cleanup:", error);
+      logger.error("Error during recorder cleanup:", error);
     }
   }
 

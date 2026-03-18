@@ -59,6 +59,12 @@ export interface MixOptions {
    * Default: "high"
    */
   quality?: QualityLevel;
+
+  /**
+   * Crossfade duration in milliseconds at loop boundaries
+   * Default: 0 (no crossfade)
+   */
+  crossfadeDuration?: number;
 }
 
 export interface MixResult {

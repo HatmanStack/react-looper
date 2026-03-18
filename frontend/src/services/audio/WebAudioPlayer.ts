@@ -12,6 +12,13 @@ import {
   AudioErrorCode,
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { scaleVolume } from "../../utils/audioUtils";
+import { fetchWithTimeout } from "../../utils/audioUtils.shared";
+import { logger } from "../../utils/logger";
+import {
+  getSharedAudioContext,
+  ensureContextResumed,
+} from "./audioContextManager";
 
 export class WebAudioPlayer extends BaseAudioPlayer {
   private audioContext: AudioContext | null = null;
@@ -31,18 +38,14 @@ export class WebAudioPlayer extends BaseAudioPlayer {
    */
   protected async _load(uri: string, options?: PlaybackOptions): Promise<void> {
     try {
-      // Create AudioContext if needed
-      if (!this.audioContext) {
-        this.audioContext = new AudioContext();
-      }
+      // Get shared AudioContext
+      this.audioContext = getSharedAudioContext();
 
       // Resume context if suspended (autoplay policy)
-      if (this.audioContext.state === "suspended") {
-        await this.audioContext.resume();
-      }
+      await ensureContextResumed();
 
       // Fetch audio data
-      const response = await fetch(uri);
+      const response = await fetchWithTimeout(uri);
       const arrayBuffer = await response.arrayBuffer();
 
       // Decode audio data
@@ -82,9 +85,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
     try {
       // Resume context if suspended
-      if (this.audioContext.state === "suspended") {
-        await this.audioContext.resume();
-      }
+      await ensureContextResumed();
 
       // Create new source node
       this.sourceNode = this.audioContext.createBufferSource();
@@ -142,8 +143,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
       // Stop position updates
       this.stopPositionUpdateTimer();
-    } catch {
+    } catch (error) {
       // Ignore errors if already stopped
+      logger.debug("[WebAudioPlayer] pause - source already stopped:", error);
     }
   }
 
@@ -159,8 +161,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.stop();
       this.sourceNode.disconnect();
       this.sourceNode = null;
-    } catch {
+    } catch (error) {
       // Ignore errors if already stopped
+      logger.debug("[WebAudioPlayer] stop - source already stopped:", error);
     }
 
     // Reset position
@@ -195,18 +198,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       return;
     }
 
-    // Logarithmic scaling for natural volume perception
-    // Matches Android: 1 - (Math.log(MAX_VOLUME - progress) / Math.log(MAX_VOLUME))
-    let scaledVolume: number;
-    if (volume === 0) {
-      scaledVolume = 0;
-    } else if (volume === 100) {
-      scaledVolume = 1;
-    } else {
-      scaledVolume = 1 - Math.log(100 - volume) / Math.log(100);
-    }
-
-    this.gainNode.gain.value = scaledVolume;
+    this.gainNode.gain.value = scaleVolume(volume);
   }
 
   /**
@@ -301,8 +293,12 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       try {
         this.sourceNode.stop();
         this.sourceNode.disconnect();
-      } catch {
+      } catch (error) {
         // Ignore if already stopped
+        logger.debug(
+          "[WebAudioPlayer] unload - source already stopped:",
+          error,
+        );
       }
       this.sourceNode = null;
     }
@@ -313,8 +309,21 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.gainNode = null;
     }
 
+    // Revoke blob URL to free memory (recordings create blob: URIs)
+    if (this._currentUri && this._currentUri.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(this._currentUri);
+      } catch {
+        // Ignore if already revoked
+      }
+    }
+
     // Release audio buffer
     this.audioBuffer = null;
+
+    if (this.audioContext) {
+      this.audioContext = null;
+    }
 
     // Reset timers
     this.startTime = 0;
@@ -349,10 +358,6 @@ export class WebAudioPlayer extends BaseAudioPlayer {
    */
   public async cleanup(): Promise<void> {
     await this.unload();
-
-    if (this.audioContext) {
-      await this.audioContext.close();
-      this.audioContext = null;
-    }
+    // Context is shared via audioContextManager; do not close here.
   }
 }

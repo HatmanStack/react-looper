@@ -10,6 +10,7 @@ import type {
   VersionedState,
   VersionHistoryEntry,
 } from "./types";
+import { logger } from "../../utils/logger";
 
 /**
  * Run migrations on a persisted state
@@ -51,18 +52,18 @@ export function runMigrations<TState>(
     // Run migrations sequentially
     let currentState = versionedState.state;
 
-    console.log(`[Migration] Migrating from v${fromVersion} to v${toVersion}`);
+    logger.log(`[Migration] Migrating from v${fromVersion} to v${toVersion}`);
 
     for (let version = fromVersion + 1; version <= toVersion; version++) {
       const migration = config.migrations[version];
 
       if (migration) {
         try {
-          console.log(`[Migration] Running migration to v${version}`);
+          logger.log(`[Migration] Running migration to v${version}`);
           currentState = migration(currentState);
         } catch (error) {
           const errorMsg = `Failed to migrate to v${version}: ${error}`;
-          console.error(`[Migration] ${errorMsg}`);
+          logger.error(`[Migration] ${errorMsg}`);
           errors.push(errorMsg);
 
           // If we have a default state, use it
@@ -79,16 +80,14 @@ export function runMigrations<TState>(
           throw new Error(errorMsg);
         }
       } else {
-        console.warn(
-          `[Migration] No migration found for v${version}, skipping`,
-        );
+        logger.warn(`[Migration] No migration found for v${version}, skipping`);
       }
     }
 
     // Validate final state
     if (config.validate && !config.validate(currentState)) {
       const errorMsg = "State validation failed after migration";
-      console.error(`[Migration] ${errorMsg}`);
+      logger.error(`[Migration] ${errorMsg}`);
       errors.push(errorMsg);
 
       if (config.defaultState) {
@@ -104,7 +103,7 @@ export function runMigrations<TState>(
       throw new Error(errorMsg);
     }
 
-    console.log(`[Migration] Successfully migrated to v${toVersion}`);
+    logger.log(`[Migration] Successfully migrated to v${toVersion}`);
 
     return {
       success: true,
@@ -114,7 +113,7 @@ export function runMigrations<TState>(
       errors: errors.length > 0 ? errors : undefined,
     };
   } catch (error) {
-    console.error("[Migration] Critical migration error:", error);
+    logger.error("[Migration] Critical migration error:", error);
 
     // Return default state if available
     if (config.defaultState) {
@@ -181,7 +180,7 @@ export function createMigratedStorage<TState>(
         const migrationResult = runMigrations(parsed, config);
 
         if (!migrationResult.success && migrationResult.errors) {
-          console.error(
+          logger.error(
             "[Migration] Migration had errors:",
             migrationResult.errors,
           );
@@ -195,10 +194,7 @@ export function createMigratedStorage<TState>(
 
         return JSON.stringify(versionedState);
       } catch (error) {
-        console.error(
-          "[Migration] Failed to parse/migrate stored data:",
-          error,
-        );
+        logger.error("[Migration] Failed to parse/migrate stored data:", error);
 
         if (config.defaultState) {
           const versionedState = createVersionedState(
@@ -224,7 +220,7 @@ export function createMigratedStorage<TState>(
 
         await baseStorage.setItem(name, JSON.stringify(versionedState));
       } catch (error) {
-        console.error("[Migration] Failed to save versioned state:", error);
+        logger.error("[Migration] Failed to save versioned state:", error);
         throw error;
       }
     },

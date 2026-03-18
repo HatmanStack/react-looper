@@ -18,7 +18,7 @@ npm run build:web        # Static web export (expo export:web)
 ## Testing & Quality
 
 ```bash
-npm test                 # Run Jest tests (525+ tests)
+npm test                 # Run Jest tests (535+ tests)
 npm test -- --watch      # Watch mode
 npm test -- --coverage   # Coverage report
 npm test -- path/to/file # Run single test file
@@ -34,7 +34,7 @@ Jest config is in root `package.json` (not a separate jest.config). Test roots p
 
 ## Architecture
 
-**Cross-platform audio looper** built with React Native 0.81 + Expo 54 + TypeScript 5.9. Runs on web, Android, and iOS from a single codebase. Live at https://looper.hatstack.fun.
+**Cross-platform audio looper** built with React Native 0.81.5 + Expo 54.0 + TypeScript 5.9.2. Runs on web, Android, and iOS from a single codebase. Live at https://looper.hatstack.fun.
 
 ### Core Concept: Master Loop
 
@@ -42,13 +42,12 @@ The first recorded track becomes the **master track** and defines the loop durat
 
 ### State Management (Zustand)
 
-Four stores in `frontend/src/store/`:
+Three stores in `frontend/src/store/`:
 - **useTrackStore** — Track CRUD, master loop tracking
 - **usePlaybackStore** — Per-track speed/volume/playing/looping state (uses `Map<string, TrackState>`)
 - **useSettingsStore** — Export format, recording quality, loop preferences
-- **useUIStore** — Modal visibility, recording/mixing state, errors
 
-Optimized selectors in `selectors.ts` prevent unnecessary re-renders. Store migrations in `store/migrations/`.
+Store migrations in `store/migrations/`.
 
 ### Audio Service Layer (Platform-Split)
 
@@ -77,6 +76,7 @@ Platform-specific files use extensions: `.web.ts` and `.native.ts`. The service 
 Configured in both `frontend/tsconfig.json` and root `package.json` (Jest moduleNameMapper):
 ```
 @components/* → frontend/src/components/*
+@screens/*    → frontend/src/screens/*
 @services/*   → frontend/src/services/*
 @store/*      → frontend/src/store/*
 @utils/*      → frontend/src/utils/*

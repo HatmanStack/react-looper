@@ -8,6 +8,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { logger } from "../../utils/logger";
+import { looperTheme } from "../../theme/paperTheme";
 
 export interface ErrorBoundaryProps {
   children: ReactNode;
@@ -82,32 +83,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1A1A1A",
+    backgroundColor: looperTheme.colors.background,
     padding: 24,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFFFFF",
+    color: looperTheme.colors.onBackground,
     marginBottom: 12,
   },
   message: {
     fontSize: 14,
-    color: "#999999",
+    color: looperTheme.colors.onSurfaceVariant,
     textAlign: "center",
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: "#EF5555",
+    backgroundColor: looperTheme.colors.errorContainer,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: looperTheme.roundness,
   },
   retryButtonPressed: {
     opacity: 0.7,
   },
   retryButtonText: {
-    color: "#FFFFFF",
+    color: looperTheme.colors.onErrorContainer,
     fontSize: 16,
     fontWeight: "600",
   },

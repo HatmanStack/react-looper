@@ -17,10 +17,5 @@
       "@theme/*": ["src/theme/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    "e2e",
-    "**/__tests__",
-    "playwright.config.ts"
-  ]
+  "exclude": ["node_modules", "e2e", "**/__tests__", "playwright.config.ts"]
 }

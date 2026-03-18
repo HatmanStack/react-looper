@@ -8,6 +8,7 @@
 import { BaseAudioRecorder } from "../BaseAudioRecorder";
 import { RecordingOptions, AudioFormat } from "../../../types/audio";
 import { generateMockUri } from "../../../mocks/mockAudioData";
+import { logger } from "../../../utils/logger";
 
 export class MockAudioRecorder extends BaseAudioRecorder {
   private recordingTimer: NodeJS.Timeout | null = null;
@@ -17,10 +18,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
    * Simulate recording start
    */
   protected async _startRecording(options?: RecordingOptions): Promise<void> {
-    console.log(
-      "[MockAudioRecorder] Starting recording with options:",
-      options,
-    );
+    logger.log("[MockAudioRecorder] Starting recording with options:", options);
 
     // Simulate async initialization delay
     await this.delay(100);
@@ -30,7 +28,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
       // Just for logging - actual duration is tracked by base class
       const duration = this.getRecordingDuration();
       if (duration % 1000 === 0) {
-        console.log(`[MockAudioRecorder] Recording... ${duration}ms`);
+        logger.log(`[MockAudioRecorder] Recording... ${duration}ms`);
       }
     }, 1000);
   }
@@ -39,7 +37,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
    * Simulate recording stop
    */
   protected async _stopRecording(): Promise<string> {
-    console.log("[MockAudioRecorder] Stopping recording");
+    logger.log("[MockAudioRecorder] Stopping recording");
 
     // Clear timer
     if (this.recordingTimer) {
@@ -54,7 +52,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
     const format = this._currentOptions?.format || AudioFormat.M4A;
     const uri = generateMockUri("recording", format);
 
-    console.log(`[MockAudioRecorder] Recording saved to: ${uri}`);
+    logger.log(`[MockAudioRecorder] Recording saved to: ${uri}`);
     return uri;
   }
 
@@ -62,7 +60,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
    * Simulate recording cancellation
    */
   protected async _cancelRecording(): Promise<void> {
-    console.log("[MockAudioRecorder] Cancelling recording");
+    logger.log("[MockAudioRecorder] Cancelling recording");
 
     // Clear timer
     if (this.recordingTimer) {
@@ -77,7 +75,7 @@ export class MockAudioRecorder extends BaseAudioRecorder {
    * Simulate permission check
    */
   protected async _getPermissions(): Promise<boolean> {
-    console.log("[MockAudioRecorder] Checking permissions");
+    logger.log("[MockAudioRecorder] Checking permissions");
     await this.delay(100);
     return this.mockPermissionGranted;
   }

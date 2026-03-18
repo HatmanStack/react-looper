@@ -15,17 +15,8 @@ import type {
 } from "./exportTypes";
 import { WebAudioMixer } from "../audio/WebAudioMixer";
 import { getBitrate } from "./audioQuality";
-import lamejs from "@breezystack/lamejs";
-
-// Type augmentation for lamejs - the package types are incomplete
-interface WavHeaderResult {
-  channels: number;
-  sampleRate: number;
-  dataLen: number;
-  dataOffset: number;
-}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LameJS = lamejs as any;
+import lamejs, { type WavHeaderResult } from "@breezystack/lamejs";
+import { logger } from "../../utils/logger";
 
 /**
  * Web FFmpeg Service using Web Audio API + lamejs for format conversion
@@ -74,6 +65,7 @@ export class FFmpegService implements IAudioExportService {
       fadeoutDuration = 0,
       format = "wav",
       quality = "high",
+      crossfadeDuration = 0,
     } = options;
 
     if (!tracks || tracks.length === 0) {
@@ -93,6 +85,7 @@ export class FFmpegService implements IAudioExportService {
       await this.mixer.mixTracks(tracks, "output.wav", {
         loopCount,
         fadeoutDuration,
+        crossfadeDuration,
       });
 
       if (onProgress) {
@@ -116,7 +109,7 @@ export class FFmpegService implements IAudioExportService {
         actualFormat = result.format;
       } else if (format === "m4a") {
         // M4A not supported without FFmpeg, fallback to WAV
-        console.warn("[FFmpegService.web] M4A format not supported, using WAV");
+        logger.warn("[FFmpegService.web] M4A format not supported, using WAV");
         outputBlob = wavBlob;
         actualFormat = "wav";
       } else {
@@ -130,7 +123,8 @@ export class FFmpegService implements IAudioExportService {
 
       return { data: outputBlob, actualFormat };
     } catch (error) {
-      console.error("[FFmpegService.web] Mixing failed:", error);
+      logger.error("[FFmpegService.web] Mixing failed:", error);
+      if (error instanceof AudioError) throw error;
 
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
@@ -154,7 +148,7 @@ export class FFmpegService implements IAudioExportService {
       const arrayBuffer = await wavBlob.arrayBuffer();
 
       // Use lamejs WavHeader to parse WAV file (official API)
-      const wav: WavHeaderResult = LameJS.WavHeader.readHeader(
+      const wav: WavHeaderResult = lamejs.WavHeader.readHeader(
         new DataView(arrayBuffer),
       );
 
@@ -162,7 +156,7 @@ export class FFmpegService implements IAudioExportService {
         throw new Error("Invalid WAV file format");
       }
 
-      console.log("[FFmpegService.web] WAV parsed:", {
+      logger.log("[FFmpegService.web] WAV parsed:", {
         channels: wav.channels,
         sampleRate: wav.sampleRate,
         dataLen: wav.dataLen,
@@ -198,12 +192,12 @@ export class FFmpegService implements IAudioExportService {
       // Get bitrate from quality
       const bitrate = getBitrate("mp3", quality as "low" | "medium" | "high");
 
-      console.log(
+      logger.log(
         `[FFmpegService.web] Encoding MP3: ${wav.channels}ch, ${wav.sampleRate}Hz, ${bitrate}kbps`,
       );
 
       // Create MP3 encoder
-      const mp3encoder = new LameJS.Mp3Encoder(
+      const mp3encoder = new lamejs.Mp3Encoder(
         wav.channels,
         wav.sampleRate,
         bitrate,
@@ -233,17 +227,19 @@ export class FFmpegService implements IAudioExportService {
         mp3Data.push(new Int8Array(mp3buf));
       }
 
-      console.log(
+      logger.log(
         `[FFmpegService.web] MP3 encoding complete: ${mp3Data.length} chunks`,
       );
 
-      // Create blob (cast to any[] for TypeScript compatibility)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mp3Blob = new Blob(mp3Data as any[], { type: "audio/mpeg" });
+      // Create blob from encoded MP3 chunks
+      const mp3Blob = new Blob(
+        mp3Data.map((chunk) => new Uint8Array(chunk)),
+        { type: "audio/mpeg" },
+      );
       return { blob: mp3Blob, format: "mp3" };
     } catch (error) {
-      console.error("[FFmpegService.web] MP3 conversion failed:", error);
-      console.warn("[FFmpegService.web] Falling back to WAV format");
+      logger.error("[FFmpegService.web] MP3 conversion failed:", error);
+      logger.warn("[FFmpegService.web] Falling back to WAV format");
       return { blob: wavBlob, format: "wav" }; // Fallback to WAV if conversion fails
     }
   }

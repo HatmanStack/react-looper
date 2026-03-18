@@ -20,6 +20,7 @@ import {
   ProgressCallback,
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { closeSharedAudioContext } from "./audioContextManager";
 
 /**
  * Configuration for AudioService
@@ -468,6 +469,9 @@ export class AudioService {
 
     // Unload all tracks
     await this.unloadAllTracks();
+
+    // Close the shared AudioContext
+    await closeSharedAudioContext();
 
     // Cleanup recorder
     await this.recorder.cleanup();

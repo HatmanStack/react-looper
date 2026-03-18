@@ -14,6 +14,7 @@ import {
   AudioErrorCode,
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export class NativeAudioRecorder extends BaseAudioRecorder {
   private recording: Audio.Recording | null = null;
@@ -37,20 +38,20 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
 
       // Set up auto-stop timer if maxDuration is specified
       if (options?.maxDuration && options.maxDuration > 0) {
-        console.log(
+        logger.log(
           `[NativeAudioRecorder] Auto-stop timer set for ${options.maxDuration}ms`,
         );
         this.autoStopTimer = setTimeout(() => {
-          console.log(
+          logger.log(
             "[NativeAudioRecorder] Auto-stopping recording at maxDuration",
           );
           this.stopRecording().catch((error) => {
-            console.error("[NativeAudioRecorder] Auto-stop failed:", error);
+            logger.error("[NativeAudioRecorder] Auto-stop failed:", error);
           });
         }, options.maxDuration);
       }
 
-      console.log(
+      logger.log(
         "[NativeAudioRecorder] Recording started with options:",
         recordingOptions,
       );
@@ -82,7 +83,7 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
     if (this.autoStopTimer) {
       clearTimeout(this.autoStopTimer);
       this.autoStopTimer = null;
-      console.log("[NativeAudioRecorder] Auto-stop timer cleared");
+      logger.log("[NativeAudioRecorder] Auto-stop timer cleared");
     }
 
     if (!this.recording) {
@@ -119,7 +120,7 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
         );
       }
 
-      console.log(
+      logger.log(
         `[NativeAudioRecorder] Recording stopped. URI: ${uri}, Size: ${fileInfo.size} bytes`,
       );
 
@@ -147,13 +148,13 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
    * Cancel recording without saving
    */
   protected async _cancelRecording(): Promise<void> {
-    console.log("[NativeAudioRecorder] Cancelling recording");
+    logger.log("[NativeAudioRecorder] Cancelling recording");
 
     // Clear auto-stop timer if it exists
     if (this.autoStopTimer) {
       clearTimeout(this.autoStopTimer);
       this.autoStopTimer = null;
-      console.log("[NativeAudioRecorder] Auto-stop timer cleared (cancel)");
+      logger.log("[NativeAudioRecorder] Auto-stop timer cleared (cancel)");
     }
 
     if (this.recording) {
@@ -165,17 +166,17 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
         if (uri) {
           try {
             await FileSystem.deleteAsync(uri, { idempotent: true });
-            console.log(`[NativeAudioRecorder] Deleted recording file: ${uri}`);
+            logger.log(`[NativeAudioRecorder] Deleted recording file: ${uri}`);
           } catch (deleteError) {
             // Non-critical error, just log it
-            console.warn(
+            logger.warn(
               "[NativeAudioRecorder] Failed to delete recording file:",
               deleteError,
             );
           }
         }
       } catch (error) {
-        console.error("[NativeAudioRecorder] Error during cancel:", error);
+        logger.error("[NativeAudioRecorder] Error during cancel:", error);
       }
 
       this.recording = null;
@@ -189,11 +190,11 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
     try {
       const { status } = await Audio.requestPermissionsAsync();
 
-      console.log(`[NativeAudioRecorder] Permission status: ${status}`);
+      logger.log(`[NativeAudioRecorder] Permission status: ${status}`);
 
       return status === "granted";
     } catch (error) {
-      console.error("[NativeAudioRecorder] Permission request error:", error);
+      logger.error("[NativeAudioRecorder] Permission request error:", error);
       return false;
     }
   }
@@ -202,20 +203,20 @@ export class NativeAudioRecorder extends BaseAudioRecorder {
    * Cleanup resources
    */
   protected async _cleanup(): Promise<void> {
-    console.log("[NativeAudioRecorder] Cleaning up resources");
+    logger.log("[NativeAudioRecorder] Cleaning up resources");
 
     // Clear auto-stop timer if it exists
     if (this.autoStopTimer) {
       clearTimeout(this.autoStopTimer);
       this.autoStopTimer = null;
-      console.log("[NativeAudioRecorder] Auto-stop timer cleared (cleanup)");
+      logger.log("[NativeAudioRecorder] Auto-stop timer cleared (cleanup)");
     }
 
     if (this.recording) {
       try {
         await this.recording.stopAndUnloadAsync();
       } catch (error) {
-        console.error("[NativeAudioRecorder] Cleanup error:", error);
+        logger.error("[NativeAudioRecorder] Cleanup error:", error);
       }
 
       this.recording = null;

@@ -10,6 +10,7 @@ import { Paths, File } from "expo-file-system";
 import { Audio } from "expo-av";
 import { AudioErrorCode } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export interface ImportedFile {
   uri: string;
@@ -73,8 +74,12 @@ export class NativeFileImporter {
         try {
           const file = new File(copiedUri);
           file.delete();
-        } catch {
+        } catch (error) {
           // Ignore deletion errors
+          logger.debug(
+            "[NativeFileImporter] failed to delete unplayable file:",
+            error,
+          );
         }
         throw new AudioError(
           AudioErrorCode.INVALID_FORMAT,
@@ -83,7 +88,7 @@ export class NativeFileImporter {
         );
       }
 
-      console.log(
+      logger.log(
         `[NativeFileImporter] Imported file: ${file.name}, Size: ${file.size} bytes, URI: ${copiedUri}`,
       );
 
@@ -166,7 +171,7 @@ export class NativeFileImporter {
       // Copy file
       sourceFile.copy(destFile);
 
-      console.log(
+      logger.log(
         `[NativeFileImporter] Copied file from ${uri} to ${destFile.uri}`,
       );
 
@@ -205,17 +210,18 @@ export class NativeFileImporter {
 
       return status.isLoaded;
     } catch (error) {
-      console.error(
-        "[NativeFileImporter] Playback verification failed:",
-        error,
-      );
+      logger.error("[NativeFileImporter] Playback verification failed:", error);
 
       // Cleanup sound if it was created
       if (sound) {
         try {
           await sound.unloadAsync();
-        } catch {
+        } catch (error) {
           // Ignore unload errors
+          logger.debug(
+            "[NativeFileImporter] failed to unload sound during cleanup:",
+            error,
+          );
         }
       }
 
@@ -230,9 +236,9 @@ export class NativeFileImporter {
     try {
       const file = new File(uri);
       file.delete();
-      console.log(`[NativeFileImporter] Deleted file: ${uri}`);
+      logger.log(`[NativeFileImporter] Deleted file: ${uri}`);
     } catch (error) {
-      console.error("[NativeFileImporter] Failed to delete file:", error);
+      logger.error("[NativeFileImporter] Failed to delete file:", error);
       throw new AudioError(
         AudioErrorCode.FILE_NOT_FOUND,
         `Failed to delete file: ${(error as Error).message}`,

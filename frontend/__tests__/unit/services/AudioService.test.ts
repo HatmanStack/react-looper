@@ -119,9 +119,13 @@ describe("AudioService", () => {
 
     it("sets track looping", async () => {
       await audioService.loadTrack(trackId, mockUri);
+      // setTrackLooping delegates to the player's setLooping method
+      // Verify it does not throw and the player's internal state is updated
       await audioService.setTrackLooping(trackId, false);
-      // Should not throw
-      expect(true).toBe(true);
+      const trackInfo = audioService.getTrackInfo(trackId);
+      expect(trackInfo).toBeDefined();
+      // Verify the underlying player's looping state via bracket notation
+      expect((trackInfo!.player as any)._looping).toBe(false);
     });
 
     it("gets track duration", async () => {
@@ -283,8 +287,9 @@ describe("AudioService", () => {
 
     it("cleans up temp files", async () => {
       await audioService.cleanupTempFiles();
-      // Should not throw
-      expect(true).toBe(true);
+      // After cleanup, listing files should return an array (no temp files remain)
+      const files = await audioService.listAudioFiles();
+      expect(Array.isArray(files)).toBe(true);
     });
 
     it("generates unique filename", () => {

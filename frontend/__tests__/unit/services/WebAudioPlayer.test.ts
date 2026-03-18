@@ -56,6 +56,7 @@ describe("WebAudioPlayer", () => {
     mockAudioContext.decodeAudioData.mockResolvedValue(mockAudioBuffer);
 
     (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
       arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
     });
 
@@ -72,7 +73,10 @@ describe("WebAudioPlayer", () => {
     it("should load audio from URI", async () => {
       await player.load("blob:test-audio");
 
-      expect(global.fetch).toHaveBeenCalledWith("blob:test-audio");
+      expect(global.fetch).toHaveBeenCalledWith(
+        "blob:test-audio",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
       expect(player.isLoaded()).toBe(true);
     });
@@ -231,6 +235,26 @@ describe("WebAudioPlayer", () => {
       await player.unload();
 
       expect(player.isPlaying()).toBe(false);
+    });
+
+    it("should revoke blob URL on unload", async () => {
+      const revokeObjectURL = jest.fn();
+      global.URL.revokeObjectURL = revokeObjectURL;
+
+      await player.load("blob:test-audio");
+      await player.unload();
+
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-audio");
+    });
+
+    it("should NOT revoke non-blob URLs on unload", async () => {
+      const revokeObjectURL = jest.fn();
+      global.URL.revokeObjectURL = revokeObjectURL;
+
+      await player.load("https://example.com/audio.mp3");
+      await player.unload();
+
+      expect(revokeObjectURL).not.toHaveBeenCalled();
     });
   });
 });

@@ -9,6 +9,7 @@ import {
   PermissionStatus,
   PermissionResult,
 } from "./permissions";
+import { logger } from "./logger";
 
 /**
  * Request microphone permission
@@ -47,7 +48,7 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
     }
 
     // Other errors
-    console.error("[Permissions] Microphone permission error:", error);
+    logger.error("[Permissions] Microphone permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: true,
@@ -100,7 +101,7 @@ export async function checkPermission(
       }
     } catch (error) {
       // Permissions API not supported, fall through
-      console.warn("[Permissions] Permissions API not available:", error);
+      logger.warn("[Permissions] Permissions API not available:", error);
     }
 
     // If we can't check, return undetermined
@@ -115,5 +116,5 @@ export async function checkPermission(
  */
 export async function openSettings(): Promise<void> {
   // Web doesn't have a settings page we can open programmatically
-  console.warn("[Permissions] Opening settings not supported on web");
+  logger.warn("[Permissions] Opening settings not supported on web");
 }

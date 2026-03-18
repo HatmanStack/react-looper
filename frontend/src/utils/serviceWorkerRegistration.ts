@@ -3,6 +3,8 @@
  * Registers and manages the service worker lifecycle
  */
 
+import { logger } from "./logger";
+
 export function register(): void {
   if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
     window.addEventListener("load", () => {
@@ -11,7 +13,7 @@ export function register(): void {
       navigator.serviceWorker
         .register(swUrl)
         .then((registration) => {
-          console.log("[SW] Registration successful:", registration.scope);
+          logger.log("[SW] Registration successful:", registration.scope);
 
           // Check for updates periodically
           registration.addEventListener("updatefound", () => {
@@ -23,7 +25,7 @@ export function register(): void {
                   newWorker.state === "installed" &&
                   navigator.serviceWorker.controller
                 ) {
-                  console.log("[SW] New content available, please refresh");
+                  logger.log("[SW] New content available, please refresh");
 
                   // Optionally notify user about update
                   // You can integrate this with your UI state management
@@ -33,7 +35,7 @@ export function register(): void {
           });
         })
         .catch((error) => {
-          console.error("[SW] Registration failed:", error);
+          logger.error("[SW] Registration failed:", error);
         });
     });
   }
@@ -46,10 +48,10 @@ export function unregister(): void {
         return registration.unregister();
       })
       .then(() => {
-        console.log("[SW] Unregistered successfully");
+        logger.log("[SW] Unregistered successfully");
       })
       .catch((error) => {
-        console.error("[SW] Unregistration failed:", error);
+        logger.error("[SW] Unregistration failed:", error);
       });
   }
 }

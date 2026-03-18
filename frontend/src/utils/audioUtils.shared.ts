@@ -5,6 +5,9 @@
  * Separated to avoid circular dependency issues with platform-specific files.
  */
 
+import { AudioError } from "../services/audio/AudioError";
+import { AudioErrorCode } from "../types/audio";
+
 /**
  * Extract file extension from URI
  * Handles query parameters and fragments correctly (e.g., "file.mp3?token=abc" → "mp3")
@@ -68,6 +71,60 @@ export function formatFileSize(bytes: number): string {
     return `${(bytes / 1024).toFixed(1)} KB`;
   } else {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+}
+
+/**
+ * Scale volume from 0-100 to gain value using logarithmic curve.
+ * @param volume - Volume level from 0 to 100
+ * @returns Gain value from 0.0 to 1.0
+ */
+export function scaleVolume(volume: number): number {
+  const clamped = Math.max(0, Math.min(100, volume));
+  if (clamped === 0) return 0;
+  if (clamped === 100) return 1;
+  return 1 - Math.log(100 - clamped) / Math.log(100);
+}
+
+/** Default timeout for audio fetch operations (30 seconds) */
+export const AUDIO_FETCH_TIMEOUT_MS = 30_000;
+
+/**
+ * Fetch with timeout using AbortController.
+ * Throws an AudioError if the request times out.
+ *
+ * @param uri - The URI to fetch
+ * @param timeoutMs - Timeout in milliseconds (default: 30s)
+ * @returns The fetch Response
+ */
+export async function fetchWithTimeout(
+  uri: string,
+  timeoutMs: number = AUDIO_FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(uri, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) {
+      throw new AudioError(
+        AudioErrorCode.PLAYBACK_FAILED,
+        `Audio fetch failed with HTTP ${response.status} ${response.statusText}`,
+        "Failed to load audio file. Please try again.",
+      );
+    }
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if ((error as Error).name === "AbortError") {
+      throw new AudioError(
+        AudioErrorCode.PLAYBACK_FAILED,
+        `Audio fetch timed out after ${timeoutMs}ms`,
+        "Audio file took too long to load. Please check your connection and try again.",
+      );
+    }
+    throw error;
   }
 }
 

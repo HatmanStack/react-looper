@@ -17,6 +17,7 @@ import { AudioError } from "../audio/AudioError";
 import { AudioErrorCode } from "../../types/audio";
 import type { MixOptions, IAudioExportService, MixResult } from "./exportTypes";
 import { FFmpegCommandBuilder } from "./FFmpegCommandBuilder";
+import { logger } from "../../utils/logger";
 
 /**
  * Native FFmpeg Service using ffmpeg-kit-react-native
@@ -195,7 +196,7 @@ export class FFmpegService implements IAudioExportService {
    */
   private log(message: string, ...args: unknown[]): void {
     if (__DEV__) {
-      console.log("[FFmpegService.native]", message, ...args);
+      logger.log("[FFmpegService.native]", message, ...args);
     }
   }
 
@@ -203,7 +204,7 @@ export class FFmpegService implements IAudioExportService {
    * Log error
    */
   private error(message: string, error: Error): void {
-    console.error("[FFmpegService.native]", message, error);
+    logger.error("[FFmpegService.native]", message, error);
   }
 }
 

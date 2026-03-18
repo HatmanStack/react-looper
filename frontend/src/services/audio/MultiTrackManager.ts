@@ -6,6 +6,7 @@
  */
 
 import { BaseAudioPlayer } from "./BaseAudioPlayer";
+import { logger } from "../../utils/logger";
 
 export class MultiTrackManager {
   private tracks: Map<string, BaseAudioPlayer>;
@@ -84,7 +85,7 @@ export class MultiTrackManager {
         try {
           await player.play();
         } catch (error) {
-          console.error("[MultiTrackManager] Error playing track:", error);
+          logger.error("[MultiTrackManager] Error playing track:", error);
           // Continue with other tracks even if one fails
         }
       },
@@ -102,7 +103,7 @@ export class MultiTrackManager {
         try {
           await player.pause();
         } catch (error) {
-          console.error("[MultiTrackManager] Error pausing track:", error);
+          logger.error("[MultiTrackManager] Error pausing track:", error);
         }
       },
     );
@@ -119,7 +120,7 @@ export class MultiTrackManager {
         try {
           await player.stop();
         } catch (error) {
-          console.error("[MultiTrackManager] Error stopping track:", error);
+          logger.error("[MultiTrackManager] Error stopping track:", error);
         }
       },
     );
@@ -163,7 +164,7 @@ export class MultiTrackManager {
         try {
           await player.setPosition(position);
         } catch (error) {
-          console.error("[MultiTrackManager] Error setting position:", error);
+          logger.error("[MultiTrackManager] Error setting position:", error);
         }
       },
     );

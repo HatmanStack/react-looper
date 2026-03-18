@@ -5,6 +5,7 @@
  */
 
 import { getAudioExportService } from "../services/ffmpeg/WebAudioExportService";
+import { logger } from "./logger";
 
 export interface LoaderOptions {
   onProgress?: (ratio: number) => void;
@@ -23,21 +24,21 @@ export async function loadFFmpeg(options: LoaderOptions = {}): Promise<void> {
 
     // Check if already loaded
     if (ffmpegService.isReady()) {
-      console.log("[FFmpegLoader] FFmpeg already loaded");
+      logger.log("[FFmpegLoader] FFmpeg already loaded");
       onSuccess?.();
       return;
     }
 
-    console.log("[FFmpegLoader] Starting FFmpeg load...");
+    logger.log("[FFmpegLoader] Starting FFmpeg load...");
 
     await ffmpegService.load((ratio: number) => {
       onProgress?.(ratio);
     });
 
-    console.log("[FFmpegLoader] FFmpeg loaded successfully");
+    logger.log("[FFmpegLoader] FFmpeg loaded successfully");
     onSuccess?.();
   } catch (error) {
-    console.error("[FFmpegLoader] Failed to load FFmpeg:", error);
+    logger.error("[FFmpegLoader] Failed to load FFmpeg:", error);
     onError?.(error as Error);
     throw error;
   }
@@ -49,14 +50,14 @@ export async function loadFFmpeg(options: LoaderOptions = {}): Promise<void> {
 export function isFFmpegSupported(): boolean {
   // Check for WebAssembly support
   if (typeof WebAssembly === "undefined") {
-    console.warn("[FFmpegLoader] WebAssembly not supported");
+    logger.warn("[FFmpegLoader] WebAssembly not supported");
     return false;
   }
 
   // Check for SharedArrayBuffer (required for multithreading)
   // Note: Some features work without it, but performance is better with it
   if (typeof SharedArrayBuffer === "undefined") {
-    console.warn(
+    logger.warn(
       "[FFmpegLoader] SharedArrayBuffer not available (limited performance)",
     );
     // Still return true as FFmpeg can work without it
