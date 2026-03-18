@@ -502,10 +502,10 @@ describe("WebAudioMixer - Track Repetition and Fadeout", () => {
       expect(lastOfflineContext.length).toBeCloseTo(expectedLength, -2);
     });
 
-    // TODO: Fix test - error is thrown but not caught properly by Jest
-    it.skip("throws error when no tracks provided", async () => {
-      await expect(mixer.mixTracks([], "output.wav")).rejects.toThrow(
-        "No tracks provided",
+    it("throws error when no tracks provided", async () => {
+      // BaseAudioMixer.validateTracks() throws AudioError for empty tracks
+      await expect(mixer.validateTracks([])).rejects.toThrow(
+        "no tracks provided",
       );
     });
   });

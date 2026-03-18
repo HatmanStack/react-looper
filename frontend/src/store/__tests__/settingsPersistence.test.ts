@@ -12,12 +12,7 @@ describe("Settings Persistence", () => {
     useSettingsStore.getState().resetToDefaults();
   });
 
-  it.skip("has persist middleware configured", () => {
-    // TODO: Re-enable when persistence is implemented
-    // Verify the store has persist method (indicates persist middleware is active)
-    expect(useSettingsStore.persist).toBeDefined();
-    expect(typeof useSettingsStore.persist).toBe("object");
-  });
+  // Persistence middleware is intentionally disabled per health-audit finding #15
 
   it("store state includes all required settings", () => {
     const state = useSettingsStore.getState();

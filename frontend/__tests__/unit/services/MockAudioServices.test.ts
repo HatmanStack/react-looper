@@ -121,8 +121,7 @@ describe("MockAudioPlayer", () => {
   it("sets playback speed", async () => {
     await player.load(mockUri);
     await player.setSpeed(1.5);
-    // Speed setting should not throw
-    expect(true).toBe(true);
+    expect((player as any)._speed).toBe(1.5);
   });
 
   it("validates speed range", async () => {
@@ -138,8 +137,7 @@ describe("MockAudioPlayer", () => {
   it("sets volume", async () => {
     await player.load(mockUri);
     await player.setVolume(50);
-    // Volume setting should not throw
-    expect(true).toBe(true);
+    expect((player as any)._volume).toBe(50);
   });
 
   it("validates volume range", async () => {
@@ -155,8 +153,7 @@ describe("MockAudioPlayer", () => {
   it("sets looping", async () => {
     await player.load(mockUri);
     await player.setLooping(false);
-    // Looping setting should not throw
-    expect(true).toBe(true);
+    expect((player as any)._looping).toBe(false);
   });
 
   it("gets duration", async () => {
@@ -193,10 +190,9 @@ describe("MockAudioPlayer", () => {
 
   it("sets playback complete callback", async () => {
     await player.load(mockUri);
-    player.onPlaybackComplete(() => {
-      // Callback set successfully
-    });
-    expect(true).toBe(true);
+    const callback = jest.fn();
+    player.onPlaybackComplete(callback);
+    expect((player as any)._onComplete).toBe(callback);
   });
 });
 
@@ -225,36 +221,7 @@ describe("MockAudioMixer", () => {
     expect(result).toContain("mock://");
   });
 
-  // Skipping problematic async validation tests - validation is tested in BaseAudioMixer tests
-  it.skip("validates track inputs", async () => {
-    const invalidTracks = [
-      { uri: "", speed: 1.0, volume: 75 }, // Invalid URI
-    ];
-
-    await expect(async () => {
-      await mixer.mixTracks(invalidTracks, "output.mp3");
-    }).rejects.toThrow();
-  });
-
-  it.skip("validates speed range in tracks", async () => {
-    const tracks = [
-      { uri: "mock://track1.mp3", speed: 5.0, volume: 75 }, // Invalid speed
-    ];
-
-    await expect(async () => {
-      await mixer.mixTracks(tracks, "output.mp3");
-    }).rejects.toThrow();
-  });
-
-  it.skip("validates volume range in tracks", async () => {
-    const tracks = [
-      { uri: "mock://track1.mp3", speed: 1.0, volume: 150 }, // Invalid volume
-    ];
-
-    await expect(async () => {
-      await mixer.mixTracks(tracks, "output.mp3");
-    }).rejects.toThrow();
-  });
+  // Validation (empty URI, invalid speed, invalid volume) is covered by BaseAudioMixer tests
 
   it("reports progress during mixing", (done) => {
     const tracks = [{ uri: "mock://track1.mp3", speed: 1.0, volume: 75 }];
