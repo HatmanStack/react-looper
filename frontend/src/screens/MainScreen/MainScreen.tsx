@@ -124,16 +124,11 @@ export const MainScreen: React.FC = () => {
   }, []);
 
   /**
-   * Calculate quantized duration based on base loop
-   * Returns the target duration (1x, 2x, 4x, 8x of base)
+   * Calculate quantized duration based on base loop.
+   * Returns the base duration (1x of the master loop).
    */
   const calculateQuantizedDuration = (baseDuration: number): number => {
-    // Multiples: 1x, 2x, 4x, 8x
-    const multiples = [1, 2, 4, 8];
-
-    // For now, default to 1x (same as base loop)
-    // This will auto-stop at the same length as the first loop
-    return baseDuration * multiples[0];
+    return baseDuration;
   };
 
   const handleRecord = async () => {
