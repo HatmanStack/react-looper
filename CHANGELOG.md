@@ -4,6 +4,50 @@ All notable changes to Looper will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] - 2026-03-18
+
+### Added
+
+- Extracted useRecordingSession, useTrackPlayback, useExportFlow hooks from MainScreen (~435 lines reduced)
+- fetchWithTimeout utility with AbortController for audio service network calls
+- HTTP response.ok validation in fetchWithTimeout to surface HTTP errors explicitly
+- Platform-specific downloadFile utility (web/native split)
+- WebAudioRecorder unit tests covering start, stop, permissions, onerror, and duration
+- audioContextManager unit tests for singleton lifecycle
+- .env.example documenting all environment variables
+- Type declaration for @breezystack/lamejs
+- ESLint no-console rule enforcing logger utility usage
+- Re-entrancy guard on recording stop to prevent concurrent auto-stop and manual stop
+
+### Changed
+
+- Replaced Date.now() track IDs with crypto.randomUUID() to avoid collisions
+- Consolidated console.* calls to logger utility across all services
+- Removed useUIStore (dead module) and consolidated into existing stores
+- Removed dead modules: selectors.ts, devtools.ts, useAppLifecycle, LifecycleManager
+- Removed unused audioContextManager ref counting (contextRefCount, releaseAudioContext)
+- Decoupled LoopEngine and WebAudioMixer from store dependencies (pure parameter passing)
+- Moved scaleVolume to shared audioUtils with input clamping to [0, 100]
+- LoopEngine now uses speed-adjusted durations for loop count and boundary calculations
+- WebAudioMixer re-acquires AudioContext if existing one is closed
+- Replaced hardcoded colors in ErrorBoundary and MainScreen with looperTheme references
+- Moved inline loading overlay style to MainScreen.styles.ts
+- Native export success alert now shows actual file path instead of user-supplied filename
+
+### Fixed
+
+- Memory leak: blob URL revocation in WebAudioPlayer._unload()
+- Memory leak: AudioContext close on player unload
+- Silent catch blocks now log errors via logger.debug
+- WebAudioRecorder.onerror now rejects pending promise instead of throwing
+- Recording UI state (isRecording, duration) resets in finally block on stop failure
+- MainScreen buttons disabled when audio service initialization fails
+- Typed AudioError preserved through catch chains in WebAudioMixer, WebAudioExportService
+- Floating promise in useTrackPlayback.handleSpeedChangeConfirm marked with void
+- onTrackRecorded guards against null audio service before adding track to store
+- AudioFileManager.native.ts concurrent init() race prevented via stored promise
+- Raw URI removed from fetchWithTimeout and loadAudioBuffer error messages
+
 ## [1.1.0] - 2026-02-05
 
 ### Added
