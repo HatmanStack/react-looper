@@ -41,9 +41,6 @@ import { useResponsive } from "../../utils/responsive";
 import { logger } from "../../utils/logger";
 import { downloadBlob } from "../../utils/downloadFile";
 
-// Initialize audio services for current platform
-initializeAudioServices();
-
 export const MainScreen: React.FC = () => {
   const router = useRouter();
   const responsive = useResponsive();
@@ -101,6 +98,7 @@ export const MainScreen: React.FC = () => {
   // Initialize AudioService
   useEffect(() => {
     try {
+      initializeAudioServices();
       audioServiceRef.current = getAudioService();
       setIsInitialized(true);
     } catch (error) {
