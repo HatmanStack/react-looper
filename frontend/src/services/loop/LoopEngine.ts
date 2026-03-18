@@ -4,14 +4,13 @@
  * Coordinates loop calculations and provides a high-level API for UI
  * and audio components to query loop information.
  *
+ * Pure calculation service - accepts data as parameters instead of
+ * reading from stores directly.
+ *
  * Integrates:
  * - Loop utilities (calculations)
- * - Track store (master loop duration)
- * - Playback store (loop mode)
  */
 
-import { useTrackStore } from "../../store/useTrackStore";
-import { usePlaybackStore } from "../../store/usePlaybackStore";
 import type { Track } from "../../types";
 import {
   calculateLoopCount,
@@ -48,11 +47,14 @@ export interface TrackLoopInfo {
  * Service class that coordinates loop calculations and provides
  * high-level API for querying loop information.
  *
+ * All methods accept data as parameters, making the engine a pure
+ * calculation service with no store dependencies.
+ *
  * @example
  * const engine = new LoopEngine();
- * const masterInfo = engine.getMasterLoopInfo();
- * const trackInfo = engine.getTrackLoopInfo('track-2');
- * const shouldLoop = engine.shouldTrackLoop('track-2');
+ * const masterInfo = engine.getMasterLoopInfo(tracks, masterLoopDuration);
+ * const trackInfo = engine.getTrackLoopInfo('track-2', tracks, masterLoopDuration);
+ * const shouldLoop = engine.shouldTrackLoop('track-2', tracks, masterLoopDuration, true);
  */
 export class LoopEngine {
   /**
@@ -60,15 +62,15 @@ export class LoopEngine {
    *
    * Returns details about the master loop (first track's speed-adjusted duration)
    *
+   * @param tracks - Array of all tracks
+   * @param masterLoopDuration - Pre-calculated master loop duration in ms
    * @returns Master loop info with duration, track ID, and track object
    */
-  getMasterLoopInfo(): MasterLoopInfo {
-    const trackStore = useTrackStore.getState();
-    const masterTrack = trackStore.getMasterTrack();
-    const duration = trackStore.getMasterLoopDuration();
+  getMasterLoopInfo(tracks: Track[], masterLoopDuration: number): MasterLoopInfo {
+    const masterTrack = tracks.length > 0 ? tracks[0] : null;
 
     return {
-      duration,
+      duration: masterLoopDuration,
       trackId: masterTrack?.id ?? null,
       track: masterTrack,
     };
@@ -81,12 +83,12 @@ export class LoopEngine {
    * within the master loop duration.
    *
    * @param trackId - ID of the track to get loop info for
+   * @param tracks - Array of all tracks
+   * @param masterLoopDuration - Pre-calculated master loop duration in ms
    * @returns Loop info with count, boundaries, and total duration
    */
-  getTrackLoopInfo(trackId: string): TrackLoopInfo {
-    const trackStore = useTrackStore.getState();
-    const track = trackStore.getTrack(trackId);
-    const masterDuration = trackStore.getMasterLoopDuration();
+  getTrackLoopInfo(trackId: string, tracks: Track[], masterLoopDuration: number): TrackLoopInfo {
+    const track = tracks.find((t) => t.id === trackId);
 
     // Handle track not found
     if (!track) {
@@ -97,16 +99,16 @@ export class LoopEngine {
       };
     }
 
-    const loopCount = calculateLoopCount(track.duration, masterDuration);
+    const loopCount = calculateLoopCount(track.duration, masterLoopDuration);
     const boundaries = calculateTrackLoopBoundaries(
       track.duration,
-      masterDuration,
+      masterLoopDuration,
     );
 
     return {
       loopCount,
       boundaries,
-      totalDuration: masterDuration,
+      totalDuration: masterLoopDuration,
     };
   }
 
@@ -119,28 +121,26 @@ export class LoopEngine {
    * - Track exists
    *
    * @param trackId - ID of track to check
+   * @param tracks - Array of all tracks
+   * @param masterLoopDuration - Pre-calculated master loop duration in ms
+   * @param loopMode - Whether loop mode is enabled
    * @returns true if track should loop
    */
-  shouldTrackLoop(trackId: string): boolean {
-    const playbackStore = usePlaybackStore.getState();
-    const trackStore = useTrackStore.getState();
-
+  shouldTrackLoop(trackId: string, tracks: Track[], masterLoopDuration: number, loopMode: boolean): boolean {
     // Check if loop mode is enabled
-    if (!playbackStore.loopMode) {
+    if (!loopMode) {
       return false;
     }
 
-    // Get track and master duration
-    const track = trackStore.getTrack(trackId);
+    // Get track
+    const track = tracks.find((t) => t.id === trackId);
     if (!track) {
       return false;
     }
 
-    const masterDuration = trackStore.getMasterLoopDuration();
-
     // Track should loop if it's shorter than master duration
     // (Master track itself doesn't loop)
-    return track.duration < masterDuration;
+    return track.duration < masterLoopDuration;
   }
 
   /**
@@ -153,29 +153,27 @@ export class LoopEngine {
    *
    * Formula: (masterLoopDuration * loopCount) + fadeout
    *
+   * @param masterLoopDuration - Master loop duration in ms
    * @param loopCount - Number of times to repeat the master loop
    * @param fadeout - Fadeout duration in milliseconds
    * @returns Total export duration in milliseconds
    */
-  calculateExportDuration(loopCount: number, fadeout: number): number {
-    const trackStore = useTrackStore.getState();
-    const masterDuration = trackStore.getMasterLoopDuration();
-
+  calculateExportDuration(masterLoopDuration: number, loopCount: number, fadeout: number): number {
     // Handle edge cases
     if (loopCount <= 0) {
       return fadeout;
     }
 
-    return masterDuration * loopCount + fadeout;
+    return masterLoopDuration * loopCount + fadeout;
   }
 
   /**
    * Check if loop mode is currently enabled
    *
+   * @param loopMode - Whether loop mode is enabled
    * @returns true if loop mode is enabled
    */
-  isLoopModeEnabled(): boolean {
-    const playbackStore = usePlaybackStore.getState();
-    return playbackStore.loopMode;
+  isLoopModeEnabled(loopMode: boolean): boolean {
+    return loopMode;
   }
 }
