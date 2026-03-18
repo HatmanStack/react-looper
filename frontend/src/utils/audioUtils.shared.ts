@@ -5,6 +5,9 @@
  * Separated to avoid circular dependency issues with platform-specific files.
  */
 
+import { AudioError } from "../services/audio/AudioError";
+import { AudioErrorCode } from "../types/audio";
+
 /**
  * Extract file extension from URI
  * Handles query parameters and fragments correctly (e.g., "file.mp3?token=abc" → "mp3")
@@ -80,6 +83,41 @@ export function scaleVolume(volume: number): number {
   if (volume === 0) return 0;
   if (volume === 100) return 1;
   return 1 - Math.log(100 - volume) / Math.log(100);
+}
+
+/** Default timeout for audio fetch operations (30 seconds) */
+export const AUDIO_FETCH_TIMEOUT_MS = 30_000;
+
+/**
+ * Fetch with timeout using AbortController.
+ * Throws an AudioError if the request times out.
+ *
+ * @param uri - The URI to fetch
+ * @param timeoutMs - Timeout in milliseconds (default: 30s)
+ * @returns The fetch Response
+ */
+export async function fetchWithTimeout(
+  uri: string,
+  timeoutMs: number = AUDIO_FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(uri, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if ((error as Error).name === "AbortError") {
+      throw new AudioError(
+        AudioErrorCode.PLAYBACK_FAILED,
+        `Audio fetch timed out after ${timeoutMs}ms: ${uri}`,
+        "Audio file took too long to load. Please check your connection and try again.",
+      );
+    }
+    throw error;
+  }
 }
 
 /**

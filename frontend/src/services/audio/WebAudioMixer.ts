@@ -11,6 +11,7 @@ import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
 import { scaleVolume } from "../../utils/audioUtils";
+import { fetchWithTimeout } from "../../utils/audioUtils.shared";
 import { useSettingsStore } from "../../store/useSettingsStore";
 import { getSharedAudioContext, releaseAudioContext } from "./audioContextManager";
 
@@ -234,7 +235,7 @@ export class WebAudioMixer extends BaseAudioMixer {
   private async loadAudioBuffer(uri: string): Promise<AudioBuffer> {
     try {
       // Fetch audio data
-      const response = await fetch(uri);
+      const response = await fetchWithTimeout(uri);
       const arrayBuffer = await response.arrayBuffer();
 
       // Get shared AudioContext if needed

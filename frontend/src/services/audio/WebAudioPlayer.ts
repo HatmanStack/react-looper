@@ -13,6 +13,7 @@ import {
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { scaleVolume } from "../../utils/audioUtils";
+import { fetchWithTimeout } from "../../utils/audioUtils.shared";
 import { logger } from "../../utils/logger";
 import {
   getSharedAudioContext,
@@ -45,7 +46,7 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       await ensureContextResumed();
 
       // Fetch audio data
-      const response = await fetch(uri);
+      const response = await fetchWithTimeout(uri);
       const arrayBuffer = await response.arrayBuffer();
 
       // Decode audio data
