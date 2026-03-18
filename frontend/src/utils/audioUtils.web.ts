@@ -6,6 +6,7 @@
 
 import { AudioError } from "../services/audio/AudioError";
 import { AudioErrorCode } from "../types/audio";
+import { logger } from "./logger";
 
 // Re-export shared utility functions (avoiding circular dependency with platform resolution)
 export * from "./audioUtils.shared";
@@ -113,7 +114,7 @@ export async function validateAudioFile(uri: string): Promise<boolean> {
     await getAudioMetadata(uri);
     return true;
   } catch (error) {
-    console.debug("[audioUtils.web] Audio validation failed:", error);
+    logger.log("[audioUtils.web] Audio validation failed:", error);
     return false;
   }
 }

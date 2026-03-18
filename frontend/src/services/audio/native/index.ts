@@ -9,6 +9,7 @@ import { NativeAudioRecorder } from "../NativeAudioRecorder";
 import { MockAudioPlayer } from "../mock/MockAudioPlayer";
 import { MockAudioMixer } from "../mock/MockAudioMixer";
 import { MockFileManager } from "../mock/MockFileManager";
+import { logger } from "../../../utils/logger";
 
 /**
  * Register native audio services
@@ -22,5 +23,5 @@ export function initializeNativeAudioServices(): void {
     fileManager: MockFileManager,
   });
 
-  console.log("[NativeAudioServices] Initialized native audio services");
+  logger.log("[NativeAudioServices] Initialized native audio services");
 }

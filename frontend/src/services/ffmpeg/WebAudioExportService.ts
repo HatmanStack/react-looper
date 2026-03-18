@@ -16,6 +16,7 @@ import type {
 import { WebAudioMixer } from "../audio/WebAudioMixer";
 import { getBitrate } from "./audioQuality";
 import lamejs from "@breezystack/lamejs";
+import { logger } from "../../utils/logger";
 
 // Type augmentation for lamejs - the package types are incomplete
 interface WavHeaderResult {
@@ -116,7 +117,7 @@ export class FFmpegService implements IAudioExportService {
         actualFormat = result.format;
       } else if (format === "m4a") {
         // M4A not supported without FFmpeg, fallback to WAV
-        console.warn("[FFmpegService.web] M4A format not supported, using WAV");
+        logger.warn("[FFmpegService.web] M4A format not supported, using WAV");
         outputBlob = wavBlob;
         actualFormat = "wav";
       } else {
@@ -130,7 +131,7 @@ export class FFmpegService implements IAudioExportService {
 
       return { data: outputBlob, actualFormat };
     } catch (error) {
-      console.error("[FFmpegService.web] Mixing failed:", error);
+      logger.error("[FFmpegService.web] Mixing failed:", error);
 
       throw new AudioError(
         AudioErrorCode.MIXING_FAILED,
@@ -162,7 +163,7 @@ export class FFmpegService implements IAudioExportService {
         throw new Error("Invalid WAV file format");
       }
 
-      console.log("[FFmpegService.web] WAV parsed:", {
+      logger.log("[FFmpegService.web] WAV parsed:", {
         channels: wav.channels,
         sampleRate: wav.sampleRate,
         dataLen: wav.dataLen,
@@ -198,7 +199,7 @@ export class FFmpegService implements IAudioExportService {
       // Get bitrate from quality
       const bitrate = getBitrate("mp3", quality as "low" | "medium" | "high");
 
-      console.log(
+      logger.log(
         `[FFmpegService.web] Encoding MP3: ${wav.channels}ch, ${wav.sampleRate}Hz, ${bitrate}kbps`,
       );
 
@@ -233,7 +234,7 @@ export class FFmpegService implements IAudioExportService {
         mp3Data.push(new Int8Array(mp3buf));
       }
 
-      console.log(
+      logger.log(
         `[FFmpegService.web] MP3 encoding complete: ${mp3Data.length} chunks`,
       );
 
@@ -242,8 +243,8 @@ export class FFmpegService implements IAudioExportService {
       const mp3Blob = new Blob(mp3Data as any[], { type: "audio/mpeg" });
       return { blob: mp3Blob, format: "mp3" };
     } catch (error) {
-      console.error("[FFmpegService.web] MP3 conversion failed:", error);
-      console.warn("[FFmpegService.web] Falling back to WAV format");
+      logger.error("[FFmpegService.web] MP3 conversion failed:", error);
+      logger.warn("[FFmpegService.web] Falling back to WAV format");
       return { blob: wavBlob, format: "wav" }; // Fallback to WAV if conversion fails
     }
   }

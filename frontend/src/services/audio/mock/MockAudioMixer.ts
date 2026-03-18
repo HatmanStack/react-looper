@@ -12,6 +12,7 @@ import {
   AudioFormat,
 } from "../../../types/audio";
 import { generateMockUri } from "../../../mocks/mockAudioData";
+import { logger } from "../../../utils/logger";
 
 export class MockAudioMixer extends BaseAudioMixer {
   private mixingTimer: NodeJS.Timeout | null = null;
@@ -25,9 +26,9 @@ export class MockAudioMixer extends BaseAudioMixer {
     outputPath: string,
     options?: MixingOptions,
   ): Promise<string> {
-    console.log("[MockAudioMixer] Starting to mix", tracks.length, "tracks");
-    console.log("[MockAudioMixer] Output path:", outputPath);
-    console.log("[MockAudioMixer] Options:", options);
+    logger.log("[MockAudioMixer] Starting to mix", tracks.length, "tracks");
+    logger.log("[MockAudioMixer] Output path:", outputPath);
+    logger.log("[MockAudioMixer] Options:", options);
 
     // Reset progress
     this.simulatedProgress = 0;
@@ -38,7 +39,7 @@ export class MockAudioMixer extends BaseAudioMixer {
     const progressInterval = 100; // Update every 100ms
     const progressIncrement = (100 / estimatedDuration) * progressInterval;
 
-    console.log(`[MockAudioMixer] Estimated duration: ${estimatedDuration}ms`);
+    logger.log(`[MockAudioMixer] Estimated duration: ${estimatedDuration}ms`);
 
     // Simulate mixing with progress updates
     return new Promise((resolve, reject) => {
@@ -69,7 +70,7 @@ export class MockAudioMixer extends BaseAudioMixer {
           const format = options?.format || AudioFormat.MP3;
           const uri = generateMockUri("mixed", format);
 
-          console.log(`[MockAudioMixer] Mixing complete: ${uri}`);
+          logger.log(`[MockAudioMixer] Mixing complete: ${uri}`);
           resolve(uri);
         } else {
           // Update progress
@@ -83,7 +84,7 @@ export class MockAudioMixer extends BaseAudioMixer {
    * Simulate cancellation
    */
   protected async _cancel(): Promise<void> {
-    console.log("[MockAudioMixer] Cancelling mixing operation");
+    logger.log("[MockAudioMixer] Cancelling mixing operation");
 
     if (this.mixingTimer) {
       clearInterval(this.mixingTimer);

@@ -6,6 +6,7 @@
 
 import { Platform } from "react-native";
 import { registerAudioServices } from "../AudioServiceFactory";
+import { logger } from "../../../utils/logger";
 
 export { MockAudioRecorder } from "./MockAudioRecorder";
 export { MockAudioPlayer } from "./MockAudioPlayer";
@@ -47,5 +48,5 @@ export async function registerMockServices(): Promise<void> {
   const platform = Platform.OS === "web" ? "web" : "native";
   registerAudioServices(platform, mockServices);
 
-  console.log(`[MockServices] Mock audio services registered for ${platform}`);
+  logger.log(`[MockServices] Mock audio services registered for ${platform}`);
 }

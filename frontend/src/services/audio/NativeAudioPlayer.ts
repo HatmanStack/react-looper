@@ -13,6 +13,7 @@ import {
   AudioErrorCode,
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export class NativeAudioPlayer extends BaseAudioPlayer {
   private sound: Audio.Sound | null = null;
@@ -30,7 +31,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     _options?: PlaybackOptions,
   ): Promise<void> {
     try {
-      console.log(`[NativeAudioPlayer] Loading audio from ${uri}`);
+      logger.log(`[NativeAudioPlayer] Loading audio from ${uri}`);
 
       // Set audio mode for playback
       await Audio.setAudioModeAsync({
@@ -59,7 +60,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
         throw new Error("Failed to load audio");
       }
 
-      console.log(
+      logger.log(
         `[NativeAudioPlayer] Loaded audio: ${status.durationMillis}ms, ${status.uri}`,
       );
 
@@ -105,7 +106,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.playAsync();
-      console.log("[NativeAudioPlayer] Playback started");
+      logger.log("[NativeAudioPlayer] Playback started");
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
@@ -126,9 +127,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.pauseAsync();
-      console.log("[NativeAudioPlayer] Paused");
+      logger.log("[NativeAudioPlayer] Paused");
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Pause error:", error);
+      logger.warn("[NativeAudioPlayer] Pause error:", error);
     }
   }
 
@@ -143,9 +144,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       await this.sound.stopAsync();
       await this.sound.setPositionAsync(0); // Reset to beginning
-      console.log("[NativeAudioPlayer] Stopped");
+      logger.log("[NativeAudioPlayer] Stopped");
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Stop error:", error);
+      logger.warn("[NativeAudioPlayer] Stop error:", error);
     }
   }
 
@@ -160,7 +161,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       // Set rate with pitch correction enabled
       await this.sound.setRateAsync(speed, true);
-      console.log(`[NativeAudioPlayer] Speed set to ${speed}x`);
+      logger.log(`[NativeAudioPlayer] Speed set to ${speed}x`);
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
@@ -182,7 +183,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       const scaledVolume = this._calculateScaledVolume(volume);
       await this.sound.setVolumeAsync(scaledVolume);
-      console.log(
+      logger.log(
         `[NativeAudioPlayer] Volume set to ${volume} (scaled: ${scaledVolume})`,
       );
     } catch (error) {
@@ -220,7 +221,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.setIsLoopingAsync(loop);
-      console.log(
+      logger.log(
         `[NativeAudioPlayer] Looping ${loop ? "enabled" : "disabled"}`,
       );
     } catch (error) {
@@ -248,7 +249,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return 0;
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Get duration error:", error);
+      logger.warn("[NativeAudioPlayer] Get duration error:", error);
       return 0;
     }
   }
@@ -268,7 +269,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return 0;
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Get position error:", error);
+      logger.warn("[NativeAudioPlayer] Get position error:", error);
       return 0;
     }
   }
@@ -283,7 +284,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
 
     try {
       await this.sound.setPositionAsync(position);
-      console.log(`[NativeAudioPlayer] Position set to ${position}ms`);
+      logger.log(`[NativeAudioPlayer] Position set to ${position}ms`);
     } catch (error) {
       throw new AudioError(
         AudioErrorCode.PLAYBACK_FAILED,
@@ -311,7 +312,7 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
       }
       return null;
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Get metadata error:", error);
+      logger.warn("[NativeAudioPlayer] Get metadata error:", error);
       return null;
     }
   }
@@ -327,9 +328,9 @@ export class NativeAudioPlayer extends BaseAudioPlayer {
     try {
       await this.sound.unloadAsync();
       this.sound = null;
-      console.log("[NativeAudioPlayer] Unloaded");
+      logger.log("[NativeAudioPlayer] Unloaded");
     } catch (error) {
-      console.warn("[NativeAudioPlayer] Unload error:", error);
+      logger.warn("[NativeAudioPlayer] Unload error:", error);
       this.sound = null;
     }
   }

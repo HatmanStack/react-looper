@@ -13,6 +13,7 @@ import {
   PermissionStatus,
   PermissionResult,
 } from "./permissions";
+import { logger } from "./logger";
 
 /**
  * Convert expo permission status to our PermissionStatus
@@ -44,7 +45,7 @@ export async function requestMicrophonePermission(): Promise<PermissionResult> {
       canAskAgain: canAskAgain !== false,
     };
   } catch (error) {
-    console.error("[Permissions] Microphone permission error:", error);
+    logger.error("[Permissions] Microphone permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: false,
@@ -65,7 +66,7 @@ export async function requestStoragePermission(): Promise<PermissionResult> {
       canAskAgain: canAskAgain !== false,
     };
   } catch (error) {
-    console.error("[Permissions] Storage permission error:", error);
+    logger.error("[Permissions] Storage permission error:", error);
     return {
       status: PermissionStatus.DENIED,
       canAskAgain: false,
@@ -92,7 +93,7 @@ export async function checkPermission(
 
     return PermissionStatus.UNDETERMINED;
   } catch (error) {
-    console.error("[Permissions] Check permission error:", error);
+    logger.error("[Permissions] Check permission error:", error);
     return PermissionStatus.UNDETERMINED;
   }
 }
@@ -110,7 +111,7 @@ export async function openSettings(): Promise<void> {
       await Linking.openSettings();
     }
   } catch (error) {
-    console.error("[Permissions] Failed to open settings:", error);
+    logger.error("[Permissions] Failed to open settings:", error);
     throw new Error("Failed to open settings. Please open them manually.");
   }
 }

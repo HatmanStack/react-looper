@@ -9,6 +9,7 @@ import {
   AudioFileInfo,
   StorageInfo,
 } from "./AudioFileManager";
+import { logger } from "../../utils/logger";
 
 const DB_NAME = "AudioLooperDB";
 const DB_VERSION = 1;
@@ -114,7 +115,7 @@ export class WebAudioFileManager extends AudioFileManager {
       const request = store.put(record);
 
       request.onsuccess = () => {
-        console.log(
+        logger.log(
           `[WebAudioFileManager] Saved file: ${uniqueName} (${blob.size} bytes)`,
         );
         resolve(blobUrl);
@@ -178,7 +179,7 @@ export class WebAudioFileManager extends AudioFileManager {
       const request = store.delete(uri);
 
       request.onsuccess = () => {
-        console.log(`[WebAudioFileManager] Deleted file: ${uri}`);
+        logger.log(`[WebAudioFileManager] Deleted file: ${uri}`);
         resolve();
       };
 
@@ -247,7 +248,7 @@ export class WebAudioFileManager extends AudioFileManager {
         const updateRequest = store.put(record);
 
         updateRequest.onsuccess = () => {
-          console.log(`[WebAudioFileManager] Made permanent: ${permanentName}`);
+          logger.log(`[WebAudioFileManager] Made permanent: ${permanentName}`);
           resolve(record.uri);
         };
 
@@ -290,7 +291,7 @@ export class WebAudioFileManager extends AudioFileManager {
           }
           cursor.continue();
         } else {
-          console.log(
+          logger.log(
             `[WebAudioFileManager] Cleaned up ${deletedCount} temporary files`,
           );
           resolve(deletedCount);
@@ -324,7 +325,7 @@ export class WebAudioFileManager extends AudioFileManager {
           ? estimate.quota - (estimate.usage || 0)
           : undefined;
       } catch {
-        console.warn("[WebAudioFileManager] Storage estimate not available");
+        logger.warn("[WebAudioFileManager] Storage estimate not available");
       }
     }
 
