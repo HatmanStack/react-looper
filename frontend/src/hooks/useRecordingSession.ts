@@ -88,8 +88,6 @@ export function useRecordingSession(
       );
 
       const uri = await audioService.stopRecording();
-      setIsRecording(false);
-      setRecordingDuration(0);
 
       // Create new track
       const newTrack: Track = {
@@ -112,6 +110,8 @@ export function useRecordingSession(
         Alert.alert("Error", "Failed to stop recording");
       }
     } finally {
+      setIsRecording(false);
+      setRecordingDuration(0);
       isStoppingRef.current = false;
     }
   }, [audioService, tracks.length, onTrackRecorded]);

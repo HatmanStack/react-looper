@@ -56,6 +56,7 @@ describe("WebAudioPlayer", () => {
     mockAudioContext.decodeAudioData.mockResolvedValue(mockAudioBuffer);
 
     (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
       arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
     });
 

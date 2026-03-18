@@ -134,6 +134,7 @@ const MockOfflineAudioContext = jest
 
 // Mock fetch for loading audio
 global.fetch = jest.fn().mockResolvedValue({
+  ok: true,
   arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(1000)),
 } as any);
 

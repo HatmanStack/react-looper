@@ -107,6 +107,13 @@ export async function fetchWithTimeout(
   try {
     const response = await fetch(uri, { signal: controller.signal });
     clearTimeout(timeoutId);
+    if (!response.ok) {
+      throw new AudioError(
+        AudioErrorCode.PLAYBACK_FAILED,
+        `Audio fetch failed with HTTP ${response.status} ${response.statusText}`,
+        "Failed to load audio file. Please try again.",
+      );
+    }
     return response;
   } catch (error) {
     clearTimeout(timeoutId);

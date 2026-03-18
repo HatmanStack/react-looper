@@ -158,6 +158,7 @@ export const MainScreen: React.FC = () => {
   });
 
   const isLoading = isExporting || isImporting;
+  const isDisabled = isLoading || initError;
 
   const handleImport = useCallback(async () => {
     if (!audioServiceRef.current) {
@@ -216,7 +217,7 @@ export const MainScreen: React.FC = () => {
               label="Record"
               icon="microphone"
               onPress={handleRecord}
-              disabled={isRecording || isLoading}
+              disabled={isRecording || isDisabled}
               iconOnly={useIconOnly}
               accessibilityLabel={
                 isRecording
@@ -235,7 +236,7 @@ export const MainScreen: React.FC = () => {
               label="Stop"
               icon="stop"
               onPress={handleStop}
-              disabled={!isRecording || isLoading}
+              disabled={!isRecording || isDisabled}
               iconOnly={useIconOnly}
               accessibilityHint="Stop recording and save track"
             />
@@ -243,7 +244,7 @@ export const MainScreen: React.FC = () => {
               label="Import"
               icon="file-music"
               onPress={handleImport}
-              disabled={isLoading}
+              disabled={isDisabled}
               iconOnly={useIconOnly}
               accessibilityHint="Import an audio file from device storage"
             />
@@ -251,7 +252,7 @@ export const MainScreen: React.FC = () => {
               label="Save"
               icon="content-save"
               onPress={handleSave}
-              disabled={tracks.length === 0 || isLoading}
+              disabled={tracks.length === 0 || isDisabled}
               iconOnly={useIconOnly}
               accessibilityHint="Mix and save all tracks to a single audio file"
             />

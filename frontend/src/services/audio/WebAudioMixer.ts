@@ -237,8 +237,8 @@ export class WebAudioMixer extends BaseAudioMixer {
       const response = await fetchWithTimeout(uri);
       const arrayBuffer = await response.arrayBuffer();
 
-      // Get shared AudioContext if needed
-      if (!this.audioContext) {
+      // Get shared AudioContext if needed (re-acquire if closed)
+      if (!this.audioContext || this.audioContext.state === "closed") {
         this.audioContext = getSharedAudioContext();
       }
 
