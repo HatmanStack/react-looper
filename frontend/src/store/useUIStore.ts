@@ -1,3 +1,4 @@
+// TODO(Phase-3): Integrate useUIStore as single source of truth for UI state (currently duplicated in MainScreen local state)
 /**
  * UI State Store
  *
