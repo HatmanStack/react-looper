@@ -72,7 +72,10 @@ describe("WebAudioPlayer", () => {
     it("should load audio from URI", async () => {
       await player.load("blob:test-audio");
 
-      expect(global.fetch).toHaveBeenCalledWith("blob:test-audio");
+      expect(global.fetch).toHaveBeenCalledWith(
+        "blob:test-audio",
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(mockAudioContext.decodeAudioData).toHaveBeenCalled();
       expect(player.isLoaded()).toBe(true);
     });
