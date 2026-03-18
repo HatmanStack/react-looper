@@ -1,10 +1,38 @@
 # Feedback: 2026-03-18-audit-react-looper
 
+## Verification
+
+**VERIFIED** — All 11 audit findings confirmed addressed. Tests: 539 passing, 0 failures. Lint: clean.
+
 ## Active Feedback
 
 <!-- Items currently requiring attention -->
 
 (No open items.)
+
+## Previously Active (moved to Resolved)
+
+### Review 4 ISSUE 1 (ADVISORY): .gitignore missing entries from plan -- CODE_REVIEW
+
+The Phase 4 plan (Task 3) specified adding `.vscode/`, `*.swp`, `*.swo`, and `build/` to `.gitignore`. The actual `.gitignore` is missing:
+- `.vscode/` (IDE files section only has `.idea/`)
+- `*.swp` and `*.swo` (vim swap files)
+- `build/` (build artifacts section entirely absent)
+
+These are low-risk omissions but deviate from the plan specification.
+
+### Review 4 ISSUE 2 (ADVISORY): Non-atomic final commit -- CODE_REVIEW
+
+The plan defined 5 separate tasks with individual commit message templates. The implementation produced only 3 commits, with the final commit `4094621` combining Task 1 (ESLint no-console), Task 3 (.gitignore), Task 5 (silent catch blocks), and additional unrelated changes (LoopEngine store decoupling, test file updates) into a single 24-file commit. This reduces bisectability and makes it harder to revert individual changes. The first two commits (`97b8f40` for lamejs types, `331bbd2` for ErrorBoundary theme) are properly atomic.
+
+### Review 4 ISSUE 3 (INFO): Pre-existing lint errors from Phase 3 -- CODE_REVIEW
+
+`npm run lint` reports 3 errors, all in files from Phase 3 (not introduced by Phase 4):
+1. `useTrackPlayback.test.ts:67` -- unused variable `result` (`@typescript-eslint/no-unused-vars`)
+2. `useRecordingSession.ts:113` -- ref update during render (`react-hooks/refs`)
+3. `audioUtils.shared.test.ts:37` -- `RequestInit` not defined (`no-undef`)
+
+These are not Phase 4 regressions but they do cause `npm run lint` to fail, which means the Phase 4 completion checklist item "npm run lint produces zero no-console errors in production code" is technically satisfied (no no-console errors), but `npm run check` would fail due to these other lint errors.
 
 ## Resolved Feedback
 

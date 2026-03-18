@@ -109,8 +109,10 @@ export function useRecordingSession(
     }
   }, [audioService, tracks.length, onTrackRecorded]);
 
-  // Keep ref in sync
-  handleStopRef.current = handleStop;
+  // Keep ref in sync — wrapped in useEffect to avoid ref assignment during render
+  useEffect(() => {
+    handleStopRef.current = handleStop;
+  });
 
   const handleRecord = useCallback(async () => {
     if (!audioService) {

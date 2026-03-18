@@ -34,7 +34,7 @@ describe("fetchWithTimeout", () => {
     // Mock fetch that never resolves
     global.fetch = jest
       .fn()
-      .mockImplementation((_uri: string, options: RequestInit) => {
+      .mockImplementation((_uri: string, options: { signal?: AbortSignal }) => {
         return new Promise((_resolve, reject) => {
           options.signal?.addEventListener("abort", () => {
             const abortError = new DOMException(

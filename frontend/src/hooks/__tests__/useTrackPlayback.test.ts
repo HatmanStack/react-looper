@@ -64,7 +64,6 @@ describe("useTrackPlayback", () => {
 
   it("handlePlay calls audioService.playTrack and updates track", async () => {
     const track = createMockTrack({ id: "t1", isPlaying: false });
-    const { result } = renderHook(() => defaultOptions([track]), {});
     const { result: hookResult } = renderHook(() =>
       useTrackPlayback(defaultOptions([track])),
     );

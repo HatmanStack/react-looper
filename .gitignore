@@ -14,6 +14,9 @@ Thumbs.db
 
 # IDE files
 .idea/
+.vscode/
+*.swp
+*.swo
 
 # TypeScript build info
 *.tsbuildinfo
