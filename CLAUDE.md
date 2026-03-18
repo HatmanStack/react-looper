@@ -18,7 +18,7 @@ npm run build:web        # Static web export (expo export:web)
 ## Testing & Quality
 
 ```bash
-npm test                 # Run Jest tests (525+ tests)
+npm test                 # Run Jest tests (535+ tests)
 npm test -- --watch      # Watch mode
 npm test -- --coverage   # Coverage report
 npm test -- path/to/file # Run single test file
