@@ -56,9 +56,9 @@ None.
 
 ### Verification Checklist
 
-- [ ] `frontend/src/store/selectors.ts` does not exist
-- [ ] No import statements reference `selectors.ts` or its exports (excluding plan docs)
-- [ ] `npm run check` passes
+- [x] `frontend/src/store/selectors.ts` does not exist
+- [x] No import statements reference `selectors.ts` or its exports (excluding plan docs)
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -103,9 +103,9 @@ Task 1 completed (selectors.ts deleted, since devtools.ts imports useUIStore whi
 
 ### Verification Checklist
 
-- [ ] `frontend/src/store/devtools.ts` does not exist
-- [ ] No imports of `devtools` remain in the codebase
-- [ ] `npm run check` passes
+- [x] `frontend/src/store/devtools.ts` does not exist
+- [x] No imports of `devtools` remain in the codebase
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -147,9 +147,9 @@ None.
 
 ### Verification Checklist
 
-- [ ] `frontend/src/hooks/useAppLifecycle.ts` does not exist
-- [ ] No imports of `useAppLifecycle` or `useBackgroundHandler` remain
-- [ ] `npm run check` passes
+- [x] `frontend/src/hooks/useAppLifecycle.ts` does not exist
+- [x] No imports of `useAppLifecycle` or `useBackgroundHandler` remain
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -192,11 +192,11 @@ None.
 
 ### Verification Checklist
 
-- [ ] `frontend/src/services/lifecycle/LifecycleManager.ts` does not exist
-- [ ] `frontend/__tests__/unit/services/LifecycleManager.test.ts` does not exist
-- [ ] `frontend/src/services/lifecycle/` directory is removed if empty
-- [ ] No imports of `LifecycleManager` remain (excluding plan docs)
-- [ ] `npm run check` passes
+- [x] `frontend/src/services/lifecycle/LifecycleManager.ts` does not exist
+- [x] `frontend/__tests__/unit/services/LifecycleManager.test.ts` does not exist
+- [x] `frontend/src/services/lifecycle/` directory is removed if empty
+- [x] No imports of `LifecycleManager` remain (excluding plan docs)
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -244,10 +244,10 @@ Tasks 1 and 2 completed (selectors.ts and devtools.ts deleted, since both import
 
 ### Verification Checklist
 
-- [ ] `frontend/src/store/useUIStore.ts` does not exist
-- [ ] No imports of `useUIStore` remain in the codebase
-- [ ] `CLAUDE.md` says "Three stores" and does not reference `useUIStore` or `selectors.ts`
-- [ ] `npm run check` passes
+- [x] `frontend/src/store/useUIStore.ts` does not exist
+- [x] No imports of `useUIStore` remain in the codebase
+- [x] `CLAUDE.md` says "Three stores" and does not reference `useUIStore` or `selectors.ts`
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -293,10 +293,10 @@ None.
 
 ### Verification Checklist
 
-- [ ] `uuid` no longer appears in `frontend/package.json` dependencies
-- [ ] `@types/uuid` no longer appears in `frontend/package.json` devDependencies
-- [ ] `package-lock.json` is updated
-- [ ] `npm run check` passes
+- [x] `uuid` no longer appears in `frontend/package.json` dependencies
+- [x] `@types/uuid` no longer appears in `frontend/package.json` devDependencies
+- [x] `package-lock.json` is updated
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -344,10 +344,10 @@ Task 6 completed (uuid removed from package.json).
 
 ### Verification Checklist
 
-- [ ] No remaining `Date.now()` used for track ID generation in MainScreen.tsx
-- [ ] Both occurrences (handleStop and handleImport) are updated
-- [ ] No new import needed
-- [ ] `npm run check` passes
+- [x] No remaining `Date.now()` used for track ID generation in MainScreen.tsx
+- [x] Both occurrences (handleStop and handleImport) are updated
+- [x] No new import needed
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -472,12 +472,12 @@ describe("scaleVolume", () => {
 
 ### Verification Checklist
 
-- [ ] `scaleVolume` is defined exactly once in `frontend/src/utils/audioUtils.shared.ts`
-- [ ] `WebAudioPlayer.ts` imports and uses `scaleVolume` from the utility
-- [ ] `WebAudioMixer.ts` imports and uses `scaleVolume` from the utility (no private method)
-- [ ] No duplicate volume scaling logic remains in either class
-- [ ] Unit test passes: `npm test -- frontend/src/utils/__tests__/scaleVolume.test.ts`
-- [ ] `npm run check` passes
+- [x] `scaleVolume` is defined exactly once in `frontend/src/utils/audioUtils.shared.ts`
+- [x] `WebAudioPlayer.ts` imports and uses `scaleVolume` from the utility
+- [x] `WebAudioMixer.ts` imports and uses `scaleVolume` from the utility (no private method)
+- [x] No duplicate volume scaling logic remains in either class
+- [x] Unit test passes: `npm test -- frontend/src/utils/__tests__/scaleVolume.test.ts`
+- [x] `npm run check` passes
 
 ### Testing Instructions
 
@@ -545,10 +545,10 @@ Tasks 1-5 completed (dead modules deleted, so we skip `devtools.ts` with 11 occu
 
 ### Verification Checklist
 
-- [ ] Zero `console.log`, `console.warn`, `console.error`, `console.info`, or `console.debug` calls in `frontend/src/` (excluding `logger.ts`, `logger.web.ts`, `logger.native.ts`)
-- [ ] Every file that previously had `console.*` calls now imports and uses `logger`
-- [ ] `npm run check` passes
-- [ ] `npm run lint` produces zero `no-console` warnings for source files
+- [x] Zero `console.log`, `console.warn`, `console.error`, `console.info`, or `console.debug` calls in `frontend/src/` (excluding `logger.ts`, `logger.web.ts`, `logger.native.ts`)
+- [x] Every file that previously had `console.*` calls now imports and uses `logger`
+- [x] `npm run check` passes
+- [x] `npm run lint` produces zero `no-console` warnings for source files
 
 ### Testing Instructions
 
@@ -574,16 +574,16 @@ refactor(logging): consolidate console.* calls to use logger utility
 
 After all tasks are complete:
 
-- [ ] `frontend/src/store/selectors.ts` — deleted
-- [ ] `frontend/src/store/devtools.ts` — deleted
-- [ ] `frontend/src/hooks/useAppLifecycle.ts` — deleted
-- [ ] `frontend/src/services/lifecycle/LifecycleManager.ts` — deleted
-- [ ] `frontend/__tests__/unit/services/LifecycleManager.test.ts` — deleted
-- [ ] `frontend/src/store/useUIStore.ts` — deleted
-- [ ] `CLAUDE.md` updated (no references to useUIStore or selectors.ts)
-- [ ] `uuid` and `@types/uuid` removed from `frontend/package.json`
-- [ ] Track IDs use `crypto.randomUUID()` instead of `Date.now()`
-- [ ] `scaleVolume()` extracted to `frontend/src/utils/audioUtils.shared.ts` with unit tests
-- [ ] Zero direct `console.*` calls in source files (excluding logger implementation)
-- [ ] `npm run check` passes
-- [ ] Net reduction: ~700+ lines of dead code removed
+- [x] `frontend/src/store/selectors.ts` — deleted
+- [x] `frontend/src/store/devtools.ts` — deleted
+- [x] `frontend/src/hooks/useAppLifecycle.ts` — deleted
+- [x] `frontend/src/services/lifecycle/LifecycleManager.ts` — deleted
+- [x] `frontend/__tests__/unit/services/LifecycleManager.test.ts` — deleted
+- [x] `frontend/src/store/useUIStore.ts` — deleted
+- [x] `CLAUDE.md` updated (no references to useUIStore or selectors.ts)
+- [x] `uuid` and `@types/uuid` removed from `frontend/package.json`
+- [x] Track IDs use `crypto.randomUUID()` instead of `Date.now()`
+- [x] `scaleVolume()` extracted to `frontend/src/utils/audioUtils.shared.ts` with unit tests
+- [x] Zero direct `console.*` calls in source files (excluding logger implementation)
+- [x] `npm run check` passes
+- [x] Net reduction: ~700+ lines of dead code removed
