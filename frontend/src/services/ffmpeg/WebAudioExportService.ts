@@ -15,18 +15,8 @@ import type {
 } from "./exportTypes";
 import { WebAudioMixer } from "../audio/WebAudioMixer";
 import { getBitrate } from "./audioQuality";
-import lamejs from "@breezystack/lamejs";
+import lamejs, { type WavHeaderResult } from "@breezystack/lamejs";
 import { logger } from "../../utils/logger";
-
-// Type augmentation for lamejs - the package types are incomplete
-interface WavHeaderResult {
-  channels: number;
-  sampleRate: number;
-  dataLen: number;
-  dataOffset: number;
-}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LameJS = lamejs as any;
 
 /**
  * Web FFmpeg Service using Web Audio API + lamejs for format conversion
@@ -157,7 +147,7 @@ export class FFmpegService implements IAudioExportService {
       const arrayBuffer = await wavBlob.arrayBuffer();
 
       // Use lamejs WavHeader to parse WAV file (official API)
-      const wav: WavHeaderResult = LameJS.WavHeader.readHeader(
+      const wav: WavHeaderResult = lamejs.WavHeader.readHeader(
         new DataView(arrayBuffer),
       );
 
@@ -206,7 +196,7 @@ export class FFmpegService implements IAudioExportService {
       );
 
       // Create MP3 encoder
-      const mp3encoder = new LameJS.Mp3Encoder(
+      const mp3encoder = new lamejs.Mp3Encoder(
         wav.channels,
         wav.sampleRate,
         bitrate,
@@ -240,9 +230,8 @@ export class FFmpegService implements IAudioExportService {
         `[FFmpegService.web] MP3 encoding complete: ${mp3Data.length} chunks`,
       );
 
-      // Create blob (cast to any[] for TypeScript compatibility)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mp3Blob = new Blob(mp3Data as any[], { type: "audio/mpeg" });
+      // Create blob from encoded MP3 chunks
+      const mp3Blob = new Blob(mp3Data as BlobPart[], { type: "audio/mpeg" });
       return { blob: mp3Blob, format: "mp3" };
     } catch (error) {
       logger.error("[FFmpegService.web] MP3 conversion failed:", error);
