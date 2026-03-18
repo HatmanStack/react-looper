@@ -76,6 +76,7 @@ Platform-specific files use extensions: `.web.ts` and `.native.ts`. The service 
 Configured in both `frontend/tsconfig.json` and root `package.json` (Jest moduleNameMapper):
 ```
 @components/* → frontend/src/components/*
+@screens/*    → frontend/src/screens/*
 @services/*   → frontend/src/services/*
 @store/*      → frontend/src/store/*
 @utils/*      → frontend/src/utils/*
