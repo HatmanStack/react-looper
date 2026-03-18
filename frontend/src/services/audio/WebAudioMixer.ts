@@ -10,7 +10,9 @@ import { MixerTrackInput, MixingOptions } from "../../types/audio";
 import { AudioError } from "./AudioError";
 import { AudioErrorCode } from "../../types/audio";
 import { logger } from "../../utils/logger";
+import { scaleVolume } from "../../utils/audioUtils";
 import { useSettingsStore } from "../../store/useSettingsStore";
+import { getSharedAudioContext, releaseAudioContext } from "./audioContextManager";
 
 export class WebAudioMixer extends BaseAudioMixer {
   private audioContext: AudioContext | null = null;
@@ -94,7 +96,7 @@ export class WebAudioMixer extends BaseAudioMixer {
 
         // Create volume gain node
         const gainNode = offlineContext.createGain();
-        const scaledVolume = this.scaleVolume(track.volume);
+        const scaledVolume = scaleVolume(track.volume);
         gainNode.gain.value = scaledVolume;
         gainNode.connect(masterGain);
 
@@ -235,9 +237,9 @@ export class WebAudioMixer extends BaseAudioMixer {
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();
 
-      // Create AudioContext if needed
+      // Get shared AudioContext if needed
       if (!this.audioContext) {
-        this.audioContext = new AudioContext();
+        this.audioContext = getSharedAudioContext();
       }
 
       // Decode audio data
@@ -250,21 +252,6 @@ export class WebAudioMixer extends BaseAudioMixer {
         "Unable to load audio file for mixing",
         { uri, originalError: error },
       );
-    }
-  }
-
-  /**
-   * Scale volume from 0-100 to gain value with logarithmic curve
-   * Matches Android implementation
-   */
-  private scaleVolume(volume: number): number {
-    if (volume === 0) {
-      return 0;
-    } else if (volume === 100) {
-      return 1;
-    } else {
-      // Logarithmic scaling: 1 - (Math.log(MAX_VOLUME - progress) / Math.log(MAX_VOLUME))
-      return 1 - Math.log(100 - volume) / Math.log(100);
     }
   }
 
@@ -349,7 +336,7 @@ export class WebAudioMixer extends BaseAudioMixer {
    */
   public async cleanup(): Promise<void> {
     if (this.audioContext) {
-      await this.audioContext.close();
+      releaseAudioContext();
       this.audioContext = null;
     }
     this.cachedBlob = null;

@@ -72,6 +72,17 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
+ * Scale volume from 0-100 to gain value using logarithmic curve.
+ * @param volume - Volume level from 0 to 100
+ * @returns Gain value from 0.0 to 1.0
+ */
+export function scaleVolume(volume: number): number {
+  if (volume === 0) return 0;
+  if (volume === 100) return 1;
+  return 1 - Math.log(100 - volume) / Math.log(100);
+}
+
+/**
  * Check if URI is a blob URL (web)
  */
 export function isBlobUrl(uri: string): boolean {

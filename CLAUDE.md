@@ -42,13 +42,12 @@ The first recorded track becomes the **master track** and defines the loop durat
 
 ### State Management (Zustand)
 
-Four stores in `frontend/src/store/`:
+Three stores in `frontend/src/store/`:
 - **useTrackStore** — Track CRUD, master loop tracking
 - **usePlaybackStore** — Per-track speed/volume/playing/looping state (uses `Map<string, TrackState>`)
 - **useSettingsStore** — Export format, recording quality, loop preferences
-- **useUIStore** — Modal visibility, recording/mixing state, errors
 
-Optimized selectors in `selectors.ts` prevent unnecessary re-renders. Store migrations in `store/migrations/`.
+Store migrations in `store/migrations/`.
 
 ### Audio Service Layer (Platform-Split)
 

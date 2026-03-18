@@ -4,6 +4,8 @@
  * Helper functions for measuring and asserting performance metrics
  */
 
+import { logger } from "../utils/logger";
+
 export interface PerformanceMetrics {
   duration: number;
   memory?: number;
@@ -163,11 +165,11 @@ export function assertPerformance(
   };
 
   if (!passed) {
-    console.warn(
+    logger.warn(
       `⚠️  Performance regression: ${name} took ${actual}${unit} (target: ${target}${unit})`,
     );
   } else {
-    console.log(
+    logger.log(
       `✓ Performance check passed: ${name} took ${actual}${unit} (target: ${target}${unit})`,
     );
   }
