@@ -34,7 +34,7 @@ Jest config is in root `package.json` (not a separate jest.config). Test roots p
 
 ## Architecture
 
-**Cross-platform audio looper** built with React Native 0.81 + Expo 54 + TypeScript 5.9. Runs on web, Android, and iOS from a single codebase. Live at https://looper.hatstack.fun.
+**Cross-platform audio looper** built with React Native 0.81.5 + Expo 54.0 + TypeScript 5.9.2. Runs on web, Android, and iOS from a single codebase. Live at https://looper.hatstack.fun.
 
 ### Core Concept: Master Loop
 
