@@ -12,6 +12,7 @@ import {
   AudioErrorCode,
 } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export class WebAudioPlayer extends BaseAudioPlayer {
   private audioContext: AudioContext | null = null;
@@ -142,8 +143,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
 
       // Stop position updates
       this.stopPositionUpdateTimer();
-    } catch {
+    } catch (error) {
       // Ignore errors if already stopped
+      logger.debug("[WebAudioPlayer] pause - source already stopped:", error);
     }
   }
 
@@ -159,8 +161,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.sourceNode.stop();
       this.sourceNode.disconnect();
       this.sourceNode = null;
-    } catch {
+    } catch (error) {
       // Ignore errors if already stopped
+      logger.debug("[WebAudioPlayer] stop - source already stopped:", error);
     }
 
     // Reset position
@@ -301,8 +304,9 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       try {
         this.sourceNode.stop();
         this.sourceNode.disconnect();
-      } catch {
+      } catch (error) {
         // Ignore if already stopped
+        logger.debug("[WebAudioPlayer] unload - source already stopped:", error);
       }
       this.sourceNode = null;
     }

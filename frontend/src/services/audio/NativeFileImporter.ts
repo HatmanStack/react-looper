@@ -10,6 +10,7 @@ import { Paths, File } from "expo-file-system";
 import { Audio } from "expo-av";
 import { AudioErrorCode } from "../../types/audio";
 import { AudioError } from "./AudioError";
+import { logger } from "../../utils/logger";
 
 export interface ImportedFile {
   uri: string;
@@ -73,8 +74,9 @@ export class NativeFileImporter {
         try {
           const file = new File(copiedUri);
           file.delete();
-        } catch {
+        } catch (error) {
           // Ignore deletion errors
+          logger.debug("[NativeFileImporter] failed to delete unplayable file:", error);
         }
         throw new AudioError(
           AudioErrorCode.INVALID_FORMAT,
@@ -214,8 +216,9 @@ export class NativeFileImporter {
       if (sound) {
         try {
           await sound.unloadAsync();
-        } catch {
+        } catch (error) {
           // Ignore unload errors
+          logger.debug("[NativeFileImporter] failed to unload sound during cleanup:", error);
         }
       }
 

@@ -7,6 +7,7 @@
 import { Audio } from "expo-av";
 import { AudioError } from "../services/audio/AudioError";
 import { AudioErrorCode } from "../types/audio";
+import { logger } from "./logger";
 
 // Re-export shared utility functions (avoiding circular dependency with platform resolution)
 export * from "./audioUtils.shared";
@@ -60,8 +61,9 @@ export async function getAudioMetadata(uri: string): Promise<AudioMetadata> {
     if (sound) {
       try {
         await sound.unloadAsync();
-      } catch {
+      } catch (error) {
         // Ignore unload errors
+        logger.debug("[audioUtils.native] failed to unload sound during cleanup:", error);
       }
     }
 

@@ -32,6 +32,12 @@ export class NativeLogger implements ILogger {
       console.info(`[INFO] ${message}`, ...args);
     }
   }
+
+  debug(message: string, ...args: unknown[]): void {
+    if (__DEV__) {
+      console.log(`[DEBUG] ${message}`, ...args);
+    }
+  }
 }
 
 export const logger = new NativeLogger();

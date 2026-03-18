@@ -56,6 +56,17 @@ export class WebLogger implements ILogger {
       );
     }
   }
+
+  debug(message: string, ...args: unknown[]): void {
+    if (this.isDevelopment) {
+      console.log(
+        `%c[DEBUG]%c ${message}`,
+        "color: #9E9E9E; font-weight: bold",
+        "color: inherit",
+        ...args,
+      );
+    }
+  }
 }
 
 export const logger = new WebLogger();
