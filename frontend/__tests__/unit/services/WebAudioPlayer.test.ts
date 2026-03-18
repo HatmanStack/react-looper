@@ -232,5 +232,25 @@ describe("WebAudioPlayer", () => {
 
       expect(player.isPlaying()).toBe(false);
     });
+
+    it("should revoke blob URL on unload", async () => {
+      const revokeObjectURL = jest.fn();
+      global.URL.revokeObjectURL = revokeObjectURL;
+
+      await player.load("blob:test-audio");
+      await player.unload();
+
+      expect(revokeObjectURL).toHaveBeenCalledWith("blob:test-audio");
+    });
+
+    it("should NOT revoke non-blob URLs on unload", async () => {
+      const revokeObjectURL = jest.fn();
+      global.URL.revokeObjectURL = revokeObjectURL;
+
+      await player.load("https://example.com/audio.mp3");
+      await player.unload();
+
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+    });
   });
 });

@@ -306,6 +306,15 @@ export class WebAudioPlayer extends BaseAudioPlayer {
       this.gainNode = null;
     }
 
+    // Revoke blob URL to free memory (recordings create blob: URIs)
+    if (this._currentUri && this._currentUri.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(this._currentUri);
+      } catch {
+        // Ignore if already revoked
+      }
+    }
+
     // Release audio buffer
     this.audioBuffer = null;
 
