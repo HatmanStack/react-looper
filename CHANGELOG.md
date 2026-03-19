@@ -4,6 +4,35 @@ All notable changes to Looper will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-03-19
+
+### Added
+
+- **Track Sync Speed**: Sync button on non-master tracks opens a popover menu with 7 multiplier options (1/4x, 1/3x, 1/2x, 1x, 2x, 3x, 4x) to lock playback speed to the master loop duration
+- SyncMenu component with React.memo, icon toggle (link/link-off), active multiplier highlighting, and "Unsync" option
+- `calculateSyncSpeed` and `getValidSyncMultipliers` utilities in loopUtils with input validation and slider-step rounding
+- `syncMultiplier` field on Track type for persistent sync state
+- Auto-resync: synced tracks automatically recalculate speed when master track speed changes
+- Out-of-range sync speeds are silently unbound (syncMultiplier cleared)
+- Empty menu placeholder when no valid sync multipliers exist for a track
+- Bounds check in handleSyncSelect before applying speed
+- Failure path test for handleSyncSelect verifying syncMultiplier is not stored on audio service error
+- Dependabot configuration for automated dependency updates
+- GitHub Actions workflow updates (actions/checkout v6, actions/setup-node v6)
+
+### Changed
+
+- Manual speed slider drag clears sync binding (only after successful speed change)
+- Speed confirmation dialog updated to note out-of-range synced tracks will be unsynced
+- `applySpeedChange` returns boolean success indicator for state consistency gating
+- `handleSpeedChangeConfirm` awaits master speed change before resyncing dependents
+- Dependent track resyncs clear syncMultiplier on failure instead of fire-and-forget
+- HelpModal: removed "on the left" from selected track description
+
+### Fixed
+
+- Reverted auto-merged dependabot major version bumps (expo 55, react 19, RN 0.84) that broke CI
+
 ## [1.2.0] - 2026-03-18
 
 ### Added
