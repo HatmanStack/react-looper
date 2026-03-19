@@ -213,6 +213,161 @@ describe("useTrackPlayback", () => {
     expect(mockUpdateTrack).toHaveBeenCalledWith("t1", { selected: false });
   });
 
+  describe("sync speed", () => {
+    it("handleSyncSelect sets track speed and syncMultiplier", async () => {
+      const masterTrack = createMockTrack({
+        id: "master",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const track2 = createMockTrack({
+        id: "t2",
+        duration: 5000,
+        speed: 1.0,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(defaultOptions([masterTrack, track2])),
+      );
+
+      await act(async () => {
+        result.current.handleSyncSelect("t2", 1);
+      });
+
+      // Sync speed = (5000 / 10000) * 1 = 0.5, rounded to nearest 1/41
+      const expectedSpeed = Math.round(0.5 * 41) / 41;
+      expect(mockAudioService.setTrackSpeed).toHaveBeenCalledWith(
+        "t2",
+        expectedSpeed,
+      );
+      expect(mockUpdateTrack).toHaveBeenCalledWith("t2", {
+        speed: expectedSpeed,
+      });
+      expect(mockUpdateTrack).toHaveBeenCalledWith("t2", {
+        syncMultiplier: 1,
+      });
+    });
+
+    it("handleSyncClear removes sync binding", async () => {
+      const track = createMockTrack({
+        id: "t2",
+        syncMultiplier: 1,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(
+          defaultOptions([createMockTrack({ id: "master" }), track]),
+        ),
+      );
+
+      act(() => {
+        result.current.handleSyncClear("t2");
+      });
+
+      expect(mockUpdateTrack).toHaveBeenCalledWith("t2", {
+        syncMultiplier: null,
+      });
+    });
+
+    it("manual speed change clears syncMultiplier on non-master track", async () => {
+      const masterTrack = createMockTrack({ id: "master" });
+      const track2 = createMockTrack({
+        id: "t2",
+        syncMultiplier: 2,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(defaultOptions([masterTrack, track2])),
+      );
+
+      await act(async () => {
+        await result.current.handleSpeedChange("t2", 1.5);
+      });
+
+      expect(mockUpdateTrack).toHaveBeenCalledWith("t2", {
+        syncMultiplier: null,
+      });
+      expect(mockAudioService.setTrackSpeed).toHaveBeenCalledWith("t2", 1.5);
+    });
+
+    it("master speed confirm triggers auto-resync of synced tracks", async () => {
+      const masterTrack = createMockTrack({
+        id: "master",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const syncedTrack = createMockTrack({
+        id: "t2",
+        duration: 5000,
+        speed: 0.5,
+        syncMultiplier: 1,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(defaultOptions([masterTrack, syncedTrack])),
+      );
+
+      // Trigger master speed change
+      await act(async () => {
+        await result.current.handleSpeedChange("master", 2.0);
+      });
+
+      expect(result.current.speedConfirmationVisible).toBe(true);
+
+      // Confirm the speed change
+      act(() => {
+        result.current.handleSpeedChangeConfirm();
+      });
+
+      // Master speed applied
+      expect(mockAudioService.setTrackSpeed).toHaveBeenCalledWith(
+        "master",
+        2.0,
+      );
+
+      // Synced track should be resynced:
+      // New master loop duration = 10000 / 2.0 = 5000ms
+      // New sync speed = (5000 / 5000) * 1 = 1.0, rounded
+      const expectedSyncSpeed = Math.round(1.0 * 41) / 41;
+      expect(mockAudioService.setTrackSpeed).toHaveBeenCalledWith(
+        "t2",
+        expectedSyncSpeed,
+      );
+    });
+
+    it("auto-resync clears sync when new speed would be out of range", async () => {
+      const masterTrack = createMockTrack({
+        id: "master",
+        duration: 10000,
+        speed: 1.0,
+      });
+      // Track with duration that will produce out-of-range speed
+      // At multiplier 4: if master speed goes to 0.1, master loop = 100000
+      // sync speed = (50000 / 100000) * 4 = 2.0 -- still valid
+      // Need: track.duration / newMasterLoop * multiplier > 2.5
+      // Use track of 30000ms with multiplier 4. New master speed = 2.0, master loop = 5000
+      // sync speed = (30000 / 5000) * 4 = 24.0 -- way out of range
+      const syncedTrack = createMockTrack({
+        id: "t2",
+        duration: 30000,
+        speed: 1.0,
+        syncMultiplier: 4,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(defaultOptions([masterTrack, syncedTrack])),
+      );
+
+      await act(async () => {
+        await result.current.handleSpeedChange("master", 2.0);
+      });
+
+      act(() => {
+        result.current.handleSpeedChangeConfirm();
+      });
+
+      // Sync should be cleared because the new speed is out of range
+      expect(mockUpdateTrack).toHaveBeenCalledWith("t2", {
+        syncMultiplier: null,
+      });
+    });
+  });
+
   it("handleDeleteCancel hides confirmation dialog", async () => {
     const track1 = createMockTrack({ id: "master" });
     const track2 = createMockTrack({ id: "t2" });

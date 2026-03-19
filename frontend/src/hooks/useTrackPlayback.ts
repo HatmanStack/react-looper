@@ -12,6 +12,12 @@ import { AudioService } from "../services/audio/AudioService";
 import { AudioError } from "../services/audio/AudioError";
 import type { Track } from "../types";
 import { logger } from "../utils/logger";
+import {
+  calculateSyncSpeed,
+  calculateSpeedAdjustedDuration,
+  MIN_SPEED,
+  MAX_SPEED,
+} from "../utils/loopUtils";
 
 export interface UseTrackPlaybackOptions {
   audioService: AudioService | null;
@@ -33,6 +39,8 @@ export interface UseTrackPlaybackReturn {
   deleteConfirmationVisible: boolean;
   handleDeleteConfirm: () => Promise<void>;
   handleDeleteCancel: () => void;
+  handleSyncSelect: (trackId: string, multiplier: number) => void;
+  handleSyncClear: (trackId: string) => void;
 }
 
 export function useTrackPlayback(
@@ -192,9 +200,11 @@ export function useTrackPlayback(
         return;
       }
 
+      // Clear sync binding when speed is manually changed on a non-master track
+      updateTrack(trackId, { syncMultiplier: null });
       await applySpeedChange(trackId, speed);
     },
-    [audioService, tracks, applySpeedChange],
+    [audioService, tracks, applySpeedChange, updateTrack],
   );
 
   const handleSpeedChangeConfirm = useCallback(() => {
@@ -203,15 +213,75 @@ export function useTrackPlayback(
         pendingSpeedChange.trackId,
         pendingSpeedChange.speed,
       );
+
+      // Auto-resync all synced non-master tracks
+      const masterTrack = tracks[0];
+      if (masterTrack) {
+        const newMasterLoopDuration = calculateSpeedAdjustedDuration(
+          masterTrack.duration,
+          pendingSpeedChange.speed,
+        );
+
+        for (let i = 1; i < tracks.length; i++) {
+          const track = tracks[i];
+          if (track.syncMultiplier != null) {
+            const newSyncSpeed = calculateSyncSpeed(
+              track.duration,
+              newMasterLoopDuration,
+              track.syncMultiplier,
+            );
+
+            if (newSyncSpeed >= MIN_SPEED && newSyncSpeed <= MAX_SPEED) {
+              void applySpeedChange(track.id, newSyncSpeed);
+            } else {
+              // Speed out of range -- break sync gracefully
+              updateTrack(track.id, { syncMultiplier: null });
+            }
+          }
+        }
+      }
+
       setPendingSpeedChange(null);
     }
     setSpeedConfirmationVisible(false);
-  }, [pendingSpeedChange, applySpeedChange]);
+  }, [pendingSpeedChange, applySpeedChange, tracks, updateTrack]);
 
   const handleSpeedChangeCancel = useCallback(() => {
     setPendingSpeedChange(null);
     setSpeedConfirmationVisible(false);
   }, []);
+
+  const handleSyncSelect = useCallback(
+    (trackId: string, multiplier: number) => {
+      const track = tracks.find((t) => t.id === trackId);
+      if (!track || !audioService) return;
+
+      const masterTrack = tracks[0];
+      if (!masterTrack) return;
+
+      const masterLoopDuration = calculateSpeedAdjustedDuration(
+        masterTrack.duration,
+        masterTrack.speed ?? 1.0,
+      );
+
+      const syncSpeed = calculateSyncSpeed(
+        track.duration,
+        masterLoopDuration,
+        multiplier,
+      );
+
+      void applySpeedChange(trackId, syncSpeed);
+      updateTrack(trackId, { syncMultiplier: multiplier });
+    },
+    [audioService, tracks, applySpeedChange, updateTrack],
+  );
+
+  const handleSyncClear = useCallback(
+    (trackId: string) => {
+      updateTrack(trackId, { syncMultiplier: null });
+    },
+    [updateTrack],
+  );
 
   const handleSelect = useCallback(
     (trackId: string) => {
@@ -236,5 +306,7 @@ export function useTrackPlayback(
     deleteConfirmationVisible,
     handleDeleteConfirm,
     handleDeleteCancel,
+    handleSyncSelect,
+    handleSyncClear,
   };
 }
