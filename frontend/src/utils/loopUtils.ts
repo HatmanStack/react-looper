@@ -16,12 +16,12 @@ const DEFAULT_SPEED = 1.0;
 /**
  * Minimum valid speed (matches Android app minimum)
  */
-const MIN_SPEED = 0.05;
+export const MIN_SPEED = 0.05;
 
 /**
  * Maximum valid speed (matches Android app maximum)
  */
-const MAX_SPEED = 2.5;
+export const MAX_SPEED = 2.5;
 
 /**
  * Calculate the master loop duration based on the first track's speed-adjusted duration.
@@ -200,4 +200,60 @@ export function calculateTrackLoopBoundaries(
   }
 
   return boundaries;
+}
+
+/**
+ * Calculate the sync speed for a track given the master loop duration and a multiplier.
+ *
+ * Formula: (trackDuration / masterLoopDuration) * multiplier
+ * Result is rounded to the nearest slider step (1/41).
+ *
+ * @param trackDuration - Original track duration in milliseconds
+ * @param masterLoopDuration - Current master loop duration in milliseconds
+ * @param multiplier - Sync multiplier (e.g., 0.25, 0.5, 1, 2, 3, 4)
+ * @returns Calculated speed rounded to the nearest 1/41 step, or 1.0 if masterLoopDuration is invalid
+ */
+export function calculateSyncSpeed(
+  trackDuration: number,
+  masterLoopDuration: number,
+  multiplier: number,
+): number {
+  if (masterLoopDuration <= 0 || !isFinite(masterLoopDuration)) {
+    return DEFAULT_SPEED;
+  }
+
+  const speed = (trackDuration / masterLoopDuration) * multiplier;
+  return Math.round(speed * 41) / 41;
+}
+
+/**
+ * All available sync multipliers with their display labels.
+ */
+const SYNC_MULTIPLIERS: { label: string; value: number }[] = [
+  { label: "1/4x", value: 1 / 4 },
+  { label: "1/3x", value: 1 / 3 },
+  { label: "1/2x", value: 1 / 2 },
+  { label: "1x", value: 1 },
+  { label: "2x", value: 2 },
+  { label: "3x", value: 3 },
+  { label: "4x", value: 4 },
+];
+
+/**
+ * Get the sync multipliers that produce valid speeds for a given track/master combination.
+ *
+ * Filters out multipliers whose calculated speed falls outside the MIN_SPEED-MAX_SPEED range.
+ *
+ * @param trackDuration - Original track duration in milliseconds
+ * @param masterLoopDuration - Current master loop duration in milliseconds
+ * @returns Array of { label, value } objects for valid multipliers
+ */
+export function getValidSyncMultipliers(
+  trackDuration: number,
+  masterLoopDuration: number,
+): { label: string; value: number }[] {
+  return SYNC_MULTIPLIERS.filter(({ value }) => {
+    const speed = calculateSyncSpeed(trackDuration, masterLoopDuration, value);
+    return speed >= MIN_SPEED && speed <= MAX_SPEED;
+  });
 }

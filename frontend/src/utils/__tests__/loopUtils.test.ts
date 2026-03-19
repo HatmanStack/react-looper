@@ -12,6 +12,10 @@ import {
   isMasterTrack,
   getMasterTrack,
   calculateTrackLoopBoundaries,
+  calculateSyncSpeed,
+  getValidSyncMultipliers,
+  MIN_SPEED,
+  MAX_SPEED,
 } from "../loopUtils";
 
 // Helper to create mock tracks for testing
@@ -303,5 +307,112 @@ describe("calculateTrackLoopBoundaries", () => {
   it("returns empty array for negative durations", () => {
     expect(calculateTrackLoopBoundaries(-5000, 10000)).toEqual([]);
     expect(calculateTrackLoopBoundaries(5000, -10000)).toEqual([]);
+  });
+});
+
+describe("sync speed calculations", () => {
+  describe("calculateSyncSpeed", () => {
+    it("returns ~1.0 for equal track and master durations at 1x", () => {
+      const speed = calculateSyncSpeed(10000, 10000, 1);
+      expect(speed).toBeCloseTo(1.0, 2);
+    });
+
+    it("returns ~0.5 for 5s track in 10s master at 1x", () => {
+      const speed = calculateSyncSpeed(5000, 10000, 1);
+      // 0.5 rounded to nearest 1/41 step
+      expect(speed).toBe(Math.round(0.5 * 41) / 41);
+    });
+
+    it("returns ~2.0 for 20s track in 10s master at 1x", () => {
+      const speed = calculateSyncSpeed(20000, 10000, 1);
+      expect(speed).toBe(Math.round(2.0 * 41) / 41);
+    });
+
+    it("returns ~2.0 for equal durations at 2x multiplier", () => {
+      const speed = calculateSyncSpeed(10000, 10000, 2);
+      expect(speed).toBe(Math.round(2.0 * 41) / 41);
+    });
+
+    it("returns ~0.5 for equal durations at 0.5x multiplier", () => {
+      const speed = calculateSyncSpeed(10000, 10000, 0.5);
+      expect(speed).toBe(Math.round(0.5 * 41) / 41);
+    });
+
+    it("rounds result to nearest 1/41 step", () => {
+      // 7s track, 10s master, 1x => 0.7 => rounded to nearest 1/41
+      const speed = calculateSyncSpeed(7000, 10000, 1);
+      const rounded = Math.round(0.7 * 41) / 41;
+      expect(speed).toBe(rounded);
+    });
+
+    it("returns 1.0 when masterLoopDuration is 0", () => {
+      expect(calculateSyncSpeed(10000, 0, 1)).toBe(1.0);
+    });
+
+    it("returns 1.0 when masterLoopDuration is negative", () => {
+      expect(calculateSyncSpeed(10000, -5000, 1)).toBe(1.0);
+    });
+  });
+
+  describe("getValidSyncMultipliers", () => {
+    it("returns only multipliers whose speed falls within MIN_SPEED-MAX_SPEED", () => {
+      const results = getValidSyncMultipliers(10000, 10000);
+      // base ratio = 1.0, so speeds are: 0.25, 0.333, 0.5, 1.0, 2.0, 3.0, 4.0
+      // 3.0 and 4.0 exceed MAX_SPEED (2.5), so they're excluded
+      // 0.25 and 0.333 are above MIN_SPEED (0.05), so they're included
+      for (const r of results) {
+        const speed = calculateSyncSpeed(10000, 10000, r.value);
+        expect(speed).toBeGreaterThanOrEqual(MIN_SPEED);
+        expect(speed).toBeLessThanOrEqual(MAX_SPEED);
+      }
+    });
+
+    it("returns all 7 multipliers when all produce valid speeds", () => {
+      // Track of 10s, master of 10s: base ratio = 1.0
+      // Speeds: 0.25, 0.33, 0.5, 1.0, 2.0, 3.0, 4.0
+      // Only 1/4x (0.25), 1/3x (0.33), 1/2x (0.5), 1x (1.0), 2x (2.0) are valid
+      // 3x (3.0) and 4x (4.0) exceed 2.5
+      // So not all 7 are valid here. Use a ratio where all 7 work:
+      // base ratio = 0.6 (e.g., track=6000, master=10000)
+      // speeds after rounding: 0.146, 0.195, 0.293, 0.610, 1.195, 1.805, 2.390
+      const results = getValidSyncMultipliers(6000, 10000);
+      expect(results).toHaveLength(7);
+    });
+
+    it("excludes multipliers that produce speeds above MAX_SPEED", () => {
+      // Track 20s, master 10s: base ratio = 2.0
+      // 2x => 4.0 (exceeds 2.5), 3x => 6.0, 4x => 8.0
+      const results = getValidSyncMultipliers(20000, 10000);
+      const values = results.map((r) => r.value);
+      expect(values).not.toContain(2);
+      expect(values).not.toContain(3);
+      expect(values).not.toContain(4);
+    });
+
+    it("excludes multipliers that produce speeds below MIN_SPEED", () => {
+      // Track 0.5s (500ms), master 10s: base ratio = 0.05
+      // 1/4x => 0.0125 (below MIN_SPEED), 1/3x => 0.0167
+      const results = getValidSyncMultipliers(500, 10000);
+      const values = results.map((r) => r.value);
+      expect(values).not.toContain(1 / 4);
+      expect(values).not.toContain(1 / 3);
+    });
+
+    it("returns empty array when no multipliers are valid", () => {
+      // Track of 0.1s (100ms), master 10s: base ratio = 0.01
+      // All multiplied values below 0.05 except maybe 4x => 0.04, still below
+      const results = getValidSyncMultipliers(100, 10000);
+      expect(results).toHaveLength(0);
+    });
+
+    it("returns objects with label and value properties", () => {
+      const results = getValidSyncMultipliers(10000, 10000);
+      for (const r of results) {
+        expect(r).toHaveProperty("label");
+        expect(r).toHaveProperty("value");
+        expect(typeof r.label).toBe("string");
+        expect(typeof r.value).toBe("number");
+      }
+    });
   });
 });
