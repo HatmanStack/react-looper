@@ -46,8 +46,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onDismiss }) => {
             <Text style={styles.sectionTitle}>🎵 Selecting Tracks</Text>
             <Text style={styles.text}>
               • Tap any track to select/deselect it{"\n"}• Selected tracks show
-              a blue border on the left{"\n"}• New tracks are automatically
-              selected{"\n"}• You can select multiple tracks at once
+              a blue border{"\n"}• New tracks are automatically selected{"\n"}•
+              You can select multiple tracks at once
             </Text>
           </View>
 

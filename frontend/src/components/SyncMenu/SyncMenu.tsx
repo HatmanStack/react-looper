@@ -71,7 +71,9 @@ const SyncMenuComponent: React.FC<SyncMenuProps> = ({
             size={24}
             iconColor={isSynced ? SYNCED_COLOR : DEFAULT_COLOR}
             onPress={handleOpenMenu}
-            accessibilityLabel={isSynced ? "Synced to master" : "Sync to master"}
+            accessibilityLabel={
+              isSynced ? "Synced to master" : "Sync to master"
+            }
             accessibilityHint="Open sync multiplier menu"
           />
         }

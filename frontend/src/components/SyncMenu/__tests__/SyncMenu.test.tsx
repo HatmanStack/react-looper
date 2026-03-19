@@ -35,7 +35,11 @@ jest.mock("react-native-paper", () => {
       { testID: "menu" },
       props.anchor,
       props.visible
-        ? React.createElement(RN.View, { testID: "menu-content" }, props.children)
+        ? React.createElement(
+            RN.View,
+            { testID: "menu-content" },
+            props.children,
+          )
         : null,
     );
 
@@ -83,17 +87,23 @@ describe("SyncMenu", () => {
   });
 
   it("shows 'link-off' icon when not synced", () => {
-    const { getByText } = render(<SyncMenu {...defaultProps} syncMultiplier={null} />);
+    const { getByText } = render(
+      <SyncMenu {...defaultProps} syncMultiplier={null} />,
+    );
     expect(getByText("link-off")).toBeTruthy();
   });
 
   it("shows 'link' icon when synced", () => {
-    const { getByText } = render(<SyncMenu {...defaultProps} syncMultiplier={1} />);
+    const { getByText } = render(
+      <SyncMenu {...defaultProps} syncMultiplier={1} />,
+    );
     expect(getByText("link")).toBeTruthy();
   });
 
   it("opens menu with multiplier options on press", () => {
-    const { getByTestId, queryByTestId } = render(<SyncMenu {...defaultProps} />);
+    const { getByTestId, queryByTestId } = render(
+      <SyncMenu {...defaultProps} />,
+    );
 
     // Menu content should not be visible initially
     expect(queryByTestId("menu-content")).toBeNull();
@@ -142,7 +152,11 @@ describe("SyncMenu", () => {
   it("calls onSyncClear when 'Unsync' is selected", () => {
     const onSyncClear = jest.fn();
     const { getByTestId, getByText } = render(
-      <SyncMenu {...defaultProps} syncMultiplier={1} onSyncClear={onSyncClear} />,
+      <SyncMenu
+        {...defaultProps}
+        syncMultiplier={1}
+        onSyncClear={onSyncClear}
+      />,
     );
 
     fireEvent.press(getByTestId("sync-button"));
