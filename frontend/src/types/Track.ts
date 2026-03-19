@@ -48,6 +48,13 @@ export interface Track {
   selected?: boolean;
 
   /**
+   * Sync multiplier for locking playback speed to the master loop duration.
+   * When set to a number, the track is synced at that multiplier (e.g., 1 = match master duration).
+   * When null or undefined, the track is in manual speed mode.
+   */
+  syncMultiplier?: number | null;
+
+  /**
    * Timestamp when the track was created
    */
   createdAt: number;
