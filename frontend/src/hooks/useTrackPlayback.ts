@@ -274,6 +274,8 @@ export function useTrackPlayback(
         multiplier,
       );
 
+      if (syncSpeed < MIN_SPEED || syncSpeed > MAX_SPEED) return;
+
       const success = await applySpeedChange(trackId, syncSpeed);
       if (success) {
         updateTrack(trackId, { syncMultiplier: multiplier });
