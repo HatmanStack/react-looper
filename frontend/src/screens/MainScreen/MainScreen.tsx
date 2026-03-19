@@ -136,6 +136,8 @@ export const MainScreen: React.FC = () => {
     deleteConfirmationVisible,
     handleDeleteConfirm,
     handleDeleteCancel,
+    handleSyncSelect,
+    handleSyncClear,
   } = useTrackPlayback({
     audioService: audioServiceRef.current,
     tracks,
@@ -317,6 +319,8 @@ export const MainScreen: React.FC = () => {
             onVolumeChange={handleVolumeChange}
             onSpeedChange={handleSpeedChange}
             onSelect={handleSelect}
+            onSyncSelect={handleSyncSelect}
+            onSyncClear={handleSyncClear}
           />
         </View>
 
@@ -338,7 +342,7 @@ export const MainScreen: React.FC = () => {
         <ConfirmationDialog
           visible={speedConfirmationVisible}
           title="Change Master Loop Speed?"
-          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Continue?"
+          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Synced tracks will be automatically adjusted. Continue?"
           onConfirm={handleSpeedChangeConfirm}
           onCancel={handleSpeedChangeCancel}
           confirmLabel="Change Speed"

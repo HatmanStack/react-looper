@@ -25,6 +25,8 @@ export interface TrackListProps {
   onVolumeChange?: (trackId: string, volume: number) => void;
   onSpeedChange?: (trackId: string, speed: number) => void;
   onSelect?: (trackId: string) => void;
+  onSyncSelect?: (trackId: string, multiplier: number) => void;
+  onSyncClear?: (trackId: string) => void;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
@@ -35,6 +37,8 @@ export const TrackList: React.FC<TrackListProps> = ({
   onVolumeChange,
   onSpeedChange,
   onSelect,
+  onSyncSelect,
+  onSyncClear,
 }) => {
   // Get master loop duration once at list level (avoids N selector calls in items)
   const masterLoopDuration = useTrackStore((state) =>
@@ -52,6 +56,8 @@ export const TrackList: React.FC<TrackListProps> = ({
         onVolumeChange={onVolumeChange}
         onSpeedChange={onSpeedChange}
         onSelect={onSelect}
+        onSyncSelect={onSyncSelect}
+        onSyncClear={onSyncClear}
       />
     ),
     [
@@ -62,6 +68,8 @@ export const TrackList: React.FC<TrackListProps> = ({
       onVolumeChange,
       onSpeedChange,
       onSelect,
+      onSyncSelect,
+      onSyncClear,
     ],
   );
 
