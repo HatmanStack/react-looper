@@ -34,12 +34,12 @@ export interface UseTrackPlaybackReturn {
   handleSpeedChange: (trackId: string, speed: number) => Promise<void>;
   handleSelect: (trackId: string) => void;
   speedConfirmationVisible: boolean;
-  handleSpeedChangeConfirm: () => void;
+  handleSpeedChangeConfirm: () => Promise<void>;
   handleSpeedChangeCancel: () => void;
   deleteConfirmationVisible: boolean;
   handleDeleteConfirm: () => Promise<void>;
   handleDeleteCancel: () => void;
-  handleSyncSelect: (trackId: string, multiplier: number) => void;
+  handleSyncSelect: (trackId: string, multiplier: number) => Promise<void>;
   handleSyncClear: (trackId: string) => void;
 }
 
@@ -174,14 +174,16 @@ export function useTrackPlayback(
   );
 
   const applySpeedChange = useCallback(
-    async (trackId: string, speed: number) => {
-      if (!audioService) return;
+    async (trackId: string, speed: number): Promise<boolean> => {
+      if (!audioService) return false;
 
       try {
         await audioService.setTrackSpeed(trackId, speed);
         updateTrack(trackId, { speed });
+        return true;
       } catch (error) {
         logger.error("[useTrackPlayback] Speed change failed:", error);
+        return false;
       }
     },
     [audioService, updateTrack],
@@ -201,41 +203,48 @@ export function useTrackPlayback(
       }
 
       // Clear sync binding when speed is manually changed on a non-master track
-      updateTrack(trackId, { syncMultiplier: null });
-      await applySpeedChange(trackId, speed);
+      const success = await applySpeedChange(trackId, speed);
+      if (success) {
+        updateTrack(trackId, { syncMultiplier: null });
+      }
     },
     [audioService, tracks, applySpeedChange, updateTrack],
   );
 
-  const handleSpeedChangeConfirm = useCallback(() => {
+  const handleSpeedChangeConfirm = useCallback(async () => {
     if (pendingSpeedChange) {
-      void applySpeedChange(
+      const masterSuccess = await applySpeedChange(
         pendingSpeedChange.trackId,
         pendingSpeedChange.speed,
       );
 
-      // Auto-resync all synced non-master tracks
-      const masterTrack = tracks[0];
-      if (masterTrack) {
-        const newMasterLoopDuration = calculateSpeedAdjustedDuration(
-          masterTrack.duration,
-          pendingSpeedChange.speed,
-        );
+      // Only resync dependents if master speed was successfully applied
+      if (masterSuccess) {
+        const masterTrack = tracks[0];
+        if (masterTrack) {
+          const newMasterLoopDuration = calculateSpeedAdjustedDuration(
+            masterTrack.duration,
+            pendingSpeedChange.speed,
+          );
 
-        for (let i = 1; i < tracks.length; i++) {
-          const track = tracks[i];
-          if (track.syncMultiplier != null) {
-            const newSyncSpeed = calculateSyncSpeed(
-              track.duration,
-              newMasterLoopDuration,
-              track.syncMultiplier,
-            );
+          for (let i = 1; i < tracks.length; i++) {
+            const track = tracks[i];
+            if (track.syncMultiplier != null) {
+              const newSyncSpeed = calculateSyncSpeed(
+                track.duration,
+                newMasterLoopDuration,
+                track.syncMultiplier,
+              );
 
-            if (newSyncSpeed >= MIN_SPEED && newSyncSpeed <= MAX_SPEED) {
-              void applySpeedChange(track.id, newSyncSpeed);
-            } else {
-              // Speed out of range -- break sync gracefully
-              updateTrack(track.id, { syncMultiplier: null });
+              if (newSyncSpeed >= MIN_SPEED && newSyncSpeed <= MAX_SPEED) {
+                const ok = await applySpeedChange(track.id, newSyncSpeed);
+                if (!ok) {
+                  updateTrack(track.id, { syncMultiplier: null });
+                }
+              } else {
+                // Speed out of range -- break sync gracefully
+                updateTrack(track.id, { syncMultiplier: null });
+              }
             }
           }
         }
@@ -252,7 +261,7 @@ export function useTrackPlayback(
   }, []);
 
   const handleSyncSelect = useCallback(
-    (trackId: string, multiplier: number) => {
+    async (trackId: string, multiplier: number) => {
       const track = tracks.find((t) => t.id === trackId);
       if (!track || !audioService) return;
 
@@ -270,8 +279,12 @@ export function useTrackPlayback(
         multiplier,
       );
 
-      void applySpeedChange(trackId, syncSpeed);
-      updateTrack(trackId, { syncMultiplier: multiplier });
+      if (syncSpeed < MIN_SPEED || syncSpeed > MAX_SPEED) return;
+
+      const success = await applySpeedChange(trackId, syncSpeed);
+      if (success) {
+        updateTrack(trackId, { syncMultiplier: multiplier });
+      }
     },
     [audioService, tracks, applySpeedChange, updateTrack],
   );

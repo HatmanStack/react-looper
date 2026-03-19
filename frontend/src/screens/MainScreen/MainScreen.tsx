@@ -342,7 +342,7 @@ export const MainScreen: React.FC = () => {
         <ConfirmationDialog
           visible={speedConfirmationVisible}
           title="Change Master Loop Speed?"
-          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Synced tracks will be automatically adjusted. Continue?"
+          message="This track sets the loop length. Changing its speed will affect how all other tracks loop. Synced tracks will be adjusted when possible; out-of-range tracks will be unsynced. Continue?"
           onConfirm={handleSpeedChangeConfirm}
           onCancel={handleSpeedChangeCancel}
           confirmLabel="Change Speed"

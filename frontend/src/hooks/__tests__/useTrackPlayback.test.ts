@@ -287,6 +287,35 @@ describe("useTrackPlayback", () => {
       expect(mockAudioService.setTrackSpeed).toHaveBeenCalledWith("t2", 1.5);
     });
 
+    it("handleSyncSelect does not store syncMultiplier if speed change fails", async () => {
+      mockAudioService.setTrackSpeed.mockRejectedValueOnce(
+        new Error("Service error"),
+      );
+      const masterTrack = createMockTrack({
+        id: "master",
+        duration: 10000,
+        speed: 1.0,
+      });
+      const track = createMockTrack({
+        id: "t2",
+        duration: 5000,
+        speed: 1.0,
+      });
+      const { result } = renderHook(() =>
+        useTrackPlayback(defaultOptions([masterTrack, track])),
+      );
+
+      await act(async () => {
+        await result.current.handleSyncSelect("t2", 1);
+      });
+
+      // syncMultiplier should NOT be persisted since speed change failed
+      expect(mockUpdateTrack).not.toHaveBeenCalledWith(
+        "t2",
+        expect.objectContaining({ syncMultiplier: 1 }),
+      );
+    });
+
     it("master speed confirm triggers auto-resync of synced tracks", async () => {
       const masterTrack = createMockTrack({
         id: "master",
@@ -311,8 +340,8 @@ describe("useTrackPlayback", () => {
       expect(result.current.speedConfirmationVisible).toBe(true);
 
       // Confirm the speed change
-      act(() => {
-        result.current.handleSpeedChangeConfirm();
+      await act(async () => {
+        await result.current.handleSpeedChangeConfirm();
       });
 
       // Master speed applied
@@ -357,8 +386,8 @@ describe("useTrackPlayback", () => {
         await result.current.handleSpeedChange("master", 2.0);
       });
 
-      act(() => {
-        result.current.handleSpeedChangeConfirm();
+      await act(async () => {
+        await result.current.handleSpeedChangeConfirm();
       });
 
       // Sync should be cleared because the new speed is out of range

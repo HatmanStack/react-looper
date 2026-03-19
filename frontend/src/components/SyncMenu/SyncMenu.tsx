@@ -21,7 +21,6 @@ export interface SyncMenuProps {
 
 const SYNCED_COLOR = "#3F51B5";
 const DEFAULT_COLOR = "#E1E1E1";
-const ACTIVE_MULTIPLIER_COLOR = "#3F51B5";
 
 const SyncMenuComponent: React.FC<SyncMenuProps> = ({
   trackDuration,
@@ -78,21 +77,25 @@ const SyncMenuComponent: React.FC<SyncMenuProps> = ({
           />
         }
       >
-        {validMultipliers.map(({ label, value }) => (
-          <Menu.Item
-            key={label}
-            onPress={() => handleSelectMultiplier(value)}
-            title={label}
-            leadingIcon={
-              isSynced && syncMultiplier === value ? "check" : undefined
-            }
-            titleStyle={
-              isSynced && syncMultiplier === value
-                ? { color: ACTIVE_MULTIPLIER_COLOR }
-                : undefined
-            }
-          />
-        ))}
+        {validMultipliers.length === 0 && !isSynced ? (
+          <Menu.Item title="No valid sync options" disabled />
+        ) : (
+          validMultipliers.map(({ label, value }) => (
+            <Menu.Item
+              key={label}
+              onPress={() => handleSelectMultiplier(value)}
+              title={label}
+              leadingIcon={
+                isSynced && syncMultiplier === value ? "check" : undefined
+              }
+              titleStyle={
+                isSynced && syncMultiplier === value
+                  ? { color: SYNCED_COLOR }
+                  : undefined
+              }
+            />
+          ))
+        )}
         {isSynced && (
           <Menu.Item
             onPress={handleUnsync}
