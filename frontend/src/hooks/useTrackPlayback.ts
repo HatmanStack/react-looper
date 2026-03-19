@@ -39,7 +39,7 @@ export interface UseTrackPlaybackReturn {
   deleteConfirmationVisible: boolean;
   handleDeleteConfirm: () => Promise<void>;
   handleDeleteCancel: () => void;
-  handleSyncSelect: (trackId: string, multiplier: number) => void;
+  handleSyncSelect: (trackId: string, multiplier: number) => Promise<void>;
   handleSyncClear: (trackId: string) => void;
 }
 
@@ -252,7 +252,7 @@ export function useTrackPlayback(
   }, []);
 
   const handleSyncSelect = useCallback(
-    (trackId: string, multiplier: number) => {
+    async (trackId: string, multiplier: number) => {
       const track = tracks.find((t) => t.id === trackId);
       if (!track || !audioService) return;
 
@@ -270,7 +270,7 @@ export function useTrackPlayback(
         multiplier,
       );
 
-      void applySpeedChange(trackId, syncSpeed);
+      await applySpeedChange(trackId, syncSpeed);
       updateTrack(trackId, { syncMultiplier: multiplier });
     },
     [audioService, tracks, applySpeedChange, updateTrack],

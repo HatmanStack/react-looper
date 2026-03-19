@@ -130,8 +130,10 @@ describe("SyncMenu", () => {
 
     fireEvent.press(getByTestId("sync-button"));
 
-    expect(queryByText("1x")).toBeTruthy();
+    expect(queryByText("1/4x")).toBeTruthy();
+    expect(queryByText("1/3x")).toBeTruthy();
     expect(queryByText("1/2x")).toBeTruthy();
+    expect(queryByText("1x")).toBeTruthy();
     expect(queryByText("2x")).toBeNull();
     expect(queryByText("3x")).toBeNull();
     expect(queryByText("4x")).toBeNull();

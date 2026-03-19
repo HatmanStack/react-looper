@@ -22,7 +22,7 @@ import { styles } from "./TrackListItem.styles";
 export interface TrackListItemProps {
   track: Track;
   /** Master loop duration in milliseconds (passed from TrackList for single selector call) */
-  masterLoopDuration: number;
+  masterLoopDuration?: number;
   onPlay?: (trackId: string) => void;
   onPause?: (trackId: string) => void;
   onDelete?: (trackId: string) => void;
@@ -35,7 +35,7 @@ export interface TrackListItemProps {
 
 const TrackListItemComponent: React.FC<TrackListItemProps> = ({
   track,
-  masterLoopDuration,
+  masterLoopDuration = 0,
   onPlay,
   onPause,
   onDelete,
