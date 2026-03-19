@@ -203,8 +203,10 @@ export function useTrackPlayback(
       }
 
       // Clear sync binding when speed is manually changed on a non-master track
-      updateTrack(trackId, { syncMultiplier: null });
-      await applySpeedChange(trackId, speed);
+      const success = await applySpeedChange(trackId, speed);
+      if (success) {
+        updateTrack(trackId, { syncMultiplier: null });
+      }
     },
     [audioService, tracks, applySpeedChange, updateTrack],
   );
@@ -235,7 +237,10 @@ export function useTrackPlayback(
               );
 
               if (newSyncSpeed >= MIN_SPEED && newSyncSpeed <= MAX_SPEED) {
-                void applySpeedChange(track.id, newSyncSpeed);
+                const ok = await applySpeedChange(track.id, newSyncSpeed);
+                if (!ok) {
+                  updateTrack(track.id, { syncMultiplier: null });
+                }
               } else {
                 // Speed out of range -- break sync gracefully
                 updateTrack(track.id, { syncMultiplier: null });
