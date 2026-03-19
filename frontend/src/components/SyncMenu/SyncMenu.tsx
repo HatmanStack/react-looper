@@ -60,7 +60,7 @@ const SyncMenuComponent: React.FC<SyncMenuProps> = ({
   }, [onSyncClear]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="sync-menu-container">
       <Menu
         visible={menuVisible}
         onDismiss={handleDismissMenu}

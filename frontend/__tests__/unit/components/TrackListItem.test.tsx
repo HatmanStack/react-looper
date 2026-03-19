@@ -180,4 +180,44 @@ describe("TrackListItem", () => {
       expect(queryByLabelText(/Master loop track/i)).toBeNull();
     });
   });
+
+  describe("Sync Button", () => {
+    it("does NOT render sync menu for master track", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+        createMockTrack({ id: "track-2", name: "Track 2" }),
+      ];
+      useTrackStore.setState({ tracks });
+
+      const { queryByTestId } = render(
+        <TrackListItem
+          track={tracks[0]}
+          masterLoopDuration={10000}
+          onSyncSelect={jest.fn()}
+          onSyncClear={jest.fn()}
+        />,
+      );
+
+      expect(queryByTestId("sync-menu-container")).toBeNull();
+    });
+
+    it("renders sync menu for non-master tracks", () => {
+      const tracks = [
+        createMockTrack({ id: "track-1", name: "Master Track" }),
+        createMockTrack({ id: "track-2", name: "Track 2", duration: 5000 }),
+      ];
+      useTrackStore.setState({ tracks });
+
+      const { getByTestId } = render(
+        <TrackListItem
+          track={tracks[1]}
+          masterLoopDuration={10000}
+          onSyncSelect={jest.fn()}
+          onSyncClear={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId("sync-menu-container")).toBeTruthy();
+    });
+  });
 });

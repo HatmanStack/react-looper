@@ -13,6 +13,7 @@ import { View, Text, Pressable } from "react-native";
 import { IconButton } from "react-native-paper";
 import { VolumeSlider } from "../VolumeSlider";
 import { SpeedSlider } from "../SpeedSlider";
+import { SyncMenu } from "../SyncMenu";
 import { TrackProgressBar } from "../TrackProgressBar";
 import { useTrackStore } from "../../store/useTrackStore";
 import type { Track } from "../../types";
@@ -28,6 +29,8 @@ export interface TrackListItemProps {
   onVolumeChange?: (trackId: string, volume: number) => void;
   onSpeedChange?: (trackId: string, speed: number) => void;
   onSelect?: (trackId: string) => void;
+  onSyncSelect?: (trackId: string, multiplier: number) => void;
+  onSyncClear?: (trackId: string) => void;
 }
 
 const TrackListItemComponent: React.FC<TrackListItemProps> = ({
@@ -39,6 +42,8 @@ const TrackListItemComponent: React.FC<TrackListItemProps> = ({
   onVolumeChange,
   onSpeedChange,
   onSelect,
+  onSyncSelect,
+  onSyncClear,
 }) => {
   // Check if this track is the master track (first track in store)
   const isMaster = useTrackStore((state) => state.isMasterTrack(track.id));
@@ -65,6 +70,14 @@ const TrackListItemComponent: React.FC<TrackListItemProps> = ({
 
   const handleSelect = () => {
     onSelect?.(track.id);
+  };
+
+  const handleSyncSelect = (multiplier: number) => {
+    onSyncSelect?.(track.id, multiplier);
+  };
+
+  const handleSyncClear = () => {
+    onSyncClear?.(track.id);
   };
 
   // Build container styles with master and/or selected track styling
@@ -132,6 +145,17 @@ const TrackListItemComponent: React.FC<TrackListItemProps> = ({
               onValueChange={handleSpeedChange}
             />
           </View>
+
+          {/* Sync Button (non-master tracks only) */}
+          {!isMaster && (
+            <SyncMenu
+              trackDuration={track.duration}
+              masterLoopDuration={masterLoopDuration}
+              syncMultiplier={track.syncMultiplier}
+              onSyncSelect={handleSyncSelect}
+              onSyncClear={handleSyncClear}
+            />
+          )}
 
           {/* Pause Button (right) */}
           <IconButton
