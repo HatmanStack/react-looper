@@ -311,8 +311,8 @@ describe("useTrackPlayback", () => {
       expect(result.current.speedConfirmationVisible).toBe(true);
 
       // Confirm the speed change
-      act(() => {
-        result.current.handleSpeedChangeConfirm();
+      await act(async () => {
+        await result.current.handleSpeedChangeConfirm();
       });
 
       // Master speed applied
@@ -357,8 +357,8 @@ describe("useTrackPlayback", () => {
         await result.current.handleSpeedChange("master", 2.0);
       });
 
-      act(() => {
-        result.current.handleSpeedChangeConfirm();
+      await act(async () => {
+        await result.current.handleSpeedChangeConfirm();
       });
 
       // Sync should be cleared because the new speed is out of range

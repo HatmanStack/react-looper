@@ -218,11 +218,19 @@ export function calculateSyncSpeed(
   masterLoopDuration: number,
   multiplier: number,
 ): number {
-  if (masterLoopDuration <= 0 || !isFinite(masterLoopDuration)) {
+  if (
+    !isFinite(trackDuration) ||
+    trackDuration <= 0 ||
+    !isFinite(masterLoopDuration) ||
+    masterLoopDuration <= 0 ||
+    !isFinite(multiplier) ||
+    multiplier <= 0
+  ) {
     return DEFAULT_SPEED;
   }
 
   const speed = (trackDuration / masterLoopDuration) * multiplier;
+  if (!isFinite(speed) || speed <= 0) return DEFAULT_SPEED;
   return Math.round(speed * 41) / 41;
 }
 
@@ -252,6 +260,15 @@ export function getValidSyncMultipliers(
   trackDuration: number,
   masterLoopDuration: number,
 ): { label: string; value: number }[] {
+  if (
+    !isFinite(trackDuration) ||
+    trackDuration <= 0 ||
+    !isFinite(masterLoopDuration) ||
+    masterLoopDuration <= 0
+  ) {
+    return [];
+  }
+
   return SYNC_MULTIPLIERS.filter(({ value }) => {
     const speed = calculateSyncSpeed(trackDuration, masterLoopDuration, value);
     return speed >= MIN_SPEED && speed <= MAX_SPEED;
