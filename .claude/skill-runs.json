@@ -1,0 +1,13 @@
+[
+  {
+    "skill": "audit",
+    "date": "2026-03-18",
+    "plan": "2026-03-18-audit-react-looper",
+    "audits": ["health", "eval", "docs"]
+  },
+  {
+    "skill": "brainstorm",
+    "date": "2026-03-18",
+    "plan": "2026-03-18-track-sync-speed"
+  }
+]
