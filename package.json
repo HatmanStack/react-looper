@@ -2,7 +2,9 @@
   "name": "looper",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["frontend"],
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
     "start": "cd frontend && expo start",
     "android": "cd frontend && expo start --android",
@@ -66,7 +68,7 @@
     "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
-    "jest-expo": "^54.0.13",
+    "jest-expo": "^55.0.11",
     "prettier": "^3.6.2",
     "react-test-renderer": "19.1.0"
   }
