@@ -14,10 +14,15 @@ on:
       - '*.md'
       - '.claude/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Lint, Type Check & Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
@@ -42,6 +47,7 @@ jobs:
   status-check:
     name: All Checks Passed
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [check]
     if: always()
     steps:
