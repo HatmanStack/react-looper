@@ -14,12 +14,6 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => {
     platforms: ["ios", "android", "web"],
     icon: "./assets/icon.png",
     userInterfaceStyle: "dark",
-    newArchEnabled: true,
-    splash: {
-      image: "./assets/splash-icon.png",
-      resizeMode: "contain",
-      backgroundColor: "#121212",
-    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.looper.app",
@@ -49,7 +43,6 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => {
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_AUDIO",
       ],
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
     web: {
@@ -86,6 +79,14 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => {
       ],
     },
     plugins: [
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/splash-icon.png",
+          resizeMode: "contain",
+          backgroundColor: "#121212",
+        },
+      ],
       "expo-av",
       [
         "expo-media-library",
