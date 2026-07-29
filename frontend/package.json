@@ -38,7 +38,7 @@
     "ffmpeg-kit-react-native": "^6.0.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-native": "0.86.0",
+    "react-native": "0.86.2",
     "react-native-gesture-handler": "^3.1.0",
     "react-native-paper": "^5.15.3",
     "react-native-safe-area-context": "^5.8.0",
